@@ -42,11 +42,10 @@ export async function GET() {
       data: parsedData.data,
       meta: parsedData.meta,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching/parsing pivot table data:', error);
-    return NextResponse.json(
-      { error: error?.message || 'An unexpected error occurred.' },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
