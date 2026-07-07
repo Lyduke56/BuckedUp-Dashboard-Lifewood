@@ -1,0 +1,306 @@
+import type { PipelineStatus, Product } from "./types";
+
+export const CATEGORY_TREE: Record<string, string[]> = {
+  "Pre-Workout & Energy": [
+    "Fat Burn & Thermogenic",
+    "High Stimulant Pre-Workout",
+    "On The Go Energy",
+    "Standard Stim Pre-Workout",
+    "Stim Free & Pump",
+  ],
+  Drinks: ["Energy Drinks", "Hydration Drinks", "Protein Drinks"],
+  Creatine: ["Creatine Gummies", "Creatine Powder"],
+  "Vitamins & Wellness": [
+    "Antioxidants & Specialty",
+    "Greens",
+    "Joint & Bone",
+    "Multivitamins",
+    "Omegas & Healthy Fats",
+  ],
+  "BCAA & Amino Acids": ["BCAA", "EAAs"],
+  "Deer Antler Spray": ["Deer Antler Spray"],
+  Stacks: ["Stacks"],
+  "Babe by Bucked Up": ["Babe By Bucked Up"],
+  "Clearance & Last Chance": ["Clearance & Last Chance"],
+  "Apparel & Gear": [
+    "Apparel & Gear Clearance",
+    "Apparel New Arrivals",
+    "Bags & Bookbags",
+    "Bucked Up Accessories",
+    "Fitness Gear",
+    "Hats & Headwear",
+    "Mens Pants",
+    "Mens Shorts",
+    "Mens Sweater & Jackets",
+    "Mens Tops",
+    "Shaker Bottles & Cups",
+    "Womens Leggings & Pants",
+    "Womens Shorts",
+    "Womens Sport Bras",
+    "Womens Sweater & Jackets",
+    "Womens Tops",
+  ],
+};
+
+export const STATUS_ORDER: PipelineStatus[] = [
+  "Not Started",
+  "Scripting",
+  "Filming",
+  "Editing",
+  "In Review",
+  "Scheduled",
+  "Published",
+];
+
+export const STATUS_CLASS: Record<PipelineStatus, string> = {
+  "Not Started": "st-not-started",
+  Scripting: "st-scripting",
+  Filming: "st-filming",
+  Editing: "st-editing",
+  "In Review": "st-in-review",
+  Scheduled: "st-scheduled",
+  Published: "st-published",
+};
+
+export const STATUS_HEX: Record<PipelineStatus, string> = {
+  "Not Started": "#CCCCCC",
+  Scripting: "#9CAFA4",
+  Filming: "#708E7C",
+  Editing: "#417256",
+  "In Review": "#034E34",
+  Scheduled: "#133020",
+  Published: "#046241",
+};
+
+export const products: Product[] = [
+  {
+    rank: 1,
+    name: "Creatine Monohydrate",
+    category: "Creatine",
+    subcategory: "Creatine Powder",
+    price: "$29.99",
+    type: "Educational + Product Demo",
+    items: [
+      {
+        name: "Creatine Monohydrate — Educational + Product Demo",
+        status: "Published",
+        videoUrl: "#",
+      },
+    ],
+  },
+  {
+    rank: 2,
+    name: "Woke AF Pre-Workout",
+    category: "Pre-Workout & Energy",
+    subcategory: "High Stimulant Pre-Workout",
+    price: "$54.99",
+    type: "Hype / POV Reel",
+    items: [
+      {
+        name: "Woke AF Pre-Workout — Hype / POV Reel",
+        status: "Scheduled",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 3,
+    name: "Bucked Up Pre-Workout",
+    category: "Pre-Workout & Energy",
+    subcategory: "Standard Stim Pre-Workout",
+    price: "$49.99",
+    type: "Product Demo",
+    items: [
+      {
+        name: "Bucked Up Pre-Workout — Product Demo (11 variants)",
+        status: "In Review",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 4,
+    name: "Energy Drinks",
+    category: "Drinks",
+    subcategory: "Energy Drinks",
+    price: "from $39.99",
+    type: "Collection Haul / Taste Test",
+    items: [
+      {
+        name: "2-Case Custom Bundle",
+        variant: "Mix & match Protein Soda + Energy",
+        status: "Not Started",
+        videoUrl: null,
+      },
+      {
+        name: "Babe Energy (2 Cases / 24 Cans)",
+        variant: "Cherry Blossom, Raspberry Twist",
+        status: "Scripting",
+        videoUrl: null,
+      },
+      {
+        name: "Bucked Up Energy (2 Cases / 24 Cans)",
+        variant: "15 flavors incl. NEW",
+        status: "Filming",
+        videoUrl: null,
+      },
+      {
+        name: "Bucked Up Mini Energy Drink (7.5 oz)",
+        variant: "4 flavors incl. NEW",
+        status: "Filming",
+        videoUrl: null,
+      },
+      {
+        name: "Refresher™ Energy Drinks (1 Case / 12 Cans)",
+        variant: "5 flavors incl. NEW",
+        status: "Editing",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 5,
+    name: "Protein Drinks (Protein Soda)",
+    category: "Drinks",
+    subcategory: "Protein Drinks",
+    price: "from $5.99",
+    type: "Collection Haul / Reaction",
+    items: [
+      {
+        name: "Protein Popcorn (1 Bag)",
+        variant: "★ Best Seller #1 · NEW",
+        status: "Scripting",
+        videoUrl: null,
+      },
+      {
+        name: "Collagen Peptides",
+        variant: "★ Best Seller #8",
+        status: "Not Started",
+        videoUrl: null,
+      },
+      {
+        name: "Buck Feed Original Protein",
+        variant: "★ Best Seller #20",
+        status: "Not Started",
+        videoUrl: null,
+      },
+      {
+        name: "Babe Collagen",
+        variant: "Chocolate, Blueberry Pomegranate",
+        status: "Not Started",
+        videoUrl: null,
+      },
+      {
+        name: "Buck Feed All-Natural Protein",
+        variant: "Chocolate",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 6,
+    name: "Mother Bucker Pre-Workout",
+    category: "Pre-Workout & Energy",
+    subcategory: "High Stimulant Pre-Workout",
+    price: "$59.99",
+    type: "Product Demo / Comparison",
+    items: [
+      {
+        name: "Mother Bucker Pre-Workout — Product Demo / Comparison",
+        status: "Editing",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 7,
+    name: "Six Point Creatine",
+    category: "Creatine",
+    subcategory: "Creatine Powder",
+    price: "$34.99",
+    type: "Educational / Comparison",
+    items: [
+      {
+        name: "Six Point Creatine — Educational / Comparison",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 8,
+    name: "RUT Testosterone Booster",
+    category: "Vitamins & Wellness",
+    subcategory: "Joint & Bone",
+    price: "$69.99",
+    type: "Educational",
+    items: [
+      {
+        name: "RUT Testosterone Booster — Educational",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 9,
+    name: "Buck Naked Fat Burner",
+    category: "Vitamins & Wellness",
+    subcategory: "Joint & Bone",
+    price: "$59.99",
+    type: "Educational / Lifestyle",
+    items: [
+      {
+        name: "Buck Naked Fat Burner — Educational / Lifestyle",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 10,
+    name: "Buck Feed Protein Powder",
+    category: "Drinks",
+    subcategory: "Protein Drinks",
+    price: "$68.99",
+    type: "Product Demo / Recipe",
+    items: [
+      {
+        name: "Buck Feed Protein Powder — Product Demo / Recipe",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 11,
+    name: "PWR BUCK Energy Pouches",
+    category: "Pre-Workout & Energy",
+    subcategory: "On The Go Energy",
+    price: "$8.99–$39.99",
+    type: "Trend Short",
+    items: [
+      {
+        name: "PWR BUCK Energy Pouches — Trend Short",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+  {
+    rank: 12,
+    name: "Pump Ocalypse",
+    category: "Pre-Workout & Energy",
+    subcategory: "Stim Free & Pump",
+    price: "$45.99",
+    type: "Product Demo / Stack",
+    items: [
+      {
+        name: "Pump Ocalypse — Product Demo / Stack",
+        status: "Not Started",
+        videoUrl: null,
+      },
+    ],
+  },
+];
