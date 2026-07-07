@@ -321,9 +321,6 @@ a {
 
 /* ---------- KPI ---------- */
 .kpi-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
   margin-bottom: 26px;
 }
 
@@ -338,6 +335,7 @@ a {
 .kpi-card:hover {
   border-color: var(--saffron);
   box-shadow: 0 6px 16px rgba(19, 48, 32, 0.06);
+   transform: translateY(-2px);
 }
 
 .kpi-number {
@@ -373,6 +371,11 @@ a {
 
 .kpi-card.c-notstarted .kpi-number {
   color: var(--gray1);
+}
+
+.kpi-card.c-neutral .kpi-icon {
+  background: rgba(19, 48, 32, 0.06);
+  color: var(--ink-soft);
 }
 
 /* ---------- PANEL HEADING ACCENT ---------- */
@@ -597,12 +600,6 @@ select:focus,
 }
 
 /* ---------- FOLDER GRID ---------- */
-.folder-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
-  gap: 14px;
-}
-
 .folder-card {
   background: var(--white);
   border: 1px solid var(--line);
@@ -1120,25 +1117,6 @@ select:focus,
   color: var(--earth-yellow);
 }
 
-@media (max-width: 900px) {
-  .kpi-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .overview-grid,
-  .analytics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .file-row {
-    grid-template-columns: 40px 1fr 90px;
-  }
-
-  .file-row .fr-status {
-    display: none;
-  }
-}
-
 ::-webkit-scrollbar {
   width: 9px;
 }
@@ -1146,4 +1124,182 @@ select:focus,
 ::-webkit-scrollbar-thumb {
   background: var(--line);
   border-radius: 8px;
+}
+
+/* ---------- CARD GRID (generic) ---------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns, 4), 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1300px) {
+  .card-grid {
+    grid-template-columns: repeat(min(var(--grid-columns, 4), 3), 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .card-grid {
+    grid-template-columns: repeat(min(var(--grid-columns, 4), 2), 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- CARD (generic) ---------- */
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  width: 100%;
+  transition: 0.15s;
+}
+
+.card[role="button"] {
+  cursor: pointer;
+}
+
+.card-default:hover {
+  border-color: var(--saffron);
+}
+
+.card[role="button"].card-default:hover {
+  border-color: var(--castleton);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(19, 48, 32, 0.08);
+}
+
+.card-accent {
+  background: linear-gradient(160deg, var(--serpent) 0%, #0d2318 100%);
+  border-color: var(--serpent);
+  color: var(--paper);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-accent::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 110px;
+  height: 110px;
+  background: var(--saffron);
+  opacity: 0.12;
+  border-radius: 50%;
+}
+
+.card-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(19, 48, 32, 0.25);
+  border-color: var(--saffron);
+}
+
+/* ---------- KPI icon chip ---------- */
+.kpi-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.kpi-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kpi-card.c-published .kpi-icon {
+  background: rgba(4, 98, 65, 0.08);
+  color: var(--castleton);
+}
+
+.kpi-card.c-progress .kpi-icon {
+  background: rgba(255, 179, 71, 0.15);
+  color: #a15e00;
+}
+
+/* dark "not started" tile, same language as .cta-card */
+.kpi-card.c-notstarted {
+  background: var(--serpent);
+  border-color: var(--serpent);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card.c-notstarted::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 70px;
+  height: 70px;
+  background: var(--saffron);
+  opacity: 0.12;
+  border-radius: 50%;
+}
+
+.kpi-card.c-notstarted .kpi-icon {
+  background: rgba(245, 238, 219, 0.1);
+  color: var(--paper);
+}
+
+.kpi-card.c-notstarted .kpi-number {
+  color: var(--paper);
+}
+
+.kpi-card.c-notstarted .kpi-label {
+  color: var(--g5);
+}
+
+.kpi-card.c-notstarted:hover {
+  border-color: var(--saffron);
+  box-shadow: 0 10px 24px rgba(19, 48, 32, 0.25);
+}
+
+/* ---------- richer bar track (stage distribution) ---------- */
+.bar-track {
+  height: 10px;
+  border-radius: 6px;
+}
+
+.bar-fill {
+  border-radius: 6px;
+  transition: width 0.3s;
+}
+
+/* ---------- folder card category strip ---------- */
+.folder-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.folder-card-strip {
+  height: 4px;
+  width: 100%;
+}
+
+.folder-card-body .status-pill {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.folder-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.folder-card-footer {
+  margin-top: auto;
 }

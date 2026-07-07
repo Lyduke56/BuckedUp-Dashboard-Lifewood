@@ -12,6 +12,23 @@ import {
   subcategoryCountProducts,
 } from "@/lib/utils";
 import { FolderIconFilled, PlayIcon } from "./icons";
+import { Card } from "./Card";
+import { CardGrid } from "./CardGrid";
+
+const CATEGORY_PALETTE = [
+  "var(--castleton)",
+  "var(--saffron)",
+  "var(--g2)",
+  "var(--earth-yellow)",
+  "var(--g3)",
+  "var(--serpent)",
+];
+
+function categoryColor(category: string) {
+  const keys = Object.keys(CATEGORY_TREE);
+  const idx = keys.indexOf(category);
+  return CATEGORY_PALETTE[idx >= 0 ? idx % CATEGORY_PALETTE.length : 0];
+}
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -207,7 +224,7 @@ export function VideoLibraryView({
           onChange={(event) => setSearchTerm(event.target.value)}
         />
       </div>
-      <div className="folder-grid">
+      <CardGrid columns={4} className="folder-grid">
         {filteredProducts.length === 0 ? (
           <div className="empty-state" style={{ gridColumn: "1 / -1" }}>
             No products currently requested in this category yet — it will
@@ -218,44 +235,51 @@ export function VideoLibraryView({
             const done = productDone(product);
             const total = product.items.length;
             return (
-              <div
+              <Card
                 key={product.rank}
+                height={210}
                 className="folder-card"
                 onClick={() => openProduct(product.rank)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    openProduct(product.rank);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
-                <div className="folder-top">
-                  <FolderIconFilled />
-                  <div className="rank-chip">
-                    <span>{product.rank}</span>
+                <div
+                  className="folder-card-strip"
+                  style={{ background: categoryColor(product.category) }}
+                />
+                <div className="folder-card-body">
+                  <div className="folder-top">
+                    <FolderIconFilled />
+                    <div className="rank-chip">
+                      <span>{product.rank}</span>
+                    </div>
+                  </div>
+                  <div className="folder-name">{product.name}</div>
+                  <div className="folder-meta">
+                    {product.category} · {total} video{total > 1 ? "s" : ""}
+                  </div>
+                  {product.items[0] ? (
+                    <span
+                      className={`status-pill ${STATUS_CLASS[product.items[0].status]}`}
+                    >
+                      {product.items[0].status}
+                    </span>
+                  ) : null}
+                  <div className="folder-progress-track">
+                    <div
+                      className="folder-progress-fill"
+                      style={{ width: `${productProgressPct(product)}%` }}
+                    />
+                  </div>
+                  <div className="folder-bottom">
+                    <span className="folder-count">
+                      {done}/{total} recorded
+                    </span>
                   </div>
                 </div>
-                <div className="folder-name">{product.name}</div>
-                <div className="folder-meta">
-                  {product.category} · {total} video{total > 1 ? "s" : ""}
-                </div>
-                <div className="folder-progress-track">
-                  <div
-                    className="folder-progress-fill"
-                    style={{ width: `${productProgressPct(product)}%` }}
-                  />
-                </div>
-                <div className="folder-bottom">
-                  <span className="folder-count">
-                    {done}/{total} recorded
-                  </span>
-                </div>
-              </div>
+              </Card>
             );
           })
         )}
-      </div>
+      </CardGrid>
     </div>
   );
 }
