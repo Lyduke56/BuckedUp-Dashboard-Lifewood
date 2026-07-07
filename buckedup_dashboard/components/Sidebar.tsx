@@ -12,11 +12,11 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="brand-word">
-          <span className="diamond" />
-          lifewood
+        <div className="brand-row">
+          <img src="/lifewood-full-cream.svg" alt="Lifewood" className="brand-logo" />
+          <span className="brand-divider-line" />
+          <img src="/buckedup.svg" alt="BuckedUp" className="brand-logo" style={{ width: "30px" }} />
         </div>
-        <div className="brand-client">× BuckedUp</div>
       </div>
       <nav className="sidebar-nav">
         <button
