@@ -220,6 +220,29 @@ a {
   border: 1px solid rgba(4, 98, 65, 0.2);
 }
 
+.refresh-btn {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--castleton);
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  border-color: var(--castleton);
+  background: rgba(4, 98, 65, 0.08);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .sync-indicator {
   font-size: 11.5px;
   font-weight: 600;

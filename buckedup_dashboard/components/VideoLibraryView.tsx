@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATEGORY_TREE, products, STATUS_CLASS } from "@/lib/data";
+import { CATEGORY_TREE, STATUS_CLASS } from "@/lib/data";
 import type { Product, StatusFilter, VideoItem } from "@/lib/types";
 import {
   categoryCountProducts,
@@ -21,10 +21,18 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 ];
 
 interface VideoLibraryViewProps {
+  products: Product[];
+  loading: boolean;
+  error: string | null;
   onOpenModal: (key: string) => void;
 }
 
-export function VideoLibraryView({ onOpenModal }: VideoLibraryViewProps) {
+export function VideoLibraryView({
+  products,
+  loading,
+  error,
+  onOpenModal,
+}: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
   const [currentStatusFilter, setCurrentStatusFilter] =
@@ -55,7 +63,13 @@ export function VideoLibraryView({ onOpenModal }: VideoLibraryViewProps) {
       }
       return true;
     });
-  }, [currentCategory, currentSubcategory, currentStatusFilter, searchTerm]);
+  }, [
+    products,
+    currentCategory,
+    currentSubcategory,
+    currentStatusFilter,
+    searchTerm,
+  ]);
 
   const handleCategoryChange = (value: string) => {
     setCurrentCategory(value);
@@ -100,6 +114,26 @@ export function VideoLibraryView({ onOpenModal }: VideoLibraryViewProps) {
               onOpenModal={onOpenModal}
             />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && products.length === 0) {
+    return (
+      <div>
+        <div className="section-heading">Video library</div>
+        <div className="empty-state">Loading video requests…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div className="section-heading">Video library</div>
+        <div className="empty-state">
+          Couldn&apos;t reach the Google Sheet: {error}
         </div>
       </div>
     );
