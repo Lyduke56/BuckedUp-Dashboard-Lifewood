@@ -17,6 +17,7 @@
   --ink: #133020;
   --ink-soft: #5b7268;
   --line: #e4ddc9;
+  --sidebar-width: 300px;
 }
 
 * {
@@ -49,7 +50,7 @@ a {
 
 /* ================= SIDEBAR ================= */
 .sidebar {
-  width: 222px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--serpent);
   color: var(--paper);
@@ -64,19 +65,18 @@ a {
   z-index: 10;
 }
 
-.sidebar-brand {
-  padding: 0px 20px 18px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid rgba(245, 238, 219, 0.12);
-}
-
-
 .main-area {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  margin-left: 222px;
+  margin-left: var(--sidebar-width);
+}
+
+.sidebar-brand {
+  padding: 0px 20px 18px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(245, 238, 219, 0.12);
 }
 
 .brand-word {
@@ -92,7 +92,8 @@ a {
 .brand-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 15px;
 }
 
 .brand-logo {
@@ -135,11 +136,11 @@ a {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
+  gap: 15px;
+  padding: 15px 15px;
   border-radius: 9px;
   color: var(--g5);
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 4px;
@@ -152,8 +153,8 @@ a {
 }
 
 .nav-item svg {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
@@ -170,8 +171,8 @@ a {
 .sidebar-footer {
   padding: 14px 20px 0;
   margin-top: 8px;
-  border-top: 1px solid rgba(245, 238, 219, 0.12);
-  font-size: 11px;
+  border-top: 1px solid #f5eedb1f;
+  font-size: 10px;
   color: var(--g5);
   line-height: 1.55;
 }
@@ -250,7 +251,7 @@ a {
 }
 
 .content {
-  padding: 26px 30px 60px;
+  padding: 26px 30px 30px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -575,7 +576,7 @@ select:focus,
 /* ---------- FOLDER GRID ---------- */
 .folder-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
   gap: 14px;
 }
 
@@ -586,6 +587,10 @@ select:focus,
   padding: 16px;
   cursor: pointer;
   transition: 0.15s;
+  height: 210px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .folder-card:hover {
@@ -600,6 +605,7 @@ select:focus,
   align-items: flex-start;
   margin-bottom: 12px;
 }
+
 
 .folder-icon {
   width: 34px;
@@ -627,12 +633,18 @@ select:focus,
   font-weight: 800;
 }
 
+
 .folder-name {
   font-size: 13.5px;
   font-weight: 800;
   line-height: 1.3;
   margin-bottom: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+
 
 .folder-meta {
   font-size: 10.5px;
@@ -640,6 +652,7 @@ select:focus,
   font-weight: 600;
   margin-bottom: 12px;
 }
+
 
 .status-pill {
   font-size: 10px;
@@ -704,6 +717,7 @@ select:focus,
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  margin-top: auto;
 }
 
 .folder-count {

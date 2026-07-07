@@ -79,7 +79,7 @@ export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProp
     return (
       <div>
         <button type="button" className="back-row" onClick={closeDetail}>
-          ← Back to video library
+          ← Back to Video Library
         </button>
         <h1 className="section-heading">{selectedProduct.name}</h1>
         <p className="section-sub">
@@ -108,7 +108,7 @@ export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProp
 
   return (
     <div>
-      <div className="section-heading">Video library</div>
+      <div className="section-heading">Video Library</div>
       <div className="section-sub">
         Priority-ranked shot list — grows automatically as new products are
         requested, across any category in the catalog.
