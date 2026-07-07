@@ -33,13 +33,11 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
           onClick={() => onViewChange("library")}
         >
           <FolderIcon />
-          Video library
+          Video Library
         </button>
       </nav>
       <div className="sidebar-footer">
-        Read-only view.
-        <br />
-        Status is edited in the source Google Sheet.
+        All Rights Reserved © 2026 Lifewood.
       </div>
     </aside>
   );

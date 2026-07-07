@@ -73,8 +73,8 @@ export function useVideoRequests(): VideoRequestsState {
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
+    async function load(showLoading: boolean) {
+      if (showLoading) setLoading(true);
       try {
         const res = await fetch("/api/videos", { cache: "no-store" });
         const json = await res.json();
@@ -100,8 +100,8 @@ export function useVideoRequests(): VideoRequestsState {
       }
     }
 
-    load();
-    const interval = setInterval(load, POLL_INTERVAL_MS);
+    load(true);
+    const interval = setInterval(() => load(false), POLL_INTERVAL_MS);
     return () => {
       cancelled = true;
       clearInterval(interval);

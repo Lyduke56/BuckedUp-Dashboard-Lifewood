@@ -1,5 +1,6 @@
 "use client";
 
+import type { Product } from "@/lib/types";
 import { CategoryChart } from "./CategoryChart";
 import { KpiRow } from "./KpiRow";
 import { OverviewSnapshot } from "./OverviewSnapshot";
@@ -7,14 +8,21 @@ import { StatusChart } from "./StatusChart";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
+  products: Product[];
+  isLoading?: boolean;
+  hasError?: boolean;
 }
 
-export function OverviewView({ onBrowseLibrary }: OverviewViewProps) {
+export function OverviewView({
+  onBrowseLibrary,
+  products,
+  isLoading,
+  hasError,
+}: OverviewViewProps) {
   return (
     <>
-      <KpiRow />
-      
-      <hr className="section-divider" />
+      <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
+
       <div className="overview-grid">
         <div className="panel">
           <div className="section-heading">Requests by category</div>
@@ -22,8 +30,7 @@ export function OverviewView({ onBrowseLibrary }: OverviewViewProps) {
             Only categories with active video requests are shown — full
             breakdown across all 10 is in the completion chart below.
           </div>
-          <div className="panel-accent" />
-          <OverviewSnapshot />
+          <OverviewSnapshot products={products} />
         </div>
 
         <div className="cta-wrap">
@@ -79,7 +86,7 @@ export function OverviewView({ onBrowseLibrary }: OverviewViewProps) {
           </div>
           <div className="panel-accent" />
           <div className="chart-mt">
-            <StatusChart />
+            <StatusChart products={products} />
           </div>
           <div className="callout callout-inline">
             Each video item moves through not started → scripting → filming →
@@ -95,7 +102,7 @@ export function OverviewView({ onBrowseLibrary }: OverviewViewProps) {
           </div>
           <div className="panel-accent" />
           <div className="chart-mt">
-            <CategoryChart />
+            <CategoryChart products={products} />
           </div>
         </div>
       </div>

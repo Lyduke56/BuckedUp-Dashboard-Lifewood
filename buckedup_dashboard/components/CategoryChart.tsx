@@ -1,7 +1,12 @@
-import { CATEGORY_TREE, products } from "@/lib/data";
+import { CATEGORY_TREE } from "@/lib/data";
+import type { Product } from "@/lib/types";
 import { productBucket } from "@/lib/utils";
 
-export function CategoryChart() {
+interface CategoryChartProps {
+  products: Product[];
+}
+
+export function CategoryChart({ products }: CategoryChartProps) {
   const rows = Object.keys(CATEGORY_TREE)
     .map((category) => {
       const items = products.filter((product) => product.category === category);

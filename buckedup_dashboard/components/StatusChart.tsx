@@ -1,6 +1,11 @@
-import { products, STATUS_HEX, STATUS_ORDER } from "@/lib/data";
+import { STATUS_HEX, STATUS_ORDER } from "@/lib/data";
+import type { Product } from "@/lib/types";
 
-export function StatusChart() {
+interface StatusChartProps {
+  products: Product[];
+}
+
+export function StatusChart({ products }: StatusChartProps) {
   const counts: Record<string, number> = {};
   STATUS_ORDER.forEach((status) => {
     counts[status] = 0;

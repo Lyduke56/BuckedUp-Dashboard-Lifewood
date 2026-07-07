@@ -92,7 +92,7 @@ export function VideoLibraryView({
     return (
       <div>
         <button type="button" className="back-row" onClick={closeDetail}>
-          ← Back to video library
+          ← Back to Video Library
         </button>
         <h1 className="section-heading">{selectedProduct.name}</h1>
         <p className="section-sub">
@@ -122,7 +122,7 @@ export function VideoLibraryView({
   if (loading && products.length === 0) {
     return (
       <div>
-        <div className="section-heading">Video library</div>
+        <div className="section-heading">Video Library</div>
         <div className="empty-state">Loading video requests…</div>
       </div>
     );
@@ -131,7 +131,7 @@ export function VideoLibraryView({
   if (error) {
     return (
       <div>
-        <div className="section-heading">Video library</div>
+        <div className="section-heading">Video Library</div>
         <div className="empty-state">
           Couldn&apos;t reach the Google Sheet: {error}
         </div>
@@ -141,7 +141,7 @@ export function VideoLibraryView({
 
   return (
     <div>
-      <div className="section-heading">Video library</div>
+      <div className="section-heading">Video Library</div>
       <div className="section-sub">
         Priority-ranked shot list — grows automatically as new products are
         requested, across any category in the catalog.

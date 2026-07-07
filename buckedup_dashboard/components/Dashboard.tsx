@@ -30,8 +30,27 @@ export function Dashboard() {
           onRefresh={refresh}
         />
         <div className="content">
+          {error && (
+            <div
+              className="callout"
+              style={{
+                borderLeft: "4px solid #dc3545",
+                color: "#b02a37",
+                marginBottom: "20px",
+                background: "rgba(220, 53, 69, 0.05)",
+              }}
+            >
+              ⚠️ Running in fallback mode. Failed to load live Google Sheets
+              data: {error}
+            </div>
+          )}
           <div className={`view${activeView === "overview" ? " active" : ""}`}>
-            <OverviewView onBrowseLibrary={() => switchView("library")} />
+            <OverviewView
+              products={products}
+              isLoading={loading}
+              hasError={!!error}
+              onBrowseLibrary={() => switchView("library")}
+            />
           </div>
           <div className={`view${activeView === "library" ? " active" : ""}`}>
             <VideoLibraryView
