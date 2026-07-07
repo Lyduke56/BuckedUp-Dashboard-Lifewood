@@ -1,0 +1,43 @@
+import { CategoryTree } from "./types";
+
+export const CATEGORY_TREE: CategoryTree = {
+  "Pre-Workout & Energy": [
+    "Fat Burn & Thermogenic",
+    "High Stimulant Pre-Workout",
+    "On The Go Energy",
+    "Standard Stim Pre-Workout",
+    "Stim Free & Pump",
+  ],
+  Drinks: ["Energy Drinks", "Hydration Drinks", "Protein Drinks"],
+  Creatine: ["Creatine Gummies", "Creatine Powder"],
+  "Vitamins & Wellness": [
+    "Antioxidants & Specialty",
+    "Greens",
+    "Joint & Bone",
+    "Multivitamins",
+    "Omegas & Healthy Fats",
+  ],
+  "BCAA & Amino Acids": ["BCAA", "EAAs"],
+  "Deer Antler Spray": ["Deer Antler Spray"],
+  Stacks: ["Stacks"],
+  "Babe by Bucked Up": ["Babe By Bucked Up"],
+  "Clearance & Last Chance": ["Clearance & Last Chance"],
+  "Apparel & Gear": [
+    "Apparel & Gear Clearance",
+    "Apparel New Arrivals",
+    "Bags & Bookbags",
+    "Bucked Up Accessories",
+    "Fitness Gear",
+    "Hats & Headwear",
+    "Mens Pants",
+    "Mens Shorts",
+    "Mens Sweater & Jackets",
+    "Mens Tops",
+    "Shaker Bottles & Cups",
+    "Womens Leggings & Pants",
+    "Womens Shorts",
+    "Womens Sport Bras",
+    "Womens Sweater & Jackets",
+    "Womens Tops",
+  ],
+};
