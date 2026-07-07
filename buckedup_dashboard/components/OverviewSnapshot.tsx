@@ -1,13 +1,17 @@
-import { products } from "@/lib/data";
+import type { Product } from "@/lib/types";
 
-export function OverviewSnapshot() {
+interface OverviewSnapshotProps {
+  products: Product[];
+}
+
+export function OverviewSnapshot({ products }: OverviewSnapshotProps) {
   const counts: Record<string, number> = {};
   products.forEach((product) => {
     counts[product.category] = (counts[product.category] || 0) + 1;
   });
 
   const active = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const max = Math.max(...active.map((entry) => entry[1]));
+  const max = active.length > 0 ? Math.max(...active.map((entry) => entry[1])) : 1;
 
   return (
     <>

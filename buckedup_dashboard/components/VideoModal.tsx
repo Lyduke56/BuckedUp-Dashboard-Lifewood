@@ -1,15 +1,16 @@
 "use client";
 
-import { products } from "@/lib/data";
+import type { Product } from "@/lib/types";
 import { parseModalKey } from "@/lib/utils";
 import { PlayCircleIcon, VideoCameraIcon } from "./icons";
 
 interface VideoModalProps {
   modalKey: string | null;
   onClose: () => void;
+  products: Product[];
 }
 
-export function VideoModal({ modalKey, onClose }: VideoModalProps) {
+export function VideoModal({ modalKey, onClose, products }: VideoModalProps) {
   if (!modalKey) return null;
 
   const { rank, index } = parseModalKey(modalKey);

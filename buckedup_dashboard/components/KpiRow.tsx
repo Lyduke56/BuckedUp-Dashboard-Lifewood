@@ -1,18 +1,29 @@
-import { products } from "@/lib/data";
+import type { Product } from "@/lib/types";
 import { productBucket, totalVideos } from "@/lib/utils";
 
-export function KpiRow() {
+interface KpiRowProps {
+  products: Product[];
+  isLoading?: boolean;
+  hasError?: boolean;
+}
+
+export function KpiRow({ products, isLoading, hasError }: KpiRowProps) {
   const total = products.length;
   const published = products.filter((p) => productBucket(p) === "published").length;
   const inProgress = products.filter((p) => productBucket(p) === "in-progress").length;
   const notStarted = products.filter((p) => productBucket(p) === "not-started").length;
 
+  const displayVal = (val: number) => {
+    if (isLoading || hasError) return "--";
+    return val;
+  };
+
   const kpis = [
-    { n: total, l: "Products requested", cls: "" },
-    { n: totalVideos(products), l: "Videos planned", cls: "" },
-    { n: published, l: "Published", cls: "c-published" },
-    { n: inProgress, l: "In progress", cls: "c-progress" },
-    { n: notStarted, l: "Not started", cls: "c-notstarted" },
+    { n: displayVal(total), l: "Products requested", cls: "" },
+    { n: isLoading || hasError ? "--" : totalVideos(products), l: "Videos planned", cls: "" },
+    { n: displayVal(published), l: "Published", cls: "c-published" },
+    { n: displayVal(inProgress), l: "In progress", cls: "c-progress" },
+    { n: displayVal(notStarted), l: "Not started", cls: "c-notstarted" },
   ];
 
   return (

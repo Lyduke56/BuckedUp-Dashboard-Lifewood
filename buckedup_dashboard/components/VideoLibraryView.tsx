@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATEGORY_TREE, products, STATUS_CLASS } from "@/lib/data";
+import { CATEGORY_TREE, STATUS_CLASS } from "@/lib/data";
 import type { Product, StatusFilter, VideoItem } from "@/lib/types";
 import {
   categoryCountProducts,
@@ -22,9 +22,10 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
+  products: Product[];
 }
 
-export function VideoLibraryView({ onOpenModal }: VideoLibraryViewProps) {
+export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
   const [currentStatusFilter, setCurrentStatusFilter] =
