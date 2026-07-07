@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import Papa from 'papaparse';
 
+// Force this route to be dynamic — never statically cached by Next.js
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const url = process.env.NEXT_PUBLIC_PIVOT_TABLE_URL;
@@ -37,11 +40,14 @@ export async function GET() {
       console.warn('CSV parsing warnings/errors:', parsedData.errors);
     }
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       data: parsedData.data,
       meta: parsedData.meta,
     });
+    // Tell browsers and CDNs not to cache this response
+    jsonResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return jsonResponse;
   } catch (error: unknown) {
     console.error('Error fetching/parsing pivot table data:', error);
     const message =
