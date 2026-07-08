@@ -1024,40 +1024,55 @@ select:focus,
   margin-top: auto;
 }
 
-.bar-row {
+/* ---------- PRODUCTION STAGE FUNNEL ---------- */
+.funnel-chart {
   display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 96px 1fr 76px 34px;
   align-items: center;
-  gap: 14px;
-  padding: 10px 0;
+  gap: 10px;
+  padding: 6px 0;
 }
 
-.bar-label {
-  width: 130px;
-  font-size: 12.5px;
+.funnel-label {
+  font-size: 11.5px;
   font-weight: 700;
-  flex-shrink: 0;
+  color: var(--ink-soft);
+  text-align: right;
 }
 
-.bar-track {
-  flex: 1;
-  height: 16px;
+.funnel-track {
+  position: relative;
+  height: 20px;
   background: var(--seasalt);
   border-radius: 6px;
+  display: flex;
+  justify-content: center;
   overflow: hidden;
 }
 
-.bar-fill {
+.funnel-bar {
   height: 100%;
   border-radius: 6px;
+  transition: width 0.3s;
 }
 
-.bar-count {
-  width: 24px;
-  text-align: right;
-  font-size: 12.5px;
+.funnel-value {
+  font-size: 11.5px;
   font-weight: 800;
   color: var(--ink-soft);
-  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.funnel-drop {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #b02a37;
 }
 
 .cat2-row {
@@ -1570,17 +1585,6 @@ select:focus,
 .kpi-card.c-notstarted:hover {
   border-color: var(--saffron);
   box-shadow: 0 10px 24px rgba(19, 48, 32, 0.25);
-}
-
-/* ---------- richer bar track (stage distribution) ---------- */
-.bar-track {
-  height: 10px;
-  border-radius: 6px;
-}
-
-.bar-fill {
-  border-radius: 6px;
-  transition: width 0.3s;
 }
 
 /* ---------- folder card category strip ---------- */

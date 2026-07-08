@@ -18,34 +18,15 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
         Current snapshot of the queue — reflects the live production stage
         and review state of every item in the library.
       </div>
-      <div className="analytics-grid">
-        <div className="panel">
-          <div className="section-heading section-heading-sm">
-            Production stage distribution
-          </div>
-          <div className="panel-accent" />
-          <div className="chart-mt">
-            <StatusChart products={products} />
-          </div>
-          <div className="callout callout-inline">
-            Each video item moves through not started → scripting → filming →
-            editing → in review → scheduled → published. Status is edited only
-            in the source Google Sheet by whoever runs production — this
-            dashboard reads and displays it automatically, with no editing
-            surface of its own.
-          </div>
+      <div className="panel">
+        <div className="section-heading section-heading-sm">
+          Daily target vs actual
         </div>
-        <div className="panel">
-          <div className="section-heading section-heading-sm">
-            Completion by category
-          </div>
-          <div className="panel-accent" />
-          <div className="chart-mt">
-            <CategoryChart products={products} />
-          </div>
+        <div className="panel-accent" />
+        <div className="chart-mt">
+          <DailyProgressChart points={MOCK_DAILY_PROGRESS} />
         </div>
       </div>
-
       <hr className="section-divider" />
       <div className="analytics-grid">
         <div className="panel">
@@ -71,15 +52,34 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           </div>
         </div>
       </div>
-
       <hr className="section-divider" />
-      <div className="panel">
-        <div className="section-heading section-heading-sm">
-          Daily target vs actual
+      <div className="analytics-grid">
+        <div className="panel">
+          <div className="section-heading section-heading-sm">
+            Production stage funnel
+          </div>
+          <div className="panel-accent" />
+          <div className="chart-mt">
+            <StatusChart products={products} />
+          </div>
+          <div className="callout callout-inline">
+            Each row is cumulative — &quot;reached this stage or beyond&quot;
+            — not a per-stage snapshot, so the biggest drop between two
+            consecutive rows is where the bottleneck actually is. Status is
+            edited only
+            in the source Google Sheet by whoever runs production; this
+            dashboard reads and displays it automatically, with no editing
+            surface of its own.
+          </div>
         </div>
-        <div className="panel-accent" />
-        <div className="chart-mt">
-          <DailyProgressChart points={MOCK_DAILY_PROGRESS} />
+        <div className="panel">
+          <div className="section-heading section-heading-sm">
+            Completion by category
+          </div>
+          <div className="panel-accent" />
+          <div className="chart-mt">
+            <CategoryChart products={products} />
+          </div>
         </div>
       </div>
     </div>

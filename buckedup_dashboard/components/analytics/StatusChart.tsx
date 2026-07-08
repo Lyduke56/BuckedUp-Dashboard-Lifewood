@@ -1,40 +1,50 @@
 import { STATUS_HEX, STATUS_ORDER } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { stageIndex } from "@/lib/utils";
 
 interface StatusChartProps {
   products: Product[];
 }
 
 export function StatusChart({ products }: StatusChartProps) {
-  const counts: Record<string, number> = {};
-  STATUS_ORDER.forEach((status) => {
-    counts[status] = 0;
-  });
-  products.forEach((product) =>
-    product.items.forEach((item) => {
-      counts[item.status]++;
-    }),
-  );
+  const items = products.flatMap((product) => product.items);
+  const total = items.length || 1;
 
-  const max = Math.max(...Object.values(counts), 1);
+  // Cumulative "reached this stage or beyond" — a funnel, not a per-stage
+  // snapshot. Surfaces where the bottleneck actually is (the biggest drop
+  // between consecutive stages), which a flat per-stage count can't show.
+  const rows = STATUS_ORDER.map((status) => {
+    const threshold = stageIndex(status);
+    const count = items.filter(
+      (item) => stageIndex(item.status) >= threshold,
+    ).length;
+    return { status, count, pct: (count / total) * 100 };
+  });
 
   return (
-    <>
-      {STATUS_ORDER.map((status) => (
-        <div key={status} className="bar-row">
-          <div className="bar-label">{status}</div>
-          <div className="bar-track">
-            <div
-              className="bar-fill"
-              style={{
-                width: `${(counts[status] / max) * 100}%`,
-                background: STATUS_HEX[status],
-              }}
-            />
+    <div className="funnel-chart">
+      {rows.map((row, index) => {
+        const prev = rows[index - 1];
+        const dropped = prev ? prev.count - row.count : 0;
+        return (
+          <div key={row.status} className="funnel-row">
+            <div className="funnel-label">{row.status}</div>
+            <div className="funnel-track">
+              <div
+                className="funnel-bar"
+                style={{
+                  width: `${row.pct}%`,
+                  background: STATUS_HEX[row.status],
+                }}
+              />
+            </div>
+            <div className="funnel-value">
+              {row.count} ({Math.round(row.pct)}%)
+            </div>
+            <div className="funnel-drop">{dropped > 0 ? `-${dropped}` : ""}</div>
           </div>
-          <div className="bar-count">{counts[status]}</div>
-        </div>
-      ))}
-    </>
+        );
+      })}
+    </div>
   );
 }
