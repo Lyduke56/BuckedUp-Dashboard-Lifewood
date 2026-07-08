@@ -11,7 +11,7 @@ interface FolderCardProps {
   total: number;
   done: number;
   progressPct: number;
-  stripColor: string;
+  accentColor: string;
   onClick: () => void;
 }
 
@@ -21,16 +21,16 @@ export function FolderCard({
   total,
   done,
   progressPct,
-  stripColor,
+  accentColor,
   onClick,
 }: FolderCardProps) {
   const firstStatus = product.items[0]?.status;
 
   return (
-    <Card variant="folder" height={210} stripColor={stripColor} onClick={onClick}>
+    <Card variant="folder" height={210} onClick={onClick}>
       <div className="folder-top">
         <FolderIconFilled />
-        <div className="rank-chip">
+        <div className="rank-chip" style={{ background: accentColor }}>
           <span>{rank}</span>
         </div>
       </div>
