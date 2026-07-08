@@ -209,7 +209,7 @@ a {
 
 .content {
   padding: 26px 30px 30px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
@@ -729,6 +729,7 @@ select:focus,
 
 .video-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 12.5px;
 }
@@ -743,6 +744,8 @@ select:focus,
   padding: 12px 14px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .video-table td {
@@ -750,6 +753,8 @@ select:focus,
   border-top: 1px solid var(--seasalt);
   vertical-align: middle;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .video-table-row {
@@ -767,9 +772,22 @@ select:focus,
 }
 
 .video-table-name {
+  display: flex;
+  align-items: center;
   font-weight: 700;
-  white-space: normal;
-  min-width: 200px;
+}
+
+.video-table-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.video-table-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .expand-caret {

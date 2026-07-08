@@ -195,6 +195,18 @@ export function VideoLibraryView({
       ) : (
         <div className="table-scroll">
           <table className="video-table">
+            <colgroup>
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "24%" }} />
+              <col style={{ width: "13%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "11%" }} />
+              <col style={{ width: "6%" }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
@@ -228,15 +240,19 @@ export function VideoLibraryView({
                       onClick={() => toggleExpanded(product.rank)}
                     >
                       <td className="video-table-id">{product.rank}</td>
-                      <td className="video-table-name">
+                      <td className="video-table-name" title={product.name}>
                         <span
                           className={`expand-caret${expanded ? " open" : ""}`}
                         >
                           ▸
                         </span>
-                        {product.name}
+                        <span className="video-table-name-text">
+                          {product.name}
+                        </span>
                       </td>
-                      <td>{product.type || "—"}</td>
+                      <td className="video-table-type" title={product.type}>
+                        {product.type || "—"}
+                      </td>
                       <td>
                         <span className="language-badge">
                           {languageFlag(product.language)} {product.language}
