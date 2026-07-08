@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATEGORY_TREE, STATUS_CLASS } from "@/lib/data";
+import { CATEGORY_TREE } from "@/lib/data";
 import { categoryColor } from "@/lib/colors";
 import type { Product, StatusFilter, VideoItem } from "@/lib/types";
 import {
