@@ -885,6 +885,26 @@ select:focus,
   background: rgba(4, 98, 65, 0.15);
 }
 
+.product-url-link {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--castleton);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.product-url-link:hover {
+  text-decoration: underline;
+}
+
+.product-url-empty {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
 /* ---------- SECTION DIVIDER ---------- */
 .section-divider {
   border: none;

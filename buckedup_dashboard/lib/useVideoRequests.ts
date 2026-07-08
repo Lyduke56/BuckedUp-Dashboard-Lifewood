@@ -20,6 +20,7 @@ interface SheetRow {
   Product?: string;
   Category?: string;
   Subcategory?: string;
+  "Product URL"?: string;
   "Content Type"?: string;
   Status?: string;
   "Video URL"?: string;
@@ -29,13 +30,25 @@ function isPipelineStatus(value: unknown): value is PipelineStatus {
   return KNOWN_STATUSES.includes(value as PipelineStatus);
 }
 
+function readField(row: SheetRow, ...keys: string[]): string | null {
+  const record = row as Record<string, unknown>;
+  for (const key of keys) {
+    const value = record[key];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+  return null;
+}
+
 function toProduct(row: SheetRow): Product | null {
   const name = row.Product?.toString().trim();
   const rank = Number(row.Rank);
   if (!name || !Number.isFinite(rank)) return null;
 
   const status = isPipelineStatus(row.Status) ? row.Status : "Not Started";
-  const videoUrl = row["Video URL"]?.toString().trim() || null;
+  const videoUrl = readField(row, "Video URL");
+  const productUrl = readField(row, "Product URL");
   const type = row["Content Type"]?.toString().trim() ?? "";
 
   return {
@@ -45,11 +58,13 @@ function toProduct(row: SheetRow): Product | null {
     subcategory: row.Subcategory?.toString().trim() || "Uncategorized",
     price: "",
     type,
+    productUrl,
     items: [
       {
         name: type ? `${name} — ${type}` : name,
         status,
         videoUrl,
+        productUrl,
       },
     ],
   };

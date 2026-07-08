@@ -17,6 +17,7 @@ export interface VideoItem {
   name: string;
   status: PipelineStatus;
   videoUrl: string | null;
+  productUrl: string | null;
   variant?: string;
 }
 
@@ -27,5 +28,6 @@ export interface Product {
   subcategory: string;
   price: string;
   type: string;
+  productUrl: string | null;
   items: VideoItem[];
 }
