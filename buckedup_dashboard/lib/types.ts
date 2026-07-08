@@ -26,7 +26,6 @@ export interface Product {
   name: string;
   category: string;
   subcategory: string;
-  price: string;
   type: string;
   productUrl: string | null;
   contentAngle: string;

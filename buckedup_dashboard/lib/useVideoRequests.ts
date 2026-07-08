@@ -62,7 +62,6 @@ function toProduct(row: SheetRow): Product | null {
     name,
     category: row.Category?.toString().trim() || "Uncategorized",
     subcategory: row.Subcategory?.toString().trim() || "Uncategorized",
-    price: "",
     type,
     productUrl,
     contentAngle,
