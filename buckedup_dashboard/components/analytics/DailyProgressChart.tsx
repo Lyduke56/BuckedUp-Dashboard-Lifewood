@@ -24,6 +24,7 @@ export function DailyProgressChart({ points }: DailyProgressChartProps) {
 
   return (
     <>
+      <div className="sample-data-badge">Sample data — not live</div>
       {points.map((point) => (
         <div key={point.date} className="daily-row">
           <div className="daily-label">{point.date}</div>

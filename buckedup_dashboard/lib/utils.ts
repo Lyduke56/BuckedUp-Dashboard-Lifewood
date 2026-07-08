@@ -33,6 +33,15 @@ export function productProgressPct(product: Product): number {
   return (fractions.reduce((a, b) => a + b, 0) / fractions.length) * 100;
 }
 
+export function averageProgressPct(products: Product[]): number {
+  if (products.length === 0) return 0;
+  const total = products.reduce(
+    (sum, product) => sum + productProgressPct(product),
+    0,
+  );
+  return total / products.length;
+}
+
 export function categoryCountProducts(
   productList: Product[],
   category: string,

@@ -1,10 +1,9 @@
 "use client";
 
 import type { Product } from "@/lib/types";
-import { CategoryChart } from "./CategoryChart";
 import { KpiRow } from "./KpiRow";
 import { OverviewSnapshot } from "./OverviewSnapshot";
-import { StatusChart } from "./StatusChart";
+import { ProjectProgressCard } from "./ProjectProgressCard";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
@@ -21,6 +20,7 @@ export function OverviewView({
 }: OverviewViewProps) {
   return (
     <>
+      <ProjectProgressCard products={products} />
       <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
 
       <div className="overview-grid">
@@ -70,40 +70,6 @@ export function OverviewView({
               </svg>
             </div>
           </button>
-        </div>
-      </div>
-
-      <hr className="section-divider" />
-      <div className="section-heading section-heading-spaced">Analytics</div>
-      <div className="section-sub">
-        Current snapshot of the queue — reflects the live production stage of
-        every item in the library.
-      </div>
-      <div className="analytics-grid">
-        <div className="panel">
-          <div className="section-heading section-heading-sm">
-            Production stage distribution
-          </div>
-          <div className="panel-accent" />
-          <div className="chart-mt">
-            <StatusChart products={products} />
-          </div>
-          <div className="callout callout-inline">
-            Each video item moves through not started → scripting → filming →
-            editing → in review → scheduled → published. Status is edited only
-            in the source Google Sheet by whoever runs production — this
-            dashboard reads and displays it automatically, with no editing
-            surface of its own.
-          </div>
-        </div>
-        <div className="panel">
-          <div className="section-heading section-heading-sm">
-            Completion by category
-          </div>
-          <div className="panel-accent" />
-          <div className="chart-mt">
-            <CategoryChart products={products} />
-          </div>
         </div>
       </div>
     </>
