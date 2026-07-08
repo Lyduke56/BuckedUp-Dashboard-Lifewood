@@ -9,8 +9,6 @@ interface CardProps {
   onClick?: () => void;
   className?: string;
   variant?: "default" | "accent" | "folder";
-  /** Only used when variant="folder" — sets the color of the top strip */
-  stripColor?: string;
 }
 
 export function Card({
@@ -19,7 +17,6 @@ export function Card({
   onClick,
   className,
   variant = "default",
-  stripColor,
 }: CardProps) {
   const interactive = Boolean(onClick);
 
@@ -35,9 +32,11 @@ export function Card({
     ? { height: `${height}px` }
     : undefined;
 
-  const rootClassName = `card card-${variant}${
-    className ? ` ${className}` : ""
-  }`;
+  // folder-card is a named class in the stylesheet (hover/transform/etc),
+  // not a "card-<variant>" pattern like default/accent, so it needs its
+  // own branch here rather than falling into the generic template.
+  const variantClass = variant === "folder" ? "folder-card" : `card-${variant}`;
+  const rootClassName = `card ${variantClass}${className ? ` ${className}` : ""}`;
 
   const sharedProps = {
     className: rootClassName,
@@ -48,15 +47,9 @@ export function Card({
     tabIndex: interactive ? 0 : undefined,
   };
 
-  // Folder cards need a full-bleed strip + a padded body wrapper,
-  // since .folder-card itself has padding: 0 and overflow: hidden.
   if (variant === "folder") {
     return (
       <div {...sharedProps}>
-        <div
-          className="folder-card-strip"
-          style={stripColor ? { background: stripColor } : undefined}
-        />
         <div className="folder-card-body">{children}</div>
       </div>
     );

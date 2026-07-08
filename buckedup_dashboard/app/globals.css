@@ -17,8 +17,17 @@
   --ink: #133020;
   --ink-soft: #5b7268;
   --line: #e4ddc9;
+  --cat-teal: #0f766e;
+  --cat-amber: #c98a12;
+  --cat-indigo: #4c5fd5;
+  --cat-rose: #c0435a;
+  --cat-plum: #7a4fa3;
+  --cat-olive: #7c8c1e;
+  --cat-rust: #b5533c;
+  --cat-slate: #56707c;
   --sidebar-width: 300px;
 }
+
 
 * {
   box-sizing: border-box;
@@ -1186,6 +1195,7 @@ select:focus,
   padding: 16px;
   width: 100%;
   transition: 0.15s;
+  
 }
 
 .card[role="button"] {
@@ -1194,6 +1204,7 @@ select:focus,
 
 .card-default:hover {
   border-color: var(--saffron);
+  transform: translateY(-5px);
 }
 
 .card[role="button"].card-default:hover {
@@ -1306,12 +1317,12 @@ select:focus,
 /* ---------- folder card category strip ---------- */
 .folder-card {
   padding: 0;
-  overflow: hidden;
 }
 
 .folder-card-strip {
   height: 4px;
   width: 100%;
+  border-radius: 14px 14px 0 0;
 }
 
 .folder-card-body .status-pill {
@@ -1329,4 +1340,51 @@ select:focus,
 
 .folder-card-footer {
   margin-top: auto;
+}
+
+/* ---------- CATEGORY LEGEND ---------- */
+.category-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 0px;
+}
+ 
+.category-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+ 
+.category-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+ 
+.category-legend-item.inactive {
+  opacity: 0.35;
+}
+ 
+.category-legend-item {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  transition: 0.15s;
+}
+ 
+.category-legend-item:hover {
+  border-color: var(--line);
+  background: var(--white);
+}
+ 
+.category-legend-item.selected {
+  border-color: var(--castleton);
+  background: rgba(4, 98, 65, 0.06);
+  color: var(--ink);
 }

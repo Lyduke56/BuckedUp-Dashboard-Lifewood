@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CATEGORY_TREE, STATUS_CLASS } from "@/lib/data";
+import { categoryColor } from "@/lib/colors";
 import type { Product, StatusFilter, VideoItem } from "@/lib/types";
 import {
   categoryCountProducts,
@@ -11,24 +12,9 @@ import {
   productProgressPct,
   subcategoryCountProducts,
 } from "@/lib/utils";
-import { FolderIconFilled, PlayIcon } from "./icons";
-import { Card } from "./Card";
+import { PlayIcon } from "./icons";
+import { FolderCard } from "./FolderCard";
 import { CardGrid } from "./CardGrid";
-
-const CATEGORY_PALETTE = [
-  "var(--castleton)",
-  "var(--saffron)",
-  "var(--g2)",
-  "var(--earth-yellow)",
-  "var(--g3)",
-  "var(--serpent)",
-];
-
-function categoryColor(category: string) {
-  const keys = Object.keys(CATEGORY_TREE);
-  const idx = keys.indexOf(category);
-  return CATEGORY_PALETTE[idx >= 0 ? idx % CATEGORY_PALETTE.length : 0];
-}
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -38,18 +24,11 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 ];
 
 interface VideoLibraryViewProps {
-  products: Product[];
-  loading: boolean;
-  error: string | null;
   onOpenModal: (key: string) => void;
+  products: Product[];
 }
 
-export function VideoLibraryView({
-  products,
-  loading,
-  error,
-  onOpenModal,
-}: VideoLibraryViewProps) {
+export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
   const [currentStatusFilter, setCurrentStatusFilter] =
@@ -80,13 +59,7 @@ export function VideoLibraryView({
       }
       return true;
     });
-  }, [
-    products,
-    currentCategory,
-    currentSubcategory,
-    currentStatusFilter,
-    searchTerm,
-  ]);
+  }, [products, currentCategory, currentSubcategory, currentStatusFilter, searchTerm]);
 
   const handleCategoryChange = (value: string) => {
     setCurrentCategory(value);
@@ -131,26 +104,6 @@ export function VideoLibraryView({
               onOpenModal={onOpenModal}
             />
           ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (loading && products.length === 0) {
-    return (
-      <div>
-        <div className="section-heading">Video Library</div>
-        <div className="empty-state">Loading video requests…</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div>
-        <div className="section-heading">Video Library</div>
-        <div className="empty-state">
-          Couldn&apos;t reach the Google Sheet: {error}
         </div>
       </div>
     );
@@ -235,47 +188,16 @@ export function VideoLibraryView({
             const done = productDone(product);
             const total = product.items.length;
             return (
-              <Card
+              <FolderCard
                 key={product.rank}
-                height={210}
-                className="folder-card"
+                product={product}
+                rank={product.rank}
+                total={total}
+                done={done}
+                progressPct={productProgressPct(product)}
+                accentColor={categoryColor(product.category)}
                 onClick={() => openProduct(product.rank)}
-              >
-                <div
-                  className="folder-card-strip"
-                  style={{ background: categoryColor(product.category) }}
-                />
-                <div className="folder-card-body">
-                  <div className="folder-top">
-                    <FolderIconFilled />
-                    <div className="rank-chip">
-                      <span>{product.rank}</span>
-                    </div>
-                  </div>
-                  <div className="folder-name">{product.name}</div>
-                  <div className="folder-meta">
-                    {product.category} · {total} video{total > 1 ? "s" : ""}
-                  </div>
-                  {product.items[0] ? (
-                    <span
-                      className={`status-pill ${STATUS_CLASS[product.items[0].status]}`}
-                    >
-                      {product.items[0].status}
-                    </span>
-                  ) : null}
-                  <div className="folder-progress-track">
-                    <div
-                      className="folder-progress-fill"
-                      style={{ width: `${productProgressPct(product)}%` }}
-                    />
-                  </div>
-                  <div className="folder-bottom">
-                    <span className="folder-count">
-                      {done}/{total} recorded
-                    </span>
-                  </div>
-                </div>
-              </Card>
+              />
             );
           })
         )}
