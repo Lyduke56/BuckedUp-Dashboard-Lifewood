@@ -21,6 +21,7 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
 
   const videoUrl = item.videoUrl;
   const driveFileId = videoUrl ? parseDriveFileId(videoUrl) : null;
+  const isPublished = item.status === "Published";
 
   return (
     <div
@@ -40,6 +41,11 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
         {videoUrl ? (
           driveFileId ? (
             <>
+              {!isPublished && (
+                <div className="video-early-badge">
+                  ⏳ Early cut — currently {item.status}, not yet Published
+                </div>
+              )}
               <iframe
                 className="video-embed"
                 src={`https://drive.google.com/file/d/${driveFileId}/preview`}
@@ -62,7 +68,9 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
               <PlayCircleIcon />
               <div className="vp-title">Video ready to watch</div>
               <div className="vp-sub">
-                Published — available in the source Google Sheet
+                {isPublished
+                  ? "Published — available in the source Google Sheet"
+                  : `Early cut — currently ${item.status.toLowerCase()}, not yet Published`}
               </div>
               <a
                 href={videoUrl}
