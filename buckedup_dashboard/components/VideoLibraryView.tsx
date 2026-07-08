@@ -26,9 +26,16 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
   products: Product[];
+  loading: boolean;
+  error: string | null;
 }
 
-export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProps) {
+export function VideoLibraryView({
+  onOpenModal,
+  products,
+  loading,
+  error,
+}: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
   const [currentStatusFilter, setCurrentStatusFilter] =
@@ -104,6 +111,26 @@ export function VideoLibraryView({ onOpenModal, products }: VideoLibraryViewProp
               onOpenModal={onOpenModal}
             />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && products.length === 0) {
+    return (
+      <div>
+        <div className="section-heading">Video Library</div>
+        <div className="empty-state">Loading video requests…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div className="section-heading">Video Library</div>
+        <div className="empty-state">
+          Couldn&apos;t reach the Google Sheet: {error}
         </div>
       </div>
     );
