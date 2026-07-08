@@ -1126,6 +1126,21 @@ select:focus,
   color: var(--earth-yellow);
 }
 
+.video-embed {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 12px;
+  background: var(--serpent);
+  display: block;
+}
+
+.video-embed-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
 ::-webkit-scrollbar {
   width: 9px;
 }

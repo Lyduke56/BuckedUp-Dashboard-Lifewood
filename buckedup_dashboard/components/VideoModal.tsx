@@ -1,7 +1,7 @@
 "use client";
 
 import type { Product } from "@/lib/types";
-import { parseModalKey } from "@/lib/utils";
+import { parseDriveFileId, parseModalKey } from "@/lib/utils";
 import { PlayCircleIcon, VideoCameraIcon } from "./icons";
 
 interface VideoModalProps {
@@ -19,7 +19,8 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
 
   if (!product || !item) return null;
 
-  const isReady = Boolean(item.videoUrl);
+  const videoUrl = item.videoUrl;
+  const driveFileId = videoUrl ? parseDriveFileId(videoUrl) : null;
 
   return (
     <div
@@ -36,17 +37,52 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
         <button type="button" className="modal-close" onClick={onClose}>
           ✕
         </button>
-        <div className={`video-placeholder${isReady ? " ready" : ""}`}>
-          {isReady ? <PlayCircleIcon /> : <VideoCameraIcon />}
-          <div className="vp-title">
-            {isReady ? "Video ready to watch" : "No video uploaded yet"}
+        {videoUrl ? (
+          driveFileId ? (
+            <>
+              <iframe
+                className="video-embed"
+                src={`https://drive.google.com/file/d/${driveFileId}/preview`}
+                allow="autoplay"
+                allowFullScreen
+              />
+              <div className="video-embed-actions">
+                <a
+                  href={videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="video-link"
+                >
+                  ↗ Open in new tab
+                </a>
+              </div>
+            </>
+          ) : (
+            <div className="video-placeholder ready">
+              <PlayCircleIcon />
+              <div className="vp-title">Video ready to watch</div>
+              <div className="vp-sub">
+                Published — available in the source Google Sheet
+              </div>
+              <a
+                href={videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="video-link"
+              >
+                ↗ Open in new tab
+              </a>
+            </div>
+          )
+        ) : (
+          <div className="video-placeholder">
+            <VideoCameraIcon />
+            <div className="vp-title">No video uploaded yet</div>
+            <div className="vp-sub">
+              {`Currently in ${item.status.toLowerCase()} — this slot will hold the AIGC video once produced`}
+            </div>
           </div>
-          <div className="vp-sub">
-            {isReady
-              ? "Published — available in the source Google Sheet"
-              : `Currently in ${item.status.toLowerCase()} — this slot will hold the AIGC video once produced`}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
