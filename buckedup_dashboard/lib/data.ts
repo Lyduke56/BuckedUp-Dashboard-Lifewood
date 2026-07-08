@@ -72,6 +72,21 @@ export const STATUS_HEX: Record<PipelineStatus, string> = {
   Published: "#046241",
 };
 
+// The Sheet's "Status" column (review/approval state) — kept as a loose
+// string in the data layer since the dropdown's full value set isn't
+// documented, so styling here is best-effort with a neutral fallback.
+const REVIEW_STATUS_CLASS: Record<string, string> = {
+  "Not Started": "rs-not-started",
+  "In Production": "rs-in-production",
+  Accepted: "rs-accepted",
+  Rejected: "rs-rejected",
+};
+
+export function reviewStatusClass(status: string | null): string {
+  if (!status) return "rs-not-started";
+  return REVIEW_STATUS_CLASS[status] ?? "rs-unknown";
+}
+
 export const products: Product[] = [
   {
     rank: 1,
@@ -80,9 +95,11 @@ export const products: Product[] = [
     subcategory: "Creatine Powder",
     type: "Educational + Product Demo",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Creatine Monohydrate — Educational + Product Demo",
@@ -99,9 +116,11 @@ export const products: Product[] = [
     subcategory: "High Stimulant Pre-Workout",
     type: "Hype / POV Reel",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Woke AF Pre-Workout — Hype / POV Reel",
@@ -118,9 +137,11 @@ export const products: Product[] = [
     subcategory: "Standard Stim Pre-Workout",
     type: "Product Demo",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Bucked Up Pre-Workout — Product Demo (11 variants)",
@@ -137,9 +158,11 @@ export const products: Product[] = [
     subcategory: "Energy Drinks",
     type: "Collection Haul / Taste Test",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "2-Case Custom Bundle",
@@ -185,9 +208,11 @@ export const products: Product[] = [
     subcategory: "Protein Drinks",
     type: "Collection Haul / Reaction",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Protein Popcorn (1 Bag)",
@@ -233,9 +258,11 @@ export const products: Product[] = [
     subcategory: "High Stimulant Pre-Workout",
     type: "Product Demo / Comparison",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Mother Bucker Pre-Workout — Product Demo / Comparison",
@@ -252,9 +279,11 @@ export const products: Product[] = [
     subcategory: "Creatine Powder",
     type: "Educational / Comparison",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Six Point Creatine — Educational / Comparison",
@@ -271,9 +300,11 @@ export const products: Product[] = [
     subcategory: "Joint & Bone",
     type: "Educational",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "RUT Testosterone Booster — Educational",
@@ -290,9 +321,11 @@ export const products: Product[] = [
     subcategory: "Joint & Bone",
     type: "Educational / Lifestyle",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Buck Naked Fat Burner — Educational / Lifestyle",
@@ -309,9 +342,11 @@ export const products: Product[] = [
     subcategory: "Protein Drinks",
     type: "Product Demo / Recipe",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Buck Feed Protein Powder — Product Demo / Recipe",
@@ -328,9 +363,11 @@ export const products: Product[] = [
     subcategory: "On The Go Energy",
     type: "Trend Short",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "PWR BUCK Energy Pouches — Trend Short",
@@ -347,9 +384,11 @@ export const products: Product[] = [
     subcategory: "Stim Free & Pump",
     type: "Product Demo / Stack",
     productUrl: null,
+    language: "English",
     contentAngle: "",
     owner: null,
     publishDate: null,
+    reviewStatus: null,
     items: [
       {
         name: "Pump Ocalypse — Product Demo / Stack",

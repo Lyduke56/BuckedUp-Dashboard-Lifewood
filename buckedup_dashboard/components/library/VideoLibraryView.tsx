@@ -1,20 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CATEGORY_TREE } from "@/lib/data";
-import { categoryColor } from "@/lib/colors";
-import type { Product, StatusFilter, VideoItem } from "@/lib/types";
+import { Fragment, useMemo, useState } from "react";
+import { CATEGORY_TREE, STATUS_CLASS, reviewStatusClass } from "@/lib/data";
+import type { Issue, IssueSeverity, Product, StatusFilter } from "@/lib/types";
 import {
   categoryCountProducts,
   getModalKey,
   productBucket,
-  productDone,
   productProgressPct,
   subcategoryCountProducts,
 } from "@/lib/utils";
-import { PlayIcon } from "@/components/shared/icons";
-import { FolderCard } from "./FolderCard";
-import { CardGrid } from "@/components/shared/CardGrid";
+import { useIssues } from "@/lib/useIssues";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -22,6 +18,15 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "in-progress", label: "In progress" },
   { value: "published", label: "Published" },
 ];
+
+const LANGUAGE_FLAG: Record<string, string> = {
+  English: "🇺🇸",
+  Spanish: "🇪🇸",
+};
+
+function languageFlag(language: string): string {
+  return LANGUAGE_FLAG[language] ?? "🌐";
+}
 
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
@@ -41,15 +46,9 @@ export function VideoLibraryView({
   const [currentStatusFilter, setCurrentStatusFilter] =
     useState<StatusFilter>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRank, setSelectedRank] = useState<number | null>(null);
+  const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
 
-  const selectedProduct = useMemo(
-    () =>
-      selectedRank != null
-        ? (products.find((product) => product.rank === selectedRank) ?? null)
-        : null,
-    [products, selectedRank],
-  );
+  const { issues, reportIssue, resolveIssue } = useIssues();
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
@@ -74,70 +73,30 @@ export function VideoLibraryView({
       }
       return true;
     });
-  }, [products, currentCategory, currentSubcategory, currentStatusFilter, searchTerm]);
+  }, [
+    products,
+    currentCategory,
+    currentSubcategory,
+    currentStatusFilter,
+    searchTerm,
+  ]);
 
   const handleCategoryChange = (value: string) => {
     setCurrentCategory(value);
     setCurrentSubcategory("all");
   };
 
-  const openProduct = (rank: number) => {
-    setSelectedRank(rank);
+  const toggleExpanded = (rank: number) => {
+    setExpandedRanks((prev) => {
+      const next = new Set(prev);
+      if (next.has(rank)) {
+        next.delete(rank);
+      } else {
+        next.add(rank);
+      }
+      return next;
+    });
   };
-
-  const closeDetail = () => {
-    setSelectedRank(null);
-  };
-
-  if (selectedProduct) {
-    const done = productDone(selectedProduct);
-    const total = selectedProduct.items.length;
-
-    return (
-      <div>
-        <button type="button" className="back-row" onClick={closeDetail}>
-          ← Back to Video Library
-        </button>
-        <h1 className="section-heading">{selectedProduct.name}</h1>
-        <p className="section-sub">
-          {selectedProduct.category} › {selectedProduct.subcategory} · Rank #
-          {selectedProduct.rank} · {done}/{total} videos published
-        </p>
-        <div className="detail-meta-row">
-          <span className="detail-meta-item">
-            <strong>Owner:</strong> {selectedProduct.owner ?? "Unassigned"}
-          </span>
-          {selectedProduct.publishDate ? (
-            <span className="detail-meta-item">
-              <strong>Published:</strong> {selectedProduct.publishDate}
-            </span>
-          ) : null}
-        </div>
-        {selectedProduct.contentAngle ? (
-          <div className="callout">
-            <div className="content-angle-label">Content angle</div>
-            {selectedProduct.contentAngle}
-          </div>
-        ) : null}
-        <div className="file-list">
-          <div className="file-row head">
-            <div />
-            <div>Video item</div>
-            <div>Product URL</div>
-            <div>Video</div>
-          </div>
-          {selectedProduct.items.map((item, index) => (
-            <FileRow
-              key={getModalKey(selectedProduct.rank, index)}
-              item={item}
-              modalKey={getModalKey(selectedProduct.rank, index)}
-              onOpenModal={onOpenModal}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   if (loading && products.length === 0) {
     return (
@@ -227,103 +186,267 @@ export function VideoLibraryView({
           onChange={(event) => setSearchTerm(event.target.value)}
         />
       </div>
-      <CardGrid columns={4} className="folder-grid">
-        {filteredProducts.length === 0 ? (
-          <div className="empty-state" style={{ gridColumn: "1 / -1" }}>
-            No products currently requested in this category yet — it will
-            appear here automatically once BuckedUp adds one.
-          </div>
-        ) : (
-          filteredProducts.map((product) => {
-            const done = productDone(product);
-            const total = product.items.length;
-            return (
-              <FolderCard
-                key={product.rank}
-                product={product}
-                rank={product.rank}
-                total={total}
-                done={done}
-                progressPct={productProgressPct(product)}
-                accentColor={categoryColor(product.category)}
-                onClick={() => openProduct(product.rank)}
-              />
-            );
-          })
-        )}
-      </CardGrid>
+
+      {filteredProducts.length === 0 ? (
+        <div className="empty-state">
+          No products currently requested in this category yet — it will
+          appear here automatically once BuckedUp adds one.
+        </div>
+      ) : (
+        <div className="table-scroll">
+          <table className="video-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Video</th>
+                <th>Type</th>
+                <th>Language</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Watch</th>
+                <th>Completed</th>
+                <th>Progress</th>
+                <th>Issue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => {
+                const item = product.items[0];
+                const modalKey = getModalKey(product.rank, 0);
+                const expanded = expandedRanks.has(product.rank);
+                const rowIssues = issues.filter(
+                  (issue) => issue.rank === product.rank,
+                );
+                const openCount = rowIssues.filter(
+                  (issue) => issue.status === "open",
+                ).length;
+
+                return (
+                  <Fragment key={product.rank}>
+                    <tr
+                      className="video-table-row"
+                      onClick={() => toggleExpanded(product.rank)}
+                    >
+                      <td className="video-table-id">{product.rank}</td>
+                      <td className="video-table-name">
+                        <span
+                          className={`expand-caret${expanded ? " open" : ""}`}
+                        >
+                          ▸
+                        </span>
+                        {product.name}
+                      </td>
+                      <td>{product.type || "—"}</td>
+                      <td>
+                        <span className="language-badge">
+                          {languageFlag(product.language)} {product.language}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`status-pill ${STATUS_CLASS[item.status]}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`status-pill ${reviewStatusClass(product.reviewStatus)}`}
+                        >
+                          {product.reviewStatus ?? "Not Started"}
+                        </span>
+                      </td>
+                      <td>
+                        {item.videoUrl ? (
+                          <button
+                            type="button"
+                            className="video-link"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onOpenModal(modalKey);
+                            }}
+                          >
+                            ▶ Watch
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="preview-btn"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onOpenModal(modalKey);
+                            }}
+                          >
+                            Preview
+                          </button>
+                        )}
+                      </td>
+                      <td>{product.publishDate ?? "—"}</td>
+                      <td>
+                        <div className="table-progress">
+                          <div className="table-progress-track">
+                            <div
+                              className="table-progress-fill"
+                              style={{
+                                width: `${productProgressPct(product)}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="table-progress-pct">
+                            {Math.round(productProgressPct(product))}%
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={`issue-btn${openCount > 0 ? " has-issues" : ""}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleExpanded(product.rank);
+                          }}
+                        >
+                          🚩{openCount > 0 ? ` ${openCount}` : ""}
+                        </button>
+                      </td>
+                    </tr>
+                    {expanded ? (
+                      <tr className="video-table-expand-row">
+                        <td colSpan={10}>
+                          <RowDetail
+                            product={product}
+                            issues={rowIssues}
+                            onReportIssue={reportIssue}
+                            onResolveIssue={resolveIssue}
+                          />
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-interface FileRowProps {
-  item: VideoItem;
-  modalKey: string;
-  onOpenModal: (key: string) => void;
+interface RowDetailProps {
+  product: Product;
+  issues: Issue[];
+  onReportIssue: (
+    rank: number,
+    description: string,
+    severity: IssueSeverity,
+  ) => Promise<void>;
+  onResolveIssue: (id: string) => Promise<void>;
 }
 
-function FileRow({ item, modalKey, onOpenModal }: FileRowProps) {
-  const productUrl = item.productUrl ?? null;
+function RowDetail({
+  product,
+  issues,
+  onReportIssue,
+  onResolveIssue,
+}: RowDetailProps) {
+  const [description, setDescription] = useState("");
+  const [severity, setSeverity] = useState<IssueSeverity>("medium");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!description.trim()) return;
+    setSubmitting(true);
+    try {
+      await onReportIssue(product.rank, description.trim(), severity);
+      setDescription("");
+      setSeverity("medium");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="file-row">
-      <div className="thumb">
-        <PlayIcon />
-      </div>
-      <div
-        className="file-name"
-        onClick={() => onOpenModal(modalKey)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            onOpenModal(modalKey);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        {item.name}
-        {item.variant ? (
-          <span className="variant-ctx">{item.variant}</span>
+    <div className="row-detail">
+      <div className="detail-meta-row">
+        <span className="detail-meta-item">
+          <strong>Owner:</strong> {product.owner ?? "Unassigned"}
+        </span>
+        {product.productUrl ? (
+          <span className="detail-meta-item">
+            <strong>Product:</strong>{" "}
+            <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+              {product.productUrl.replace(/^https?:\/\//, "")}
+            </a>
+          </span>
         ) : null}
       </div>
-      <div className="fr-status">
-        {productUrl ? (
-          <a
-            href={productUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="product-url-link"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {productUrl.replace(/^https?:\/\//, "")}
-          </a>
+      {product.contentAngle ? (
+        <div className="callout">
+          <div className="content-angle-label">Content angle</div>
+          {product.contentAngle}
+        </div>
+      ) : null}
+
+      <div className="issue-panel">
+        <div className="content-angle-label">Issues</div>
+        {issues.length === 0 ? (
+          <div className="issue-empty">No issues reported for this item.</div>
         ) : (
-          <span className="product-url-empty">—</span>
+          <ul className="issue-list">
+            {issues.map((issue) => (
+              <li
+                key={issue.id}
+                className={`issue-item issue-${issue.severity}${
+                  issue.status === "resolved" ? " resolved" : ""
+                }`}
+              >
+                <span className="issue-severity">{issue.severity}</span>
+                <span className="issue-desc">{issue.description}</span>
+                {issue.status === "open" ? (
+                  <button
+                    type="button"
+                    className="issue-resolve-btn"
+                    onClick={() => onResolveIssue(issue.id)}
+                  >
+                    Resolve
+                  </button>
+                ) : (
+                  <span className="issue-resolved-tag">Resolved</span>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
-      </div>
-      <div>
-        {item.videoUrl ? (
+        <div className="issue-form">
+          <select
+            value={severity}
+            onChange={(event) =>
+              setSeverity(event.target.value as IssueSeverity)
+            }
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Describe the problem…"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") handleSubmit();
+            }}
+          />
           <button
             type="button"
-            className="video-link"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpenModal(modalKey);
-            }}
+            className="issue-submit-btn"
+            disabled={submitting || !description.trim()}
+            onClick={handleSubmit}
           >
-            ▶ Watch
+            {submitting ? "Reporting…" : "Report issue"}
           </button>
-        ) : (
-          <button
-            type="button"
-            className="preview-btn"
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpenModal(modalKey);
-            }}
-          >
-            Preview
-          </button>
-        )}
+        </div>
       </div>
     </div>
   );

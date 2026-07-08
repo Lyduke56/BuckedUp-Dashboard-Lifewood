@@ -22,8 +22,10 @@ interface SheetRow {
   Subcategory?: string;
   "Product URL"?: string;
   "Content Angle"?: string;
+  Langauge?: string;
   "Content Type"?: string;
   Owner?: string;
+  Stages?: string;
   Status?: string;
   "Video URL"?: string;
   "Publish Date"?: string;
@@ -49,10 +51,16 @@ function toProduct(row: SheetRow): Product | null {
   const rank = Number(row.Rank);
   if (!name || !Number.isFinite(rank)) return null;
 
-  const status = isPipelineStatus(row.Status) ? row.Status : "Not Started";
+  // "Stages" holds the granular pipeline stage (what used to live in
+  // "Status" before the Sheet was restructured); "Status" now holds a
+  // separate, coarser review/approval state.
+  const stageValue = readField(row, "Stages", "Status");
+  const status = isPipelineStatus(stageValue) ? stageValue : "Not Started";
+  const reviewStatus = readField(row, "Status");
   const videoUrl = readField(row, "Video URL");
   const productUrl = readField(row, "Product URL");
   const type = row["Content Type"]?.toString().trim() ?? "";
+  const language = readField(row, "Langauge", "Language") ?? "English";
   const contentAngle = readField(row, "Content Angle") ?? "";
   const owner = readField(row, "Owner");
   const publishDate = readField(row, "Publish Date");
@@ -63,10 +71,12 @@ function toProduct(row: SheetRow): Product | null {
     category: row.Category?.toString().trim() || "Uncategorized",
     subcategory: row.Subcategory?.toString().trim() || "Uncategorized",
     type,
+    language,
     productUrl,
     contentAngle,
     owner,
     publishDate,
+    reviewStatus,
     items: [
       {
         name: type ? `${name} — ${type}` : name,
