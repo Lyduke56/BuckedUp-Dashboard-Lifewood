@@ -87,6 +87,31 @@ export function reviewStatusClass(status: string | null): string {
   return REVIEW_STATUS_CLASS[status] ?? "rs-unknown";
 }
 
+export const REVIEW_STATUS_ORDER = [
+  "Not Started",
+  "In Production",
+  "Accepted",
+  "Rejected",
+] as const;
+
+// Validated via the dataviz skill's validate_palette.js: the 3 active
+// states pass lightness band, chroma floor, CVD separation (deutan ΔE
+// 12.4), and contrast as a set. "Not Started" is a plain neutral gray,
+// exempt from that check since it's the baseline, not a competing hue.
+// This is the single source of truth for review-status color — both the
+// table pills (app/globals.css .rs-*) and ReviewStatusChart read from it.
+export const REVIEW_STATUS_HEX: Record<string, string> = {
+  "Not Started": "#999999",
+  "In Production": "#2A78D6",
+  Accepted: "#0CA30C",
+  Rejected: "#D03B3B",
+};
+
+// Placeholder config for the Daily Target vs Actual analytics chart —
+// there's no settings UI yet, so this is a plain constant. Should become
+// a real setting (Sheet cell, admin UI, or env var) once one exists.
+export const DAILY_VIDEO_TARGET = 3;
+
 export const products: Product[] = [
   {
     rank: 1,

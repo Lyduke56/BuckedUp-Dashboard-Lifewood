@@ -62,7 +62,7 @@ export function Dashboard() {
           />
         </div>
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>
-          <AnalyticsView />
+          <AnalyticsView products={products} />
         </div>
       </div>
       <VideoModal

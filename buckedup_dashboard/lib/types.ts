@@ -61,3 +61,15 @@ export interface Issue {
   status: IssueStatus;
   createdAt: string;
 }
+
+/**
+ * The shape a real "daily completions vs target" chart will consume once
+ * a snapshot job exists (see 04-architecture.md, Phase 4). The Sheet only
+ * holds current state, not history, so this can't be populated today —
+ * DailyProgressChart renders an empty state until real points exist.
+ */
+export interface DailyCompletionPoint {
+  date: string;
+  target: number;
+  actual: number;
+}

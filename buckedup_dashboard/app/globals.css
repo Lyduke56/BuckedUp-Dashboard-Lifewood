@@ -761,18 +761,21 @@ select:focus,
   color: var(--gray1);
 }
 
+/* Validated via validate_palette.js (see lib/data.ts REVIEW_STATUS_HEX) —
+   the previous castleton/indigo/#dc3545 set failed CVD separation between
+   accepted and rejected (ΔE 2.5 for protanopia). */
 .rs-in-production {
-  background: var(--cat-indigo);
+  background: #2a78d6;
   color: var(--white);
 }
 
 .rs-accepted {
-  background: var(--castleton);
+  background: #0ca30c;
   color: var(--white);
 }
 
 .rs-rejected {
-  background: #dc3545;
+  background: #d03b3b;
   color: var(--white);
 }
 
@@ -1029,6 +1032,54 @@ select:focus,
   font-size: 11px;
   color: var(--ink-soft);
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ---------- DAILY TARGET VS ACTUAL (scaffold) ---------- */
+.daily-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.daily-label {
+  width: 90px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.daily-track {
+  position: relative;
+  flex: 1;
+  height: 16px;
+  background: var(--seasalt);
+  border-radius: 6px;
+  overflow: visible;
+}
+
+.daily-fill {
+  height: 100%;
+  background: var(--castleton);
+  border-radius: 6px;
+}
+
+.daily-target-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--ink);
+}
+
+.daily-count {
+  width: 48px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
   flex-shrink: 0;
 }
 
