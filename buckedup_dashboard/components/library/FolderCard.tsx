@@ -2,8 +2,8 @@
 
 import { STATUS_CLASS } from "@/lib/data";
 import type { Product } from "@/lib/types";
-import { FolderIconFilled } from "./icons";
-import { Card } from "./Card";
+import { FolderIconFilled } from "@/components/shared/icons";
+import { Card } from "@/components/shared/Card";
 
 interface FolderCardProps {
   product: Product;

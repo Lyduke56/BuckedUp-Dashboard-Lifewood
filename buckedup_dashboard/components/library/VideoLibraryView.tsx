@@ -12,9 +12,9 @@ import {
   productProgressPct,
   subcategoryCountProducts,
 } from "@/lib/utils";
-import { PlayIcon } from "./icons";
+import { PlayIcon } from "@/components/shared/icons";
 import { FolderCard } from "./FolderCard";
-import { CardGrid } from "./CardGrid";
+import { CardGrid } from "@/components/shared/CardGrid";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },

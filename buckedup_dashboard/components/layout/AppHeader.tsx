@@ -1,26 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ViewId } from "@/lib/types";
 
-const PAGE_TITLES: Record<ViewId, string> = {
-  overview: "Overview",
-  library: "Video library",
-};
-
-interface TopbarProps {
-  activeView: ViewId;
+interface AppHeaderProps {
   loading: boolean;
   lastUpdated: Date | null;
   onRefresh: () => void;
 }
 
-export function Topbar({
-  activeView,
-  loading,
-  lastUpdated,
-  onRefresh,
-}: TopbarProps) {
+export function AppHeader({ loading, lastUpdated, onRefresh }: AppHeaderProps) {
   const [syncSeconds, setSyncSeconds] = useState<number | null>(null);
 
   useEffect(() => {
@@ -37,9 +25,22 @@ export function Topbar({
   }, [lastUpdated]);
 
   return (
-    <div className="topbar">
-      <div className="page-title">{PAGE_TITLES[activeView]}</div>
-      <div className="topbar-right">
+    <header className="app-header">
+      <div className="brand-row">
+        <img
+          src="/lifewood-full-cream.svg"
+          alt="Lifewood"
+          className="brand-logo"
+        />
+        <span className="brand-divider-line" />
+        <img
+          src="/buckedup.svg"
+          alt="BuckedUp"
+          className="brand-logo"
+          style={{ width: "30px" }}
+        />
+      </div>
+      <div className="app-header-right">
         <span className="readonly-badge">Read-only view</span>
         <button
           type="button"
@@ -54,6 +55,6 @@ export function Topbar({
           {syncSeconds === null ? "Syncing…" : `Synced ${syncSeconds}s ago`}
         </span>
       </div>
-    </div>
+    </header>
   );
 }

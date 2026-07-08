@@ -2,7 +2,7 @@
 
 import type { Product } from "@/lib/types";
 import { parseDriveFileId, parseModalKey } from "@/lib/utils";
-import { PlayCircleIcon, VideoCameraIcon } from "./icons";
+import { PlayCircleIcon, VideoCameraIcon } from "@/components/shared/icons";
 
 interface VideoModalProps {
   products: Product[];

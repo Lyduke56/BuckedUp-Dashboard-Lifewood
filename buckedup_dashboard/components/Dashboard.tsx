@@ -3,11 +3,12 @@
 import { useState } from "react";
 import type { ViewId } from "@/lib/types";
 import { useVideoRequests } from "@/lib/useVideoRequests";
-import { OverviewView } from "./OverviewView";
-import { Sidebar } from "./Sidebar";
-import { Topbar } from "./Topbar";
-import { VideoLibraryView } from "./VideoLibraryView";
-import { VideoModal } from "./VideoModal";
+import { AppHeader } from "./layout/AppHeader";
+import { TabBar } from "./layout/TabBar";
+import { OverviewView } from "./overview/OverviewView";
+import { VideoLibraryView } from "./library/VideoLibraryView";
+import { VideoModal } from "./library/VideoModal";
+import { AnalyticsView } from "./analytics/AnalyticsView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
@@ -21,45 +22,47 @@ export function Dashboard() {
 
   return (
     <div className="shell">
-      <Sidebar activeView={activeView} onViewChange={switchView} />
-      <div className="main-area">
-        <Topbar
-          activeView={activeView}
+      <div className="shell-header">
+        <AppHeader
           loading={loading}
           lastUpdated={lastUpdated}
           onRefresh={refresh}
         />
-        <div className="content">
-          {error && (
-            <div
-              className="callout"
-              style={{
-                borderLeft: "4px solid #dc3545",
-                color: "#b02a37",
-                marginBottom: "20px",
-                background: "rgba(220, 53, 69, 0.05)",
-              }}
-            >
-              ⚠️ Running in fallback mode. Failed to load live Google Sheets
-              data: {error}
-            </div>
-          )}
-          <div className={`view${activeView === "overview" ? " active" : ""}`}>
-            <OverviewView
-              products={products}
-              isLoading={loading}
-              hasError={!!error}
-              onBrowseLibrary={() => switchView("library")}
-            />
+        <TabBar activeView={activeView} onViewChange={switchView} />
+      </div>
+      <div className="content">
+        {error && (
+          <div
+            className="callout"
+            style={{
+              borderLeft: "4px solid #dc3545",
+              color: "#b02a37",
+              marginBottom: "20px",
+              background: "rgba(220, 53, 69, 0.05)",
+            }}
+          >
+            ⚠️ Running in fallback mode. Failed to load live Google Sheets
+            data: {error}
           </div>
-          <div className={`view${activeView === "library" ? " active" : ""}`}>
-            <VideoLibraryView
-              products={products}
-              loading={loading}
-              error={error}
-              onOpenModal={setModalKey}
-            />
-          </div>
+        )}
+        <div className={`view${activeView === "overview" ? " active" : ""}`}>
+          <OverviewView
+            products={products}
+            isLoading={loading}
+            hasError={!!error}
+            onBrowseLibrary={() => switchView("library")}
+          />
+        </div>
+        <div className={`view${activeView === "library" ? " active" : ""}`}>
+          <VideoLibraryView
+            products={products}
+            loading={loading}
+            error={error}
+            onOpenModal={setModalKey}
+          />
+        </div>
+        <div className={`view${activeView === "analytics" ? " active" : ""}`}>
+          <AnalyticsView />
         </div>
       </div>
       <VideoModal

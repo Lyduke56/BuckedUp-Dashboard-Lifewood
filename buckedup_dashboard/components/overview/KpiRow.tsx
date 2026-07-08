@@ -1,8 +1,8 @@
 // KpiRow.tsx
 import type { Product } from "@/lib/types";
 import { productBucket, totalVideos } from "@/lib/utils";
-import { Card } from "./Card";
-import { CardGrid } from "./CardGrid";
+import { Card } from "@/components/shared/Card";
+import { CardGrid } from "@/components/shared/CardGrid";
 import React from 'react';
 
 const ICONS: Record<string, React.ReactNode> = {

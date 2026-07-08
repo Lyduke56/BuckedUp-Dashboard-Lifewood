@@ -1,4 +1,4 @@
-export type ViewId = "overview" | "library";
+export type ViewId = "overview" | "library" | "analytics";
 
 export type StatusFilter = "all" | "not-started" | "in-progress" | "published";
 
