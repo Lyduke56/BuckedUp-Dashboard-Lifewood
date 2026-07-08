@@ -58,7 +58,7 @@ export function StatusChart({ products }: StatusChartProps) {
         })}
       </div>
       <div className="category-legend stack-legend">
-        {STATUS_ORDER.map((status) => (
+        {stackOrder.map((status) => (
           <div key={status} className="category-legend-item">
             <span
               className="category-legend-dot"
