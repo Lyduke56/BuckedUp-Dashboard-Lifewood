@@ -196,26 +196,22 @@ export function VideoLibraryView({
         <div className="table-scroll">
           <table className="video-table">
             <colgroup>
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "24%" }} />
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "32%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "10%" }} />
               <col style={{ width: "13%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "9%" }} />
-              <col style={{ width: "9%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "11%" }} />
               <col style={{ width: "6%" }} />
             </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Video</th>
-                <th>Type</th>
                 <th>Language</th>
                 <th>Stage</th>
                 <th>Status</th>
-                <th>Watch</th>
                 <th>Completed</th>
                 <th>Progress</th>
                 <th>Issue</th>
@@ -237,21 +233,13 @@ export function VideoLibraryView({
                   <Fragment key={product.rank}>
                     <tr
                       className="video-table-row"
-                      onClick={() => toggleExpanded(product.rank)}
+                      onClick={() => onOpenModal(modalKey)}
                     >
                       <td className="video-table-id">{product.rank}</td>
                       <td className="video-table-name" title={product.name}>
-                        <span
-                          className={`expand-caret${expanded ? " open" : ""}`}
-                        >
-                          ▸
-                        </span>
                         <span className="video-table-name-text">
                           {product.name}
                         </span>
-                      </td>
-                      <td className="video-table-type" title={product.type}>
-                        {product.type || "—"}
                       </td>
                       <td>
                         <span className="language-badge">
@@ -271,31 +259,6 @@ export function VideoLibraryView({
                         >
                           {product.reviewStatus ?? "Not Started"}
                         </span>
-                      </td>
-                      <td>
-                        {item.videoUrl ? (
-                          <button
-                            type="button"
-                            className="video-link"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onOpenModal(modalKey);
-                            }}
-                          >
-                            ▶ Watch
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="preview-btn"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onOpenModal(modalKey);
-                            }}
-                          >
-                            Preview
-                          </button>
-                        )}
                       </td>
                       <td>{product.publishDate ?? "—"}</td>
                       <td>
@@ -328,7 +291,7 @@ export function VideoLibraryView({
                     </tr>
                     {expanded ? (
                       <tr className="video-table-expand-row">
-                        <td colSpan={10}>
+                        <td colSpan={8}>
                           <RowDetail
                             product={product}
                             issues={rowIssues}

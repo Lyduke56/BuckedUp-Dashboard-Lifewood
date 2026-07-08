@@ -23,6 +23,12 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
   const driveFileId = videoUrl ? parseDriveFileId(videoUrl) : null;
   const isPublished = item.status === "Published";
 
+  const metaParts = [
+    product.type,
+    product.owner,
+    product.publishDate ? `Published ${product.publishDate}` : null,
+  ].filter((part): part is string => Boolean(part));
+
   return (
     <div
       className={`overlay show`}
@@ -91,6 +97,29 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
             </div>
           </div>
         )}
+        <div className="video-modal-info">
+          <div className="video-modal-title">{product.name}</div>
+          {metaParts.length > 0 ? (
+            <div className="video-modal-meta">
+              {metaParts.map((part, index) => (
+                <span key={part}>
+                  {index > 0 ? (
+                    <span className="video-modal-meta-sep"> • </span>
+                  ) : null}
+                  {part}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {product.contentAngle ? (
+            <div className="video-modal-description">
+              <div className="video-modal-description-label">
+                Description
+              </div>
+              {product.contentAngle}
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );

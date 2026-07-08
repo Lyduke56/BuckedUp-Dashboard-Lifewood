@@ -688,22 +688,6 @@ select:focus,
 }
 
 /* ---------- VIDEO LIBRARY TABLE ---------- */
-.preview-btn {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--castleton);
-  background: rgba(4, 98, 65, 0.08);
-  border: none;
-  border-radius: 7px;
-  padding: 7px 12px;
-  cursor: pointer;
-  font-family: var(--font-manrope), "Manrope", sans-serif;
-}
-
-.preview-btn:hover {
-  background: rgba(4, 98, 65, 0.15);
-}
-
 .video-link {
   font-size: 11px;
   font-weight: 800;
@@ -782,23 +766,6 @@ select:focus,
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-}
-
-.video-table-type {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.expand-caret {
-  display: inline-block;
-  margin-right: 6px;
-  color: var(--ink-soft);
-  transition: transform 0.15s;
-}
-
-.expand-caret.open {
-  transform: rotate(90deg);
 }
 
 .language-badge {
@@ -1354,9 +1321,52 @@ select:focus,
   background: var(--white);
   border-radius: 16px;
   padding: 22px;
-  max-width: 560px;
+  max-width: 640px;
   width: 100%;
   position: relative;
+}
+
+.video-modal-info {
+  margin-top: 16px;
+}
+
+.video-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.video-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+.video-modal-meta-sep {
+  color: var(--line);
+}
+
+.video-modal-description {
+  background: var(--seasalt);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.video-modal-description-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
 }
 
 .modal-close {
