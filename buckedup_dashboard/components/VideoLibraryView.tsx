@@ -41,7 +41,15 @@ export function VideoLibraryView({
   const [currentStatusFilter, setCurrentStatusFilter] =
     useState<StatusFilter>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedRank, setSelectedRank] = useState<number | null>(null);
+
+  const selectedProduct = useMemo(
+    () =>
+      selectedRank != null
+        ? (products.find((product) => product.rank === selectedRank) ?? null)
+        : null,
+    [products, selectedRank],
+  );
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
@@ -74,12 +82,11 @@ export function VideoLibraryView({
   };
 
   const openProduct = (rank: number) => {
-    const product = products.find((p) => p.rank === rank);
-    if (product) setSelectedProduct(product);
+    setSelectedRank(rank);
   };
 
   const closeDetail = () => {
-    setSelectedProduct(null);
+    setSelectedRank(null);
   };
 
   if (selectedProduct) {
@@ -100,7 +107,7 @@ export function VideoLibraryView({
           <div className="file-row head">
             <div />
             <div>Video item</div>
-            <div>Stage</div>
+            <div>Product URL</div>
             <div>Video</div>
           </div>
           {selectedProduct.items.map((item, index) => (
@@ -240,6 +247,7 @@ interface FileRowProps {
 }
 
 function FileRow({ item, modalKey, onOpenModal }: FileRowProps) {
+  const productUrl = item.productUrl ?? null;
   return (
     <div className="file-row">
       <div className="thumb">
@@ -262,9 +270,19 @@ function FileRow({ item, modalKey, onOpenModal }: FileRowProps) {
         ) : null}
       </div>
       <div className="fr-status">
-        <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
-          {item.status}
-        </span>
+        {productUrl ? (
+          <a
+            href={productUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="product-url-link"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {productUrl.replace(/^https?:\/\//, "")}
+          </a>
+        ) : (
+          <span className="product-url-empty">—</span>
+        )}
       </div>
       <div>
         {item.videoUrl ? (
