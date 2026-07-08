@@ -1028,6 +1028,34 @@ select:focus,
   line-height: 1.6;
 }
 
+.content-angle-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--castleton);
+  margin-bottom: 4px;
+}
+
+.detail-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: -6px;
+  margin-bottom: 4px;
+}
+
+.detail-meta-item {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.detail-meta-item strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .section-heading-spaced {
   margin-top: 34px;
 }

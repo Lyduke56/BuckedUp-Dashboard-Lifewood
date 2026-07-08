@@ -103,6 +103,22 @@ export function VideoLibraryView({
           {selectedProduct.category} › {selectedProduct.subcategory} · Rank #
           {selectedProduct.rank} · {done}/{total} videos published
         </p>
+        <div className="detail-meta-row">
+          <span className="detail-meta-item">
+            <strong>Owner:</strong> {selectedProduct.owner ?? "Unassigned"}
+          </span>
+          {selectedProduct.publishDate ? (
+            <span className="detail-meta-item">
+              <strong>Published:</strong> {selectedProduct.publishDate}
+            </span>
+          ) : null}
+        </div>
+        {selectedProduct.contentAngle ? (
+          <div className="callout">
+            <div className="content-angle-label">Content angle</div>
+            {selectedProduct.contentAngle}
+          </div>
+        ) : null}
         <div className="file-list">
           <div className="file-row head">
             <div />

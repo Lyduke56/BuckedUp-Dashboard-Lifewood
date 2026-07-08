@@ -21,9 +21,12 @@ interface SheetRow {
   Category?: string;
   Subcategory?: string;
   "Product URL"?: string;
+  "Content Angle"?: string;
   "Content Type"?: string;
+  Owner?: string;
   Status?: string;
   "Video URL"?: string;
+  "Publish Date"?: string;
 }
 
 function isPipelineStatus(value: unknown): value is PipelineStatus {
@@ -50,6 +53,9 @@ function toProduct(row: SheetRow): Product | null {
   const videoUrl = readField(row, "Video URL");
   const productUrl = readField(row, "Product URL");
   const type = row["Content Type"]?.toString().trim() ?? "";
+  const contentAngle = readField(row, "Content Angle") ?? "";
+  const owner = readField(row, "Owner");
+  const publishDate = readField(row, "Publish Date");
 
   return {
     rank,
@@ -59,6 +65,9 @@ function toProduct(row: SheetRow): Product | null {
     price: "",
     type,
     productUrl,
+    contentAngle,
+    owner,
+    publishDate,
     items: [
       {
         name: type ? `${name} — ${type}` : name,

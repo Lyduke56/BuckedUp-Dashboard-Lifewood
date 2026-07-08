@@ -29,5 +29,8 @@ export interface Product {
   price: string;
   type: string;
   productUrl: string | null;
+  contentAngle: string;
+  owner: string | null;
+  publishDate: string | null;
   items: VideoItem[];
 }

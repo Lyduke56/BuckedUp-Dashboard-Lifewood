@@ -81,6 +81,9 @@ export const products: Product[] = [
     price: "$29.99",
     type: "Educational + Product Demo",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Creatine Monohydrate — Educational + Product Demo",
@@ -98,6 +101,9 @@ export const products: Product[] = [
     price: "$54.99",
     type: "Hype / POV Reel",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Woke AF Pre-Workout — Hype / POV Reel",
@@ -115,6 +121,9 @@ export const products: Product[] = [
     price: "$49.99",
     type: "Product Demo",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Bucked Up Pre-Workout — Product Demo (11 variants)",
@@ -132,6 +141,9 @@ export const products: Product[] = [
     price: "from $39.99",
     type: "Collection Haul / Taste Test",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "2-Case Custom Bundle",
@@ -178,6 +190,9 @@ export const products: Product[] = [
     price: "from $5.99",
     type: "Collection Haul / Reaction",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Protein Popcorn (1 Bag)",
@@ -224,6 +239,9 @@ export const products: Product[] = [
     price: "$59.99",
     type: "Product Demo / Comparison",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Mother Bucker Pre-Workout — Product Demo / Comparison",
@@ -241,6 +259,9 @@ export const products: Product[] = [
     price: "$34.99",
     type: "Educational / Comparison",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Six Point Creatine — Educational / Comparison",
@@ -258,6 +279,9 @@ export const products: Product[] = [
     price: "$69.99",
     type: "Educational",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "RUT Testosterone Booster — Educational",
@@ -275,6 +299,9 @@ export const products: Product[] = [
     price: "$59.99",
     type: "Educational / Lifestyle",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Buck Naked Fat Burner — Educational / Lifestyle",
@@ -292,6 +319,9 @@ export const products: Product[] = [
     price: "$68.99",
     type: "Product Demo / Recipe",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Buck Feed Protein Powder — Product Demo / Recipe",
@@ -309,6 +339,9 @@ export const products: Product[] = [
     price: "$8.99–$39.99",
     type: "Trend Short",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "PWR BUCK Energy Pouches — Trend Short",
@@ -326,6 +359,9 @@ export const products: Product[] = [
     price: "$45.99",
     type: "Product Demo / Stack",
     productUrl: null,
+    contentAngle: "",
+    owner: null,
+    publishDate: null,
     items: [
       {
         name: "Pump Ocalypse — Product Demo / Stack",
