@@ -56,20 +56,19 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
       <div className="analytics-grid">
         <div className="panel">
           <div className="section-heading section-heading-sm">
-            Production stage funnel
+            Production stage distribution
           </div>
           <div className="panel-accent" />
           <div className="chart-mt">
             <StatusChart products={products} />
           </div>
           <div className="callout callout-inline">
-            Each row is cumulative — &quot;reached this stage or beyond&quot;
-            — not a per-stage snapshot, so the biggest drop between two
-            consecutive rows is where the bottleneck actually is. Status is
-            edited only
-            in the source Google Sheet by whoever runs production; this
-            dashboard reads and displays it automatically, with no editing
-            surface of its own.
+            One column, stacked by current stage — reads bottom-to-top as not
+            started → published, so a taller top segment means more of the
+            queue has cleared production. Status is edited only in the
+            source Google Sheet by whoever runs production; this dashboard
+            reads and displays it automatically, with no editing surface of
+            its own.
           </div>
         </div>
         <div className="panel">
