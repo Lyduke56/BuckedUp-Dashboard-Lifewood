@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useCallback } from "react";
 import { computeProjectPacing } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { averageProgressPct } from "@/lib/utils";
@@ -7,6 +10,10 @@ interface ProjectProgressCardProps {
 }
 
 export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const shimmerRef = useRef<HTMLDivElement>(null);
+
   const progressPct = Math.round(averageProgressPct(products));
   const { status, statusHex, daysToDeadline } =
     computeProjectPacing(progressPct);
@@ -23,9 +30,89 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
       ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
       : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`;
 
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    const glow = glowRef.current;
+    const shimmer = shimmerRef.current;
+    if (!card || !glow || !shimmer) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+
+    // Tilt
+    const tiltX = ((y - cy) / cy) * 3;
+    const tiltY = ((cx - x) / cx) * 3;
+    card.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.01)`;
+
+    // Radial glow follows cursor
+    glow.style.left = `${x}px`;
+    glow.style.top = `${y}px`;
+    glow.style.opacity = "1";
+
+    // Shimmer gradient
+    const pctX = (x / rect.width) * 100;
+    const pctY = (y / rect.height) * 100;
+    shimmer.style.background = `radial-gradient(circle at ${pctX}% ${pctY}%, rgba(255,179,71,0.12) 0%, transparent 65%)`;
+    shimmer.style.opacity = "1";
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const card = cardRef.current;
+    const glow = glowRef.current;
+    const shimmer = shimmerRef.current;
+    if (!card || !glow || !shimmer) return;
+    card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";
+    glow.style.opacity = "0";
+    shimmer.style.opacity = "0";
+  }, []);
+
   return (
-    <div className="progress-banner">
-      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+    <div
+      ref={cardRef}
+      className="progress-banner"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        transition: "transform 0.15s ease",
+        willChange: "transform",
+      }}
+    >
+      {/* Cursor-tracking radial glow */}
+      <div
+        ref={glowRef}
+        style={{
+          position: "absolute",
+          width: "280px",
+          height: "280px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,179,71,0.25) 0%, transparent 70%)",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 0.3s ease",
+          zIndex: 0,
+        }}
+      />
+      {/* Full-card shimmer overlay */}
+      <div
+        ref={shimmerRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 0.3s ease",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Card content */}
+      <div style={{ position: "relative", zIndex: 1, display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div className="progress-banner-main">
           <div className="progress-pct">{progressPct}%</div>
           <div>
@@ -44,9 +131,9 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
         </div>
       </div>
       
-      <div style={{ width: '100%', marginTop: '20px' }}>
+      <div style={{ position: "relative", zIndex: 1, width: '100%', marginTop: '20px' }}>
         <div style={{ height: '8px', background: 'var(--glass-border)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-bg)' }}>
-          <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%)', borderRadius: '10px', boxShadow: '0 0 12px rgba(255, 179, 71, 0.5)' }} />
+          <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%)', borderRadius: '10px', boxShadow: '0 0 12px rgba(255, 179, 71, 0.5)', transition: 'width 0.8s cubic-bezier(0.25, 1, 0.5, 1)' }} />
         </div>
       </div>
     </div>

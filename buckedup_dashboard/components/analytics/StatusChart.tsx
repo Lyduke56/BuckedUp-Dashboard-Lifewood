@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { STATUS_HEX, STATUS_ORDER } from "@/lib/data";
 import type { Product } from "@/lib/types";
 
@@ -11,6 +14,14 @@ const MIN_LABEL_HEIGHT = 22;
 const LIGHT_STAGES = new Set(["Not Started", "Scripting"]);
 
 export function StatusChart({ products }: StatusChartProps) {
+  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
+
+  const showTip = (e: React.MouseEvent, content: string) =>
+    setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
+  const moveTip = (e: React.MouseEvent) =>
+    setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
+  const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
+
   const items = products.flatMap((product) => product.items);
   const total = items.length || 1;
 
@@ -40,6 +51,8 @@ export function StatusChart({ products }: StatusChartProps) {
               className="stack-segment"
               style={{ height: `${segmentHeight}px`, background: STATUS_HEX[status] }}
               title={`${status}: ${count} (${pct}%)`}
+              onMouseMove={(e) => { showTip(e, `${status}: ${count} video${count === 1 ? "" : "s"} (${pct}%)`); moveTip(e); }}
+              onMouseLeave={hideTip}
             >
               {segmentHeight >= MIN_LABEL_HEIGHT ? (
                 <span
@@ -59,7 +72,13 @@ export function StatusChart({ products }: StatusChartProps) {
       </div>
       <div className="category-legend stack-legend">
         {stackOrder.map((status) => (
-          <div key={status} className="category-legend-item">
+          <div
+            key={status}
+            className="category-legend-item"
+            onMouseMove={(e) => { showTip(e, `${status}: ${counts[status]} video${counts[status] === 1 ? "" : "s"} (${Math.round((counts[status] / total) * 100)}%)`); moveTip(e); }}
+            onMouseLeave={hideTip}
+            style={{ cursor: "default" }}
+          >
             <span
               className="category-legend-dot"
               style={{ background: STATUS_HEX[status] }}
@@ -69,6 +88,21 @@ export function StatusChart({ products }: StatusChartProps) {
           </div>
         ))}
       </div>
+
+      {tooltip.visible && (
+        <div
+          className="chart-tooltip"
+          style={{
+            position: "fixed",
+            left: tooltip.x + 14,
+            top: tooltip.y - 8,
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 }
