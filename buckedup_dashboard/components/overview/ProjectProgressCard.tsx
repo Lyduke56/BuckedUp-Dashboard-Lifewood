@@ -47,13 +47,14 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
     const tiltY = ((cx - x) / cx) * 3;
     card.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.01)`;
 
-    // Radial glow & shimmer coordinates set as CSS variables
-    card.style.setProperty("--mouse-x", `${x}px`);
-    card.style.setProperty("--mouse-y", `${y}px`);
-    card.style.setProperty("--mouse-shimmer-x", `${(x / rect.width) * 100}%`);
-    card.style.setProperty("--mouse-shimmer-y", `${(y / rect.height) * 100}%`);
-
+    // Direct positioning for maximum reliability
+    glow.style.left = `${x}px`;
+    glow.style.top = `${y}px`;
     glow.style.opacity = "1";
+
+    const pctX = (x / rect.width) * 100;
+    const pctY = (y / rect.height) * 100;
+    shimmer.style.background = `radial-gradient(circle at ${pctX}% ${pctY}%, var(--progress-card-shimmer-color) 0%, transparent 65%)`;
     shimmer.style.opacity = "1";
   }, []);
 
@@ -94,8 +95,6 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
           opacity: 0,
           transition: "opacity 0.3s ease",
           zIndex: 0,
-          left: "var(--mouse-x, 0px)",
-          top: "var(--mouse-y, 0px)",
         }}
       />
       {/* Full-card shimmer overlay */}
@@ -108,7 +107,6 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
           opacity: 0,
           transition: "opacity 0.3s ease",
           zIndex: 0,
-          background: "radial-gradient(circle at var(--mouse-shimmer-x, 50%) var(--mouse-shimmer-y, 50%), var(--progress-card-shimmer-color) 0%, transparent 65%)",
         }}
       />
 

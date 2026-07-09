@@ -472,9 +472,20 @@ a {
 }
 
 [data-theme='light'] .progress-banner {
-  background: linear-gradient(135deg, #e6f4ea 0%, #f9f7f7 100%) !important;
-  border: 1px solid rgba(4, 98, 65, 0.15) !important;
-  box-shadow: 0 8px 24px rgba(4, 98, 65, 0.06) !important;
+  background: linear-gradient(135deg, rgba(11, 22, 17, 0.9) 0%, rgba(6, 11, 15, 0.9) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.08) !important;
+}
+
+[data-theme='light'] .progress-banner .progress-pct,
+[data-theme='light'] .progress-banner .progress-deadline,
+[data-theme='light'] .progress-banner .progress-status-pill {
+  color: #ffffff !important;
+}
+
+[data-theme='light'] .progress-banner .progress-label,
+[data-theme='light'] .progress-banner .progress-today {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .progress-banner::after {
