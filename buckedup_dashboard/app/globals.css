@@ -1799,66 +1799,87 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 10% 20%, rgba(4, 98, 65, 0.18) 0%, rgba(6, 11, 15, 1) 90%), #060b0f;
+  background: linear-gradient(-45deg, #04120e, #060b0f, #0c1a14, #080f0c);
+  background-size: 400% 400%;
+  animation: loginBgShift 16s ease infinite;
   padding: 20px;
   position: relative;
   overflow: hidden;
+}
+
+@keyframes loginBgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Floating dynamic background orbs */
 .login-shell::before {
   content: "";
   position: absolute;
-  width: 400px;
-  height: 400px;
+  width: 480px;
+  height: 480px;
   background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
-  top: 10%;
-  left: 15%;
+  top: 5%;
+  left: 10%;
   pointer-events: none;
-  animation: orbFloatOne 16s ease-in-out infinite alternate;
+  animation: floatOrb1 20s ease-in-out infinite;
 }
 
 .login-shell::after {
   content: "";
   position: absolute;
-  width: 450px;
-  height: 450px;
+  width: 520px;
+  height: 520px;
   background: radial-gradient(circle, rgba(217, 131, 36, 0.08) 0%, transparent 70%);
   bottom: 5%;
-  right: 10%;
+  right: 5%;
   pointer-events: none;
-  animation: orbFloatTwo 20s ease-in-out infinite alternate;
+  animation: floatOrb2 24s ease-in-out infinite;
 }
 
-@keyframes orbFloatOne {
+@keyframes floatOrb1 {
   0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(60px, 30px) scale(1.15); }
+  33% { transform: translate(70px, -50px) scale(1.1); }
+  66% { transform: translate(-40px, 40px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-@keyframes orbFloatTwo {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-45px, -50px) scale(1.08); }
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1.05); }
+  50% { transform: translate(-90px, 50px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1.05); }
 }
 
 .login-card {
-  background: rgba(15, 23, 20, 0.5) !important;
-  backdrop-filter: blur(25px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(120%) !important;
+  background: rgba(15, 23, 20, 0.45) !important;
+  backdrop-filter: blur(28px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(130%) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 24px;
-  padding: 44px 40px;
-  max-width: 480px;
+  padding: 44px 54px;
+  max-width: 680px;
   width: 100%;
+  aspect-ratio: 4 / 3 !important;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  justify-content: space-between;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
+}
+
+@media (max-width: 580px) {
+  .login-card {
+    aspect-ratio: auto !important;
+    padding: 32px 24px;
+    gap: 20px;
+  }
 }
 
 .login-brand-row {
-  margin-bottom: 4px;
+  margin-bottom: 0px;
   justify-content: center;
 }
 
@@ -1874,8 +1895,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 0px;
 }
 
 .login-badge-wrap {
@@ -1908,63 +1929,24 @@ a {
 
 .login-sub {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5) !important;
-  margin: -10px 0 4px;
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.45) !important;
+  margin: 0;
+  line-height: 1.5;
   text-align: center;
 }
 
-/* Quick demo access panel */
-.quick-access-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 18px;
-}
-
-.quick-access-divider {
-  text-align: center;
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.quick-access-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.quick-access-btn {
-  flex: 1;
-  font-family: var(--font-manrope), "Manrope", sans-serif;
+.login-error {
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-left: 4px solid #ef4444 !important;
+  color: #fca5a5 !important;
+  background: rgba(239, 68, 68, 0.08);
   font-size: 12.5px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 9px 12px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 10px 14px;
+  line-height: 1.4;
+  margin: 0;
 }
 
-.quick-access-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
-}
-
-.quick-access-btn:active {
-  transform: translateY(0);
-}
 
 
 .login-error {
