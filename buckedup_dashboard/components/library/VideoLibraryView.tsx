@@ -15,6 +15,7 @@ import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { ProductFormModal } from "./ProductFormModal";
+import { ProductReviewModal } from "./ProductReviewModal";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -50,17 +51,21 @@ export function VideoLibraryView({
   const [currentStatusFilter, setCurrentStatusFilter] =
     useState<StatusFilter>("all");
   const [mineOnly, setMineOnly] = useState(false);
+  const [rejectedOnly, setRejectedOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
   const [formModal, setFormModal] = useState<{
     mode: "add" | "edit";
     product: Product | null;
   } | null>(null);
+  const [reviewModal, setReviewModal] = useState<Product | null>(null);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { profiles } = useProfiles();
   const isAuthenticated = !!user;
+  const canEditProduction = role === "editor" || role === "admin";
+  const canReview = role === "approver" || role === "admin";
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
   const profileEmailById = useMemo(
@@ -89,6 +94,9 @@ export function VideoLibraryView({
       if (mineOnly && product.ownerId !== user?.id) {
         return false;
       }
+      if (rejectedOnly && product.reviewStatus !== "Rejected") {
+        return false;
+      }
       if (query && !product.name.toLowerCase().includes(query)) {
         return false;
       }
@@ -100,6 +108,7 @@ export function VideoLibraryView({
     currentSubcategory,
     currentStatusFilter,
     mineOnly,
+    rejectedOnly,
     user,
     searchTerm,
   ]);
@@ -206,6 +215,13 @@ export function VideoLibraryView({
                 My items
               </button>
             ) : null}
+            <button
+              type="button"
+              className={`pill${rejectedOnly ? " active" : ""}`}
+              onClick={() => setRejectedOnly((prev) => !prev)}
+            >
+              Rejected
+            </button>
           </div>
         </div>
         <div className="filter-group">
@@ -216,7 +232,7 @@ export function VideoLibraryView({
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
-          {isAuthenticated ? (
+          {canEditProduction ? (
             <button
               type="button"
               className="issue-submit-btn"
@@ -297,6 +313,11 @@ export function VideoLibraryView({
                       <td>
                         <span
                           className={`status-pill ${reviewStatusClass(product.reviewStatus)}`}
+                          title={
+                            product.reviewStatus === "Rejected"
+                              ? (product.rejectionReason ?? undefined)
+                              : undefined
+                          }
                         >
                           {product.reviewStatus ?? "Not Started"}
                         </span>
@@ -319,7 +340,7 @@ export function VideoLibraryView({
                       </td>
                       <td>
                         <div className="row-actions">
-                          {isAuthenticated ? (
+                          {canEditProduction ? (
                             <button
                               type="button"
                               className="edit-btn"
@@ -330,6 +351,19 @@ export function VideoLibraryView({
                               }}
                             >
                               ✎
+                            </button>
+                          ) : null}
+                          {canReview ? (
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              title="Review"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setReviewModal(product);
+                              }}
+                            >
+                              ✓
                             </button>
                           ) : null}
                           <button
@@ -377,6 +411,13 @@ export function VideoLibraryView({
           product={formModal.product}
           nextRank={nextRank}
           onClose={() => setFormModal(null)}
+        />
+      ) : null}
+
+      {reviewModal ? (
+        <ProductReviewModal
+          product={reviewModal}
+          onClose={() => setReviewModal(null)}
         />
       ) : null}
     </div>
