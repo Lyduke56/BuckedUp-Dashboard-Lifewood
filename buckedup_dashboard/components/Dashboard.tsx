@@ -13,8 +13,7 @@ import { AnalyticsView } from "./analytics/AnalyticsView";
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const [modalKey, setModalKey] = useState<string | null>(null);
-  const { products, loading, error, lastUpdated, refresh } =
-    useVideoRequests();
+  const { products, loading, error } = useVideoRequests();
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
@@ -23,11 +22,7 @@ export function Dashboard() {
   return (
     <div className="shell">
       <div className="shell-header">
-        <AppHeader
-          loading={loading}
-          lastUpdated={lastUpdated}
-          onRefresh={refresh}
-        />
+        <AppHeader />
         <TabBar activeView={activeView} onViewChange={switchView} />
       </div>
       <div className="content">

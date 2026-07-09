@@ -1,31 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
 
-interface AppHeaderProps {
-  loading: boolean;
-  lastUpdated: Date | null;
-  onRefresh: () => void;
-}
-
-export function AppHeader({ loading, lastUpdated, onRefresh }: AppHeaderProps) {
-  const [syncSeconds, setSyncSeconds] = useState<number | null>(null);
+export function AppHeader() {
   const { user, loading: authLoading, signOut } = useAuth();
-
-  useEffect(() => {
-    function updateSeconds() {
-      setSyncSeconds(
-        lastUpdated
-          ? Math.max(0, Math.floor((Date.now() - lastUpdated.getTime()) / 1000))
-          : null,
-      );
-    }
-    updateSeconds();
-    const interval = setInterval(updateSeconds, 1000);
-    return () => clearInterval(interval);
-  }, [lastUpdated]);
 
   return (
     <header className="app-header">
@@ -47,27 +26,15 @@ export function AppHeader({ loading, lastUpdated, onRefresh }: AppHeaderProps) {
         {authLoading ? null : user ? (
           <div className="auth-status">
             <span className="auth-email">{user.email}</span>
-            <button type="button" className="refresh-btn" onClick={signOut}>
+            <button type="button" className="header-btn" onClick={signOut}>
               Sign out
             </button>
           </div>
         ) : (
-          <Link href="/login" className="readonly-badge login-link">
+          <Link href="/login" className="header-badge login-link">
             Sign in to edit
           </Link>
         )}
-        <button
-          type="button"
-          className="refresh-btn"
-          onClick={onRefresh}
-          disabled={loading}
-        >
-          {loading ? "Refreshing…" : "Refresh"}
-        </button>
-        <span className="sync-indicator">
-          <span className="pulse-dot" />
-          {syncSeconds === null ? "Syncing…" : `Synced ${syncSeconds}s ago`}
-        </span>
       </div>
     </header>
   );

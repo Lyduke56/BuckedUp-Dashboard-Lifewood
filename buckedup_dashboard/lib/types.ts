@@ -14,10 +14,10 @@ export type PipelineStatus =
   | "Published";
 
 /**
- * The Sheet's "Status" column — a coarser review/approval state, separate
- * from the granular pipeline stage ("Stages" column, see PipelineStatus).
- * Kept as `string` rather than a strict union since the dropdown's full
- * value set isn't documented; known values get dedicated styling and
+ * `products.review_status` — a coarser review/approval state, separate from
+ * the granular pipeline stage (`products.status`, see PipelineStatus). Kept
+ * as `string` rather than a strict union since the full value set isn't
+ * enforced by a DB check constraint; known values get dedicated styling and
  * anything else falls back to a neutral pill.
  */
 export type ReviewStatus = string;
@@ -65,9 +65,9 @@ export interface Issue {
 
 /**
  * The shape a real "daily completions vs target" chart will consume once
- * a snapshot job exists (see 04-architecture.md, Phase 4). The Sheet only
- * holds current state, not history, so this can't be populated today —
- * DailyProgressChart renders an empty state until real points exist.
+ * a snapshot job exists. Supabase only holds current state, not a change
+ * log, so this can't be populated today — DailyProgressChart renders an
+ * empty state until real points exist.
  */
 export interface DailyCompletionPoint {
   date: string;

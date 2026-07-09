@@ -38,8 +38,8 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             <ReviewStatusChart products={products} />
           </div>
           <div className="callout callout-inline">
-            The Sheet&apos;s Status column — a review/approval state, separate
-            from the production pipeline stage shown above.
+            A review/approval state, separate from the production pipeline
+            stage shown above.
           </div>
         </div>
         <div className="panel">

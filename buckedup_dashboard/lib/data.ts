@@ -72,9 +72,9 @@ export const STATUS_HEX: Record<PipelineStatus, string> = {
   Published: "#046241",
 };
 
-// The Sheet's "Status" column (review/approval state) — kept as a loose
-// string in the data layer since the dropdown's full value set isn't
-// documented, so styling here is best-effort with a neutral fallback.
+// `products.review_status` — kept as a loose string in the data layer since
+// the full value set isn't enforced by a DB check constraint, so styling
+// here is best-effort with a neutral fallback.
 const REVIEW_STATUS_CLASS: Record<string, string> = {
   "Not Started": "rs-not-started",
   "In Production": "rs-in-production",
@@ -109,7 +109,7 @@ export const REVIEW_STATUS_HEX: Record<string, string> = {
 
 // Placeholder config for the Daily Target vs Actual analytics chart —
 // there's no settings UI yet, so this is a plain constant. Should become
-// a real setting (Sheet cell, admin UI, or env var) once one exists.
+// a real setting (admin UI or a settings table row) once one exists.
 export const DAILY_VIDEO_TARGET = 3;
 
 // Illustrative-only sample data for the Daily Target chart — there's no
