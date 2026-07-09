@@ -1,5 +1,11 @@
 import { STATUS_ORDER } from "./data";
-import type { PipelineStatus, Product, ProductBucket } from "./types";
+import type { PipelineStatus, Product, ProductBucket, UserRole } from "./types";
+
+// DB values stay lowercase (matches the Postgres enum + every RLS
+// policy/trigger comparing against them) — this is display-only.
+export function roleLabel(role: UserRole): string {
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
 
 export function stageIndex(status: PipelineStatus): number {
   return STATUS_ORDER.indexOf(status);

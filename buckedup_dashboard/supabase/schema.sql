@@ -119,10 +119,11 @@ create trigger products_set_updated_at
   for each row
   execute function set_updated_at();
 
--- Column-level permission split: editors run production (everything
--- except the review columns), approvers only ever touch the review
--- columns, admins are unrestricted. RLS alone can't express "this role
--- may update this row but only these columns," so this is a trigger.
+-- Column-level permission split: editors are production-only (stage +
+-- video URL, nothing else — catalog metadata is an admin job), approvers
+-- only ever touch the review columns, admins are unrestricted. RLS alone
+-- can't express "this role may update this row but only these columns,"
+-- so this is a trigger.
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
@@ -151,12 +152,28 @@ begin
     return new;
   end if;
 
-  -- editor (or any other authenticated role): production fields only.
-  if new.review_status is distinct from old.review_status
-    or new.rejection_reason is distinct from old.rejection_reason then
-    raise exception 'Only approvers and admins can set review_status/rejection_reason';
+  if my_role = 'editor' then
+    if new.rank is distinct from old.rank
+      or new.name is distinct from old.name
+      or new.category is distinct from old.category
+      or new.subcategory is distinct from old.subcategory
+      or new.content_type is distinct from old.content_type
+      or new.language is distinct from old.language
+      or new.product_url is distinct from old.product_url
+      or new.content_angle is distinct from old.content_angle
+      or new.owner is distinct from old.owner
+      or new.owner_id is distinct from old.owner_id
+      or new.publish_date is distinct from old.publish_date
+      or new.review_status is distinct from old.review_status
+      or new.rejection_reason is distinct from old.rejection_reason then
+      raise exception 'Editors may only change stage (status) and video URL';
+    end if;
+    return new;
   end if;
-  return new;
+
+  -- No recognized role (shouldn't happen — profiles.role is a constrained
+  -- enum populated on signup): deny everything, fail closed.
+  raise exception 'You do not have permission to edit this product';
 end;
 $$ language plpgsql;
 
@@ -167,16 +184,18 @@ create trigger products_enforce_update_permissions
 
 -- Row Level Security: reads stay public (the dashboard is open-viewing,
 -- same as it's always been); writes require an authenticated session,
--- with the role-based split above enforced by the trigger. Delete is
--- admin-only — the one genuinely irreversible action.
+-- with the role-based split above enforced by the trigger. Insert and
+-- delete are admin-only — creating a product requires the full catalog
+-- fields an editor can't touch, and delete is the one genuinely
+-- irreversible action.
 alter table products enable row level security;
 alter table issues enable row level security;
 
 create policy "Public read" on products for select using (true);
 create policy "Public read" on issues for select using (true);
 
-create policy "Editor and admin insert" on products for insert
-  with check (get_my_role() in ('editor', 'admin'));
+create policy "Admin insert" on products for insert
+  with check (get_my_role() = 'admin');
 create policy "Authenticated update" on products for update
   using (auth.role() = 'authenticated');
 create policy "Admin delete" on products for delete

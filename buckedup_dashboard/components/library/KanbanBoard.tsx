@@ -1,18 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
 import { STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
-import type { Issue, Product } from "@/lib/types";
-import type { StageAge } from "@/lib/useStageAge";
+import type { Issue, PipelineStatus, Product } from "@/lib/types";
 import { getModalKey } from "@/lib/utils";
-import { StageAgeBadge } from "./StageAgeBadge";
 
 interface KanbanBoardProps {
   products: Product[];
   issues: Issue[];
-  canEditProduction: boolean;
-  stageAgeByProductId: Map<string, StageAge>;
+  canMoveStage: boolean;
   profileEmailById: Map<string, string>;
   onOpenModal: (key: string) => void;
 }
@@ -20,25 +17,16 @@ interface KanbanBoardProps {
 export function KanbanBoard({
   products,
   issues,
-  canEditProduction,
-  stageAgeByProductId,
+  canMoveStage,
   profileEmailById,
   onOpenModal,
 }: KanbanBoardProps) {
-  const [movingId, setMovingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<PipelineStatus | null>(null);
 
-  const moveStage = async (product: Product, direction: -1 | 1) => {
-    const currentIndex = STATUS_ORDER.indexOf(product.items[0].status);
-    const nextIndex = currentIndex + direction;
-    if (nextIndex < 0 || nextIndex >= STATUS_ORDER.length) return;
-
-    setMovingId(product.id);
+  const moveToStage = async (productId: string, status: PipelineStatus) => {
     const supabase = createClient();
-    await supabase
-      .from("products")
-      .update({ status: STATUS_ORDER[nextIndex] })
-      .eq("id", product.id);
-    setMovingId(null);
+    await supabase.from("products").update({ status }).eq("id", productId);
   };
 
   return (
@@ -49,7 +37,25 @@ export function KanbanBoard({
         );
 
         return (
-          <div key={status} className="kanban-column">
+          <div
+            key={status}
+            className={`kanban-column${dragOverStatus === status ? " drag-over" : ""}`}
+            onDragOver={(event) => {
+              if (!canMoveStage || !draggingId) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDragOverStatus(status);
+            }}
+            onDragLeave={() =>
+              setDragOverStatus((prev) => (prev === status ? null : prev))
+            }
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragOverStatus(null);
+              const productId = event.dataTransfer.getData("text/plain");
+              if (productId) moveToStage(productId, status);
+            }}
+          >
             <div className="kanban-column-header">
               {status}
               <span className="kanban-column-count">{columnProducts.length}</span>
@@ -62,12 +68,21 @@ export function KanbanBoard({
                 const ownerLabel = product.ownerId
                   ? profileEmailById.get(product.ownerId)
                   : product.owner;
-                const currentIndex = STATUS_ORDER.indexOf(status);
 
                 return (
                   <div
                     key={product.id}
-                    className="kanban-card"
+                    className={`kanban-card${draggingId === product.id ? " dragging" : ""}${canMoveStage ? " draggable" : ""}`}
+                    draggable={canMoveStage}
+                    onDragStart={(event: DragEvent<HTMLDivElement>) => {
+                      event.dataTransfer.setData("text/plain", product.id);
+                      event.dataTransfer.effectAllowed = "move";
+                      setDraggingId(product.id);
+                    }}
+                    onDragEnd={() => {
+                      setDraggingId(null);
+                      setDragOverStatus(null);
+                    }}
                     onClick={() => onOpenModal(getModalKey(product.rank, 0))}
                   >
                     <div className="kanban-card-title">
@@ -76,42 +91,12 @@ export function KanbanBoard({
                     </div>
                     <div className="kanban-card-meta">
                       {ownerLabel ? <span>{ownerLabel}</span> : null}
-                      <StageAgeBadge
-                        days={stageAgeByProductId.get(product.id)?.days}
-                      />
                       {openCount > 0 ? (
                         <span className="issue-btn has-issues">
                           🚩 {openCount}
                         </span>
                       ) : null}
                     </div>
-                    {canEditProduction ? (
-                      <div className="kanban-card-actions">
-                        <button
-                          type="button"
-                          disabled={currentIndex === 0 || movingId === product.id}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            moveStage(product, -1);
-                          }}
-                        >
-                          ←
-                        </button>
-                        <button
-                          type="button"
-                          disabled={
-                            currentIndex === STATUS_ORDER.length - 1 ||
-                            movingId === product.id
-                          }
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            moveStage(product, 1);
-                          }}
-                        >
-                          →
-                        </button>
-                      </div>
-                    ) : null}
                   </div>
                 );
               })}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useProfiles } from "@/lib/useProfiles";
 import { createClient } from "@/lib/supabase/client";
+import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
 
 const ROLE_OPTIONS: UserRole[] = ["editor", "approver", "admin"];
@@ -37,8 +38,10 @@ export function ManageUsersView() {
     <div>
       <div className="section-heading">Manage users</div>
       <div className="section-sub">
-        Editors move production stages, approvers set review status,
-        admins can do both plus manage roles here.
+        Editors update stage and upload video cuts — nothing else. Approvers
+        set review status and rejection reasons — nothing else. Admins
+        handle everything about the catalog itself: product details,
+        ownership, adding/deleting products, and roles here.
       </div>
       {error ? (
         <div
@@ -75,7 +78,7 @@ export function ManageUsersView() {
                   >
                     {ROLE_OPTIONS.map((role) => (
                       <option key={role} value={role}>
-                        {role}
+                        {roleLabel(role)}
                       </option>
                     ))}
                   </select>

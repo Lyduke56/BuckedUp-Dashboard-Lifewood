@@ -14,11 +14,11 @@ import {
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
-import { useStageAge } from "@/lib/useStageAge";
 import { KanbanBoard } from "./KanbanBoard";
 import { ProductFormModal } from "./ProductFormModal";
+import { ProductionModal } from "./ProductionModal";
 import { ProductReviewModal } from "./ProductReviewModal";
-import { StageAgeBadge } from "./StageAgeBadge";
+import { StageHistoryLog } from "./StageHistoryLog";
 
 type LibraryLayout = "table" | "board";
 
@@ -92,13 +92,18 @@ export function VideoLibraryView({
     product: Product | null;
   } | null>(null);
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
+  const [productionModal, setProductionModal] = useState<Product | null>(null);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
-  const { stageAgeByProductId } = useStageAge();
   const isAuthenticated = !!user;
-  const canEditProduction = role === "editor" || role === "admin";
+  // Editor: stage + video only. Admin: full catalog (add/edit/delete).
+  // Approver: review only. See supabase/schema.sql's
+  // enforce_product_update_permissions() for the DB-level version of
+  // this same split — this is UI convenience, not the security boundary.
+  const canManageCatalog = role === "admin";
+  const canMoveStage = role === "editor" || role === "admin";
   const canReview = role === "approver" || role === "admin";
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
@@ -240,7 +245,7 @@ export function VideoLibraryView({
                 {filter.label}
               </button>
             ))}
-            {isAuthenticated ? (
+            {role === "editor" ? (
               <button
                 type="button"
                 className={`pill${mineOnly ? " active" : ""}`}
@@ -282,7 +287,7 @@ export function VideoLibraryView({
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
-          {canEditProduction ? (
+          {canManageCatalog ? (
             <button
               type="button"
               className="issue-submit-btn"
@@ -303,8 +308,7 @@ export function VideoLibraryView({
         <KanbanBoard
           products={filteredProducts}
           issues={issues}
-          canEditProduction={canEditProduction}
-          stageAgeByProductId={stageAgeByProductId}
+          canMoveStage={canMoveStage}
           profileEmailById={profileEmailById}
           onOpenModal={onOpenModal}
         />
@@ -367,10 +371,7 @@ export function VideoLibraryView({
                           className={`status-pill ${STATUS_CLASS[item.status]}`}
                         >
                           {item.status}
-                        </span>{" "}
-                        <StageAgeBadge
-                          days={stageAgeByProductId.get(product.id)?.days}
-                        />
+                        </span>
                       </td>
                       <td>
                         <span
@@ -402,14 +403,18 @@ export function VideoLibraryView({
                       </td>
                       <td>
                         <div className="row-actions">
-                          {canEditProduction ? (
+                          {canMoveStage ? (
                             <button
                               type="button"
                               className="edit-btn"
-                              title="Edit product"
+                              title={role === "admin" ? "Edit product" : "Update stage / video"}
                               onClick={(event) => {
                                 event.stopPropagation();
-                                setFormModal({ mode: "edit", product });
+                                if (role === "admin") {
+                                  setFormModal({ mode: "edit", product });
+                                } else {
+                                  setProductionModal(product);
+                                }
                               }}
                             >
                               ✎
@@ -482,6 +487,13 @@ export function VideoLibraryView({
           onClose={() => setReviewModal(null)}
         />
       ) : null}
+
+      {productionModal ? (
+        <ProductionModal
+          product={productionModal}
+          onClose={() => setProductionModal(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -545,6 +557,11 @@ function RowDetail({
           {product.contentAngle}
         </div>
       ) : null}
+
+      <div className="stage-history-panel">
+        <div className="content-angle-label">Stage history</div>
+        <StageHistoryLog productId={product.id} />
+      </div>
 
       <div className="issue-panel">
         <div className="content-angle-label">Issues</div>
