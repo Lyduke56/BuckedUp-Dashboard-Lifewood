@@ -124,6 +124,12 @@ create trigger products_set_updated_at
 -- only ever touch the review columns, admins are unrestricted. RLS alone
 -- can't express "this role may update this row but only these columns,"
 -- so this is a trigger.
+--
+-- Stage progression is further gated by *value*, not just column: an
+-- editor can drive a product from Not Started up through In Review, but
+-- can't push it past that — Scheduled only happens as a side effect of
+-- an approver accepting it (see ProductReviewModal), and Published is
+-- admin-only. This mirrors the real approval gate: nothing skips review.
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
@@ -145,9 +151,11 @@ begin
       or new.owner is distinct from old.owner
       or new.owner_id is distinct from old.owner_id
       or new.publish_date is distinct from old.publish_date
-      or new.status is distinct from old.status
       or new.video_url is distinct from old.video_url then
-      raise exception 'Approvers may only change review_status and rejection_reason';
+      raise exception 'Approvers may only change review_status, rejection_reason, and advance stage to Scheduled';
+    end if;
+    if new.status is distinct from old.status and new.status <> 'Scheduled' then
+      raise exception 'Approvers may only move the stage to Scheduled';
     end if;
     return new;
   end if;
@@ -166,7 +174,11 @@ begin
       or new.publish_date is distinct from old.publish_date
       or new.review_status is distinct from old.review_status
       or new.rejection_reason is distinct from old.rejection_reason then
-      raise exception 'Editors may only change stage (status) and video URL';
+      raise exception 'Editors may only change stage (up to In Review) and video URL';
+    end if;
+    if new.status is distinct from old.status
+      and new.status not in ('Not Started', 'Scripting', 'Filming', 'Editing', 'In Review') then
+      raise exception 'Editors may only move the stage up to In Review';
     end if;
     return new;
   end if;
@@ -346,6 +358,29 @@ begin
   update products set video_url = p_video_url where id = p_product_id;
 end;
 $$ language plpgsql;
+
+-- Video files upload directly here (no more pasting Google Drive links) —
+-- public bucket since product videos are already public-read via
+-- video_versions/products, capped at 2GB per file to allow real raw cuts,
+-- restricted to actual video MIME types.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'videos',
+  'videos',
+  true,
+  2147483648,
+  array['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska']
+)
+on conflict (id) do nothing;
+
+create policy "Public read videos" on storage.objects for select
+  using (bucket_id = 'videos');
+create policy "Editor and admin upload videos" on storage.objects for insert
+  with check (bucket_id = 'videos' and get_my_role() in ('editor', 'admin'));
+create policy "Editor and admin update videos" on storage.objects for update
+  using (bucket_id = 'videos' and get_my_role() in ('editor', 'admin'));
+create policy "Admin delete videos" on storage.objects for delete
+  using (bucket_id = 'videos' and get_my_role() = 'admin');
 
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.

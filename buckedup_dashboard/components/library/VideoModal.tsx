@@ -3,8 +3,8 @@
 import { createPortal } from "react-dom";
 import { useMounted } from "@/lib/useMounted";
 import type { Product } from "@/lib/types";
-import { parseDriveFileId, parseModalKey } from "@/lib/utils";
-import { PlayCircleIcon, VideoCameraIcon } from "@/components/shared/icons";
+import { parseModalKey } from "@/lib/utils";
+import { VideoCameraIcon } from "@/components/shared/icons";
 
 interface VideoModalProps {
   products: Product[];
@@ -25,7 +25,6 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
   if (!product || !item) return null;
 
   const videoUrl = item.videoUrl;
-  const driveFileId = videoUrl ? parseDriveFileId(videoUrl) : null;
   const isPublished = item.status === "Published";
 
   const metaParts = [
@@ -50,49 +49,14 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
           ✕
         </button>
         {videoUrl ? (
-          driveFileId ? (
-            <>
-              {!isPublished && (
-                <div className="video-early-badge">
-                  ⏳ Early cut — currently {item.status}, not yet Published
-                </div>
-              )}
-              <iframe
-                className="video-embed"
-                src={`https://drive.google.com/file/d/${driveFileId}/preview`}
-                allow="autoplay"
-                allowFullScreen
-              />
-              <div className="video-embed-actions">
-                <a
-                  href={videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="video-link"
-                >
-                  ↗ Open in new tab
-                </a>
+          <>
+            {!isPublished && (
+              <div className="video-early-badge">
+                ⏳ Early cut — currently {item.status}, not yet Published
               </div>
-            </>
-          ) : (
-            <div className="video-placeholder ready">
-              <PlayCircleIcon />
-              <div className="vp-title">Video ready to watch</div>
-              <div className="vp-sub">
-                {isPublished
-                  ? "Published"
-                  : `Early cut — currently ${item.status.toLowerCase()}, not yet Published`}
-              </div>
-              <a
-                href={videoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="video-link"
-              >
-                ↗ Open in new tab
-              </a>
-            </div>
-          )
+            )}
+            <video className="video-embed" src={videoUrl} controls playsInline />
+          </>
         ) : (
           <div className="video-placeholder">
             <VideoCameraIcon />

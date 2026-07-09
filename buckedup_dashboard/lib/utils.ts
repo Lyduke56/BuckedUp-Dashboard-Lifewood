@@ -74,13 +74,3 @@ export function parseModalKey(key: string): { rank: number; index: number } {
   const [rank, index] = key.split("-");
   return { rank: Number(rank), index: Number(index) };
 }
-
-const DRIVE_ID_PATTERNS = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
-
-export function parseDriveFileId(url: string): string | null {
-  for (const pattern of DRIVE_ID_PATTERNS) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}

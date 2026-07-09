@@ -26,6 +26,7 @@ export function ProductReviewModal({ product, onClose }: ProductReviewModalProps
 
   const item = product.items[0];
   const isRejecting = reviewStatus === "Rejected";
+  const isAccepting = reviewStatus === "Accepted";
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -38,11 +39,16 @@ export function ProductReviewModal({ product, onClose }: ProductReviewModalProps
     setError(null);
 
     const supabase = createClient();
+    // Accepting is what advances the pipeline stage to Scheduled — there's
+    // no separate "schedule this" step. enforce_product_update_permissions
+    // only lets approvers move status to exactly 'Scheduled', so this is
+    // the one and only stage change this modal is allowed to make.
     const { error: saveError } = await supabase
       .from("products")
       .update({
         review_status: reviewStatus,
         rejection_reason: isRejecting ? rejectionReason.trim() : null,
+        ...(isAccepting ? { status: "Scheduled" } : {}),
       })
       .eq("id", product.id);
 
@@ -96,6 +102,11 @@ export function ProductReviewModal({ product, onClose }: ProductReviewModalProps
                 </option>
               ))}
             </select>
+            {isAccepting ? (
+              <span className="form-hint">
+                Accepting moves the stage to Scheduled.
+              </span>
+            ) : null}
           </label>
 
           {isRejecting ? (

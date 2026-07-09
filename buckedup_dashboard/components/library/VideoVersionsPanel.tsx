@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface VideoVersionRow {
@@ -26,40 +26,65 @@ async function fetchVersions(productId: string): Promise<VideoVersionRow[]> {
   return (data as VideoVersionRow[]) ?? [];
 }
 
+function fileNameFromUrl(url: string): string {
+  try {
+    return decodeURIComponent(new URL(url).pathname.split("/").pop() ?? url);
+  } catch {
+    return url;
+  }
+}
+
 export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsPanelProps) {
   const [versions, setVersions] = useState<VideoVersionRow[]>([]);
-  const [newUrl, setNewUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [newNote, setNewNote] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchVersions(productId).then(setVersions);
   }, [productId]);
 
   const handleAdd = async () => {
-    if (!newUrl.trim()) return;
-    setAdding(true);
+    if (!file) return;
+    setUploading(true);
     setError(null);
 
     const supabase = createClient();
+    const path = `${productId}/${Date.now()}-${file.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("videos")
+      .upload(path, file, { contentType: file.type });
+
+    if (uploadError) {
+      setUploading(false);
+      setError(uploadError.message);
+      return;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("videos").getPublicUrl(path);
+
     const { error: rpcError } = await supabase.rpc("set_current_video_version", {
       p_product_id: productId,
-      p_video_url: newUrl.trim(),
+      p_video_url: publicUrl,
       p_note: newNote.trim() || null,
     });
 
-    setAdding(false);
+    setUploading(false);
     if (rpcError) {
       setError(rpcError.message);
       return;
     }
 
-    const url = newUrl.trim();
-    setNewUrl("");
+    setFile(null);
     setNewNote("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setVersions(await fetchVersions(productId));
-    onVersionAdded(url);
+    onVersionAdded(publicUrl);
   };
 
   return (
@@ -73,7 +98,7 @@ export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsP
           {versions.map((version) => (
             <li key={version.id} className="video-version-item">
               <a href={version.video_url} target="_blank" rel="noopener noreferrer">
-                {version.video_url.replace(/^https?:\/\//, "")}
+                {fileNameFromUrl(version.video_url)}
               </a>
               {version.note ? (
                 <span className="video-version-note">{version.note}</span>
@@ -87,10 +112,10 @@ export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsP
       )}
       <div className="issue-form">
         <input
-          type="url"
-          placeholder="New video URL…"
-          value={newUrl}
-          onChange={(event) => setNewUrl(event.target.value)}
+          ref={fileInputRef}
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
         />
         <input
           type="text"
@@ -101,10 +126,10 @@ export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsP
         <button
           type="button"
           className="issue-submit-btn"
-          disabled={adding || !newUrl.trim()}
+          disabled={uploading || !file}
           onClick={handleAdd}
         >
-          {adding ? "Adding…" : "Add version"}
+          {uploading ? "Uploading…" : "Upload version"}
         </button>
       </div>
     </div>
