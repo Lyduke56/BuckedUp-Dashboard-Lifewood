@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { Product } from "@/lib/types";
 
 interface LanguageProgressChartProps {
@@ -7,6 +10,8 @@ interface LanguageProgressChartProps {
 export function LanguageProgressChart({
   products,
 }: LanguageProgressChartProps) {
+  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
+
   const languages = Array.from(
     new Set(products.map((product) => product.language)),
   );
@@ -23,13 +28,26 @@ export function LanguageProgressChart({
     })
     .sort((a, b) => b.total - a.total);
 
+  const showTip = (e: React.MouseEvent, content: string) =>
+    setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
+  const moveTip = (e: React.MouseEvent) =>
+    setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
+  const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
+
   return (
     <>
       {rows.map((row) => {
         const pct =
           row.total === 0 ? 0 : Math.round((row.delivered / row.total) * 100);
+        const tipText = `${row.language}: ${row.delivered}/${row.total} accepted (${pct}%)`;
         return (
-          <div key={row.language} className="snapshot-row">
+          <div
+            key={row.language}
+            className="snapshot-row"
+            onMouseMove={(e) => { showTip(e, tipText); moveTip(e); }}
+            onMouseLeave={hideTip}
+            style={{ cursor: "default" }}
+          >
             <div className="snapshot-label">{row.language}</div>
             <div className="snapshot-track">
               <div className="snapshot-fill" style={{ width: `${pct}%` }} />
@@ -40,6 +58,21 @@ export function LanguageProgressChart({
           </div>
         );
       })}
+
+      {tooltip.visible && (
+        <div
+          className="chart-tooltip"
+          style={{
+            position: "fixed",
+            left: tooltip.x + 14,
+            top: tooltip.y - 8,
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </>
   );
 }

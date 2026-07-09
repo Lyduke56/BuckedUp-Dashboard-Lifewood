@@ -431,7 +431,7 @@ export function VideoLibraryView({
                           {canMoveStage ? (
                             <button
                               type="button"
-                              className="edit-btn"
+                              className="row-action-btn row-action-edit"
                               title={role === "admin" ? "Edit product" : "Update stage / video"}
                               onClick={(event) => {
                                 event.stopPropagation();
@@ -442,31 +442,41 @@ export function VideoLibraryView({
                                 }
                               }}
                             >
-                              ✎
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
                             </button>
                           ) : null}
                           {canReview ? (
                             <button
                               type="button"
-                              className="edit-btn"
+                              className="row-action-btn row-action-review"
                               title="Review"
                               onClick={(event) => {
                                 event.stopPropagation();
                                 setReviewModal(product);
                               }}
                             >
-                              ✓
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
                             </button>
                           ) : null}
                           <button
                             type="button"
-                            className={`issue-btn${openCount > 0 ? " has-issues" : ""}`}
+                            className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
+                            title={openCount > 0 ? `${openCount} open issue${openCount === 1 ? "" : "s"}` : "Flag issue"}
                             onClick={(event) => {
                               event.stopPropagation();
                               toggleExpanded(product.rank);
                             }}
                           >
-                            🚩{openCount > 0 ? ` ${openCount}` : ""}
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill={openCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                              <line x1="4" y1="22" x2="4" y2="15" />
+                            </svg>
+                            {openCount > 0 ? <span className="row-action-badge">{openCount}</span> : null}
                           </button>
                         </div>
                       </td>

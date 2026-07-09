@@ -187,7 +187,7 @@ a {
   z-index: 50;
   width: 100%;
   border-radius: 24px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--glass-border);
   background: var(--header-bg, rgba(10, 18, 14, 0.85));
   backdrop-filter: blur(20px) saturate(140%);
@@ -1868,6 +1868,110 @@ a {
 .edit-btn:hover {
   border-color: var(--castleton);
   color: var(--castleton);
+}
+
+/* ── Clean row action buttons ───────────────────────────────── */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.row-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.row-action-edit:hover {
+  border-color: var(--castleton);
+  color: var(--castleton);
+  background: rgba(4, 98, 65, 0.08);
+}
+
+.row-action-review:hover {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.row-action-flag {
+  color: var(--ink-soft);
+}
+
+.row-action-flag.has-issues {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.row-action-flag:hover,
+.row-action-flag.has-issues:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.row-action-badge {
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+
+/* ── Chart floating tooltip ─────────────────────────────────── */
+.chart-tooltip {
+  background: rgba(10, 18, 14, 0.92);
+  border: 1px solid rgba(4, 98, 65, 0.35);
+  color: rgba(255,255,255,0.92);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  white-space: nowrap;
+  animation: tooltipIn 0.12s ease;
+}
+
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+[data-theme="light"] .chart-tooltip {
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(4, 98, 65, 0.2);
+  color: var(--ink);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
 .form-modal {

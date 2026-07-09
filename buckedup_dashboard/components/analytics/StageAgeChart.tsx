@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { STATUS_HEX, STATUS_ORDER } from "@/lib/data";
 import type { StageAge } from "@/lib/useStageAge";
 
@@ -10,6 +13,8 @@ interface StageAgeChartProps {
 // lib/useStageAge.ts for why (there's no completed-transition history to
 // average yet, and this is useful from day one).
 export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
+  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
+
   const entries = Array.from(stageAgeByProductId.values());
 
   const rows = STATUS_ORDER.map((status) => {
@@ -22,6 +27,12 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
   });
 
   const maxDays = Math.max(...rows.map((row) => row.avgDays), 1);
+
+  const showTip = (e: React.MouseEvent, content: string) =>
+    setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
+  const moveTip = (e: React.MouseEvent) =>
+    setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
+  const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
 
   if (entries.length === 0) {
     return (
@@ -48,8 +59,15 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
         }
 
         const pct = Math.round((row.avgDays / maxDays) * 100);
+        const tooltipText = `${row.status}: ${row.count} item${row.count === 1 ? "" : "s"} · avg ${row.avgDays.toFixed(1)} days in stage`;
         return (
-          <div key={row.status} className="cat2-row">
+          <div
+            key={row.status}
+            className="cat2-row"
+            onMouseMove={(e) => { showTip(e, tooltipText); moveTip(e); }}
+            onMouseLeave={hideTip}
+            style={{ cursor: "default" }}
+          >
             <div className="cat2-label">{row.status}</div>
             <div className="cat2-track">
               <div
@@ -64,6 +82,21 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
           </div>
         );
       })}
+
+      {tooltip.visible && (
+        <div
+          className="chart-tooltip"
+          style={{
+            position: "fixed",
+            left: tooltip.x + 14,
+            top: tooltip.y - 8,
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </>
   );
 }
