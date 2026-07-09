@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CATEGORY_TREE, STATUS_CLASS, reviewStatusClass } from "@/lib/data";
 import type { Issue, IssueSeverity, Product, StatusFilter } from "@/lib/types";
@@ -40,6 +40,8 @@ interface VideoLibraryViewProps {
   products: Product[];
   loading: boolean;
   error: string | null;
+  externalSearch?: string | null;
+  onExternalSearchApplied?: () => void;
 }
 
 export function VideoLibraryView({
@@ -47,6 +49,8 @@ export function VideoLibraryView({
   products,
   loading,
   error,
+  externalSearch,
+  onExternalSearchApplied,
 }: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
@@ -55,6 +59,29 @@ export function VideoLibraryView({
   const [mineOnly, setMineOnly] = useState(false);
   const [rejectedOnly, setRejectedOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Adjusted during render (React's sanctioned pattern for syncing local
+  // state from a prop) rather than an effect, since this is the component's
+  // own state, not a side effect on an external system.
+  const [appliedExternalSearch, setAppliedExternalSearch] = useState<
+    string | null | undefined
+  >(undefined);
+  if (externalSearch && externalSearch !== appliedExternalSearch) {
+    setAppliedExternalSearch(externalSearch);
+    setSearchTerm(externalSearch);
+    setCurrentCategory("all");
+    setCurrentSubcategory("all");
+    setCurrentStatusFilter("all");
+    setMineOnly(false);
+    setRejectedOnly(false);
+  }
+
+  // This one's a real effect: telling the parent "consumed" is a side
+  // effect on an external system, not this component's own state.
+  useEffect(() => {
+    if (externalSearch) onExternalSearchApplied?.();
+  }, [externalSearch, onExternalSearchApplied]);
+
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
   const [formModal, setFormModal] = useState<{
     mode: "add" | "edit";

@@ -15,6 +15,7 @@ import { ManageUsersView } from "./admin/ManageUsersView";
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const [modalKey, setModalKey] = useState<string | null>(null);
+  const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const { products, loading, error } = useVideoRequests();
   const { role } = useAuth();
 
@@ -22,10 +23,15 @@ export function Dashboard() {
     setActiveView(view);
   };
 
+  const handleNotificationNavigate = (productName: string) => {
+    setLibrarySearch(productName);
+    setActiveView("library");
+  };
+
   return (
     <div className="shell">
       <div className="shell-header">
-        <AppHeader />
+        <AppHeader onNotificationNavigate={handleNotificationNavigate} />
         <TabBar
           activeView={activeView}
           onViewChange={switchView}
@@ -60,6 +66,8 @@ export function Dashboard() {
             loading={loading}
             error={error}
             onOpenModal={setModalKey}
+            externalSearch={librarySearch}
+            onExternalSearchApplied={() => setLibrarySearch(null)}
           />
         </div>
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>

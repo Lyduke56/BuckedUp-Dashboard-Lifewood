@@ -220,9 +220,75 @@ create trigger products_log_status_change
 alter table product_status_history enable row level security;
 create policy "Public read" on product_status_history for select using (true);
 
+-- In-app notifications. No client insert policy at all — rows only ever
+-- come from the security-definer trigger functions below, reacting to
+-- real events. Recipients can only see/update their own rows.
+create table notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references profiles(id) on delete cascade,
+  type text not null check (type in ('issue_reported', 'rejected', 'assigned')),
+  message text not null,
+  product_id uuid references products(id) on delete cascade,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table notifications enable row level security;
+
+create policy "Own notifications" on notifications for select
+  using (recipient_id = auth.uid());
+create policy "Mark own notifications read" on notifications for update
+  using (recipient_id = auth.uid());
+
+create or replace function notify_issue_reported()
+returns trigger as $$
+declare
+  v_owner_id uuid;
+  v_name text;
+begin
+  select owner_id, name into v_owner_id, v_name from products where id = new.product_id;
+  if v_owner_id is not null and v_owner_id <> auth.uid() then
+    insert into notifications (recipient_id, type, message, product_id)
+    values (v_owner_id, 'issue_reported', 'New issue reported on "' || v_name || '"', new.product_id);
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger issues_notify_owner
+  after insert on issues
+  for each row
+  execute function notify_issue_reported();
+
+create or replace function notify_product_changes()
+returns trigger as $$
+begin
+  if new.review_status = 'Rejected'
+    and new.review_status is distinct from old.review_status
+    and new.owner_id is not null and new.owner_id <> auth.uid() then
+    insert into notifications (recipient_id, type, message, product_id)
+    values (new.owner_id, 'rejected', '"' || new.name || '" was rejected', new.id);
+  end if;
+
+  if new.owner_id is distinct from old.owner_id
+    and new.owner_id is not null and new.owner_id <> auth.uid() then
+    insert into notifications (recipient_id, type, message, product_id)
+    values (new.owner_id, 'assigned', 'You were assigned "' || new.name || '"', new.id);
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger products_notify_changes
+  after update on products
+  for each row
+  execute function notify_product_changes();
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
 alter publication supabase_realtime add table issues;
 alter publication supabase_realtime add table profiles;
 alter publication supabase_realtime add table product_status_history;
+alter publication supabase_realtime add table notifications;

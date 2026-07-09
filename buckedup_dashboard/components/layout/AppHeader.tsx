@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
+import { NotificationBell } from "./NotificationBell";
 
-export function AppHeader() {
+interface AppHeaderProps {
+  onNotificationNavigate: (productName: string) => void;
+}
+
+export function AppHeader({ onNotificationNavigate }: AppHeaderProps) {
   const { user, loading: authLoading, signOut } = useAuth();
 
   return (
@@ -25,6 +30,7 @@ export function AppHeader() {
       <div className="app-header-right">
         {authLoading ? null : user ? (
           <div className="auth-status">
+            <NotificationBell onNavigate={onNotificationNavigate} />
             <span className="auth-email">{user.email}</span>
             <button type="button" className="header-btn" onClick={signOut}>
               Sign out
