@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ViewId } from "@/lib/types";
+import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import { AppHeader } from "./layout/AppHeader";
 import { TabBar } from "./layout/TabBar";
@@ -9,11 +10,13 @@ import { OverviewView } from "./overview/OverviewView";
 import { VideoLibraryView } from "./library/VideoLibraryView";
 import { VideoModal } from "./library/VideoModal";
 import { AnalyticsView } from "./analytics/AnalyticsView";
+import { ManageUsersView } from "./admin/ManageUsersView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const { products, loading, error } = useVideoRequests();
+  const { role } = useAuth();
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
@@ -23,7 +26,11 @@ export function Dashboard() {
     <div className="shell">
       <div className="shell-header">
         <AppHeader />
-        <TabBar activeView={activeView} onViewChange={switchView} />
+        <TabBar
+          activeView={activeView}
+          onViewChange={switchView}
+          showAdmin={role === "admin"}
+        />
       </div>
       <div className="content">
         {error && (
@@ -58,6 +65,11 @@ export function Dashboard() {
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>
           <AnalyticsView products={products} />
         </div>
+        {role === "admin" ? (
+          <div className={`view${activeView === "admin" ? " active" : ""}`}>
+            <ManageUsersView />
+          </div>
+        ) : null}
       </div>
       <VideoModal
         products={products}

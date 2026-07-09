@@ -1,4 +1,20 @@
-export type ViewId = "overview" | "library" | "analytics";
+export type ViewId = "overview" | "library" | "analytics" | "admin";
+
+/**
+ * editor = production staff, moves the pipeline stage (`products.status`).
+ * approver = Lifewood leadership, sets review_status/rejection_reason only.
+ * admin = unrestricted, plus manages other users' roles. Enforced by
+ * supabase/schema.sql's RLS policies and enforce_product_update_permissions
+ * trigger — the UI hides controls a role can't use, but the database is
+ * what actually blocks it.
+ */
+export type UserRole = "editor" | "approver" | "admin";
+
+export interface Profile {
+  id: string;
+  email: string;
+  role: UserRole;
+}
 
 export type StatusFilter = "all" | "not-started" | "in-progress" | "published";
 
@@ -41,8 +57,10 @@ export interface Product {
   productUrl: string | null;
   contentAngle: string;
   owner: string | null;
+  ownerId: string | null;
   publishDate: string | null;
   reviewStatus: ReviewStatus | null;
+  rejectionReason: string | null;
   items: VideoItem[];
 }
 

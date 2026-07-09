@@ -29,8 +29,10 @@ interface ProductRow {
   product_url: string | null;
   content_angle: string | null;
   owner: string | null;
+  owner_id: string | null;
   publish_date: string | null;
   review_status: string | null;
+  rejection_reason: string | null;
   status: string;
   video_url: string | null;
 }
@@ -50,8 +52,10 @@ function toProduct(row: ProductRow): Product {
     productUrl: row.product_url,
     contentAngle: row.content_angle ?? "",
     owner: row.owner,
+    ownerId: row.owner_id,
     publishDate: row.publish_date,
     reviewStatus: row.review_status,
+    rejectionReason: row.rejection_reason,
     items: [
       {
         name: type ? `${row.name} — ${type}` : row.name,

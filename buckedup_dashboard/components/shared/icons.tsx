@@ -89,3 +89,21 @@ export function AnalyticsIcon() {
     </svg>
   );
 }
+
+export function UsersIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M2.8 19c.7-3.2 3.2-5 6.2-5s5.5 1.8 6.2 5" />
+      <circle cx="17" cy="7.5" r="2.4" />
+      <path d="M15.5 12.2c2.3.2 4.1 1.8 4.7 4.3" />
+    </svg>
+  );
+}
