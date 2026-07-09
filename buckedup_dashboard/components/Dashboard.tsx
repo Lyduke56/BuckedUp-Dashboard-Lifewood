@@ -17,7 +17,7 @@ export function Dashboard() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
-  const { products, loading, error, lastUpdated, refresh } = useVideoRequests();
+  const { products, loading, error } = useVideoRequests();
   const { role } = useAuth();
 
   const switchView = (view: ViewId) => {
@@ -47,9 +47,6 @@ export function Dashboard() {
     <div className="shell">
       <div className="shell-header">
         <AppHeader
-          loading={loading}
-          lastUpdated={lastUpdated}
-          onRefresh={refresh}
           theme={theme}
           onToggleTheme={toggleTheme}
           onNotificationNavigate={handleNotificationNavigate}

@@ -1,43 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { RefreshCw, Lock, Sun, Moon } from "lucide-react";
+import { Lock, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/lib/useAuth";
 import { NotificationBell } from "./NotificationBell";
 
 interface AppHeaderProps {
-  loading: boolean;
-  lastUpdated: Date | null;
-  onRefresh: () => void;
   theme: "dark" | "light";
   onToggleTheme: () => void;
   onNotificationNavigate: (productName: string) => void;
 }
 
 export function AppHeader({
-  loading,
-  lastUpdated,
-  onRefresh,
   theme,
   onToggleTheme,
   onNotificationNavigate,
 }: AppHeaderProps) {
   const { user, loading: authLoading, signOut } = useAuth();
-  const [syncSeconds, setSyncSeconds] = useState<number | null>(null);
-
-  useEffect(() => {
-    function updateSeconds() {
-      setSyncSeconds(
-        lastUpdated
-          ? Math.max(0, Math.floor((Date.now() - lastUpdated.getTime()) / 1000))
-          : null,
-      );
-    }
-    updateSeconds();
-    const interval = setInterval(updateSeconds, 1000);
-    return () => clearInterval(interval);
-  }, [lastUpdated]);
 
   return (
     <header className="app-header">
@@ -139,21 +118,6 @@ export function AppHeader({
             <Moon size={12} />
           </div>
         </button>
-
-        <button
-          type="button"
-          className={`refresh-btn ${loading ? "loading" : ""}`}
-          onClick={onRefresh}
-          disabled={loading}
-        >
-          <RefreshCw size={14} className={`refresh-icon ${loading ? "animate-spin" : ""}`} />
-          {loading ? "Refreshing…" : "Refresh"}
-        </button>
-
-        <span className="sync-indicator">
-          <span className="pulse-dot" />
-          {syncSeconds === null ? "Syncing…" : `Synced ${syncSeconds}s ago`}
-        </span>
       </div>
     </header>
   );

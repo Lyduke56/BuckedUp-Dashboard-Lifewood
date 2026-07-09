@@ -163,12 +163,6 @@ a {
   }
 }
 
-@keyframes glowPulse {
-  0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
-  100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
-}
-
 /* ================= THE SHELL ================= */
 .shell {
   display: flex;
@@ -203,10 +197,6 @@ a {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
-.shell-header .sync-indicator {
-  color: rgba(255, 255, 255, 0.75) !important;
-}
-
 .shell-header .tab-bar-item {
   color: rgba(255, 255, 255, 0.6) !important;
 }
@@ -218,12 +208,6 @@ a {
 .shell-header .tab-bar-item.active {
   color: #ffffff !important;
   background: rgba(255, 255, 255, 0.1) !important;
-}
-
-.shell-header .refresh-btn.loading {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .app-header {
@@ -292,63 +276,9 @@ a {
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.refresh-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, var(--castleton) 0%, #059669 100%);
-  border: none;
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 14px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
 .header-btn:hover {
   border-color: var(--saffron);
   background: rgba(255, 255, 255, 0.08);
-}
-
-.refresh-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-}
-
-.refresh-btn:active {
-  transform: translateY(0);
-}
-
-.refresh-btn.loading {
-  background: var(--glass-hover);
-  border: 1px solid var(--glass-border);
-  color: var(--ink-soft);
-  box-shadow: none;
-}
-
-.refresh-icon {
-  transition: transform 0.3s ease;
-}
-
-.sync-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
-.pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--castleton);
-  box-shadow: 0 0 10px var(--castleton);
-  animation: glowPulse 2s infinite ease-in-out;
 }
 
 /* ================= TAB BAR ================= */
