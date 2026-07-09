@@ -99,7 +99,7 @@ export function useVideoRequests(): VideoRequestsState {
     load();
 
     const channel = supabase
-      .channel("products-changes")
+      .channel(`products-changes-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "products" },

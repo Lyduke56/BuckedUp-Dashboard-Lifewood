@@ -58,7 +58,7 @@ export function useIssues(): UseIssuesState {
     load();
 
     const channel = supabase
-      .channel("issues-changes")
+      .channel(`issues-changes-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "issues" },

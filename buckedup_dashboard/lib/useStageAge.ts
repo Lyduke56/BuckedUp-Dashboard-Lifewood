@@ -59,7 +59,7 @@ export function useStageAge(): UseStageAgeState {
     load();
 
     const channel = supabase
-      .channel("product-status-history-changes")
+      .channel(`product-status-history-changes-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "product_status_history" },
