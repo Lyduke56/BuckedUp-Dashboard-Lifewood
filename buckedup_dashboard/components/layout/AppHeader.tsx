@@ -31,11 +31,10 @@ export function AppHeader({
           src="/buckedup.svg"
           alt="BuckedUp"
           className="brand-logo logo-buckedup"
-          style={{ width: "30px" }}
         />
       </div>
       <div className="app-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        
+
         {authLoading ? null : user ? (
           <div className="auth-status" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <NotificationBell onNavigate={onNotificationNavigate} />

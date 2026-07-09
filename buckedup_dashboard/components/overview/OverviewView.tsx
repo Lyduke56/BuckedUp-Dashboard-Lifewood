@@ -48,12 +48,12 @@ export function OverviewView({
         <div className="lg:col-span-2 flex">
           <RecentActivityWidget products={products} />
         </div>
-        
+
         <div className="lg:col-span-1 flex">
           <Tilt maxTilt={4} className="w-full flex">
-            <button 
-              type="button" 
-              className="cta-card w-full text-left p-6 relative overflow-hidden flex flex-col justify-between cursor-pointer" 
+            <button
+              type="button"
+              className="cta-card w-full text-left p-6 relative overflow-hidden flex flex-col justify-between cursor-pointer"
               onClick={onBrowseLibrary}
               style={{ flex: 1, minHeight: '240px' }}
             >
