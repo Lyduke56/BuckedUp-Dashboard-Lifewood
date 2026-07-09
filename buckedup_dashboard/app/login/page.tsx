@@ -106,7 +106,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-shell">
-      <Tilt maxTilt={4} className="login-tilt-container" style={{ width: "100%", maxWidth: "600px" }}>
+      <Tilt maxTilt={4} className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
             <img
@@ -119,17 +119,16 @@ export default function LoginPage() {
               src="/buckedup-alt.svg"
               alt="BuckedUp"
               className="brand-logo"
-              style={{ width: "32px", height: "auto" }}
             />
           </div>
-          
+
           <div className="login-header-group">
             <h1 className="login-title">Video Production Monitor</h1>
             <div className="login-badge-wrap">
               <span className="login-badge">Secure Access</span>
             </div>
           </div>
-          
+
           <p className="login-sub">
             AIGC video queues monitoring & pipeline administration. Authorized partners sign in to manage, edit, and update video tasks.
           </p>
