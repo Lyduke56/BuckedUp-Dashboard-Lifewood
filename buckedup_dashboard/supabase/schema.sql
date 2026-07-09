@@ -187,8 +187,42 @@ create policy "Authenticated insert" on issues for insert
 create policy "Authenticated update" on issues for update
   using (auth.role() = 'authenticated');
 
+-- Stage-aging history: plain updated_at bumps on *any* edit (owner change,
+-- content angle tweak), not just a stage change, so it can't answer "how
+-- long has this been in its current stage." This table can, and doubles
+-- as the seed for a future historical cycle-time chart once enough
+-- transitions accumulate.
+create table product_status_history (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references products(id) on delete cascade,
+  status text not null,
+  entered_at timestamptz not null default now()
+);
+
+-- Security definer so logging never depends on the calling role having
+-- direct insert rights on the history table — it shouldn't have any.
+create or replace function log_status_change()
+returns trigger as $$
+begin
+  if (tg_op = 'INSERT') or (new.status is distinct from old.status) then
+    insert into product_status_history (product_id, status, entered_at)
+    values (new.id, new.status, now());
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger products_log_status_change
+  after insert or update on products
+  for each row
+  execute function log_status_change();
+
+alter table product_status_history enable row level security;
+create policy "Public read" on product_status_history for select using (true);
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
 alter publication supabase_realtime add table issues;
 alter publication supabase_realtime add table profiles;
+alter publication supabase_realtime add table product_status_history;

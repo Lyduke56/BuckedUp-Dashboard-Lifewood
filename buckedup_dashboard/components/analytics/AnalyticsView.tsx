@@ -1,9 +1,11 @@
 import { MOCK_DAILY_PROGRESS } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { useStageAge } from "@/lib/useStageAge";
 import { CategoryChart } from "./CategoryChart";
 import { DailyProgressChart } from "./DailyProgressChart";
 import { LanguageProgressChart } from "./LanguageProgressChart";
 import { ReviewStatusChart } from "./ReviewStatusChart";
+import { StageAgeChart } from "./StageAgeChart";
 import { StatusChart } from "./StatusChart";
 
 interface AnalyticsViewProps {
@@ -11,6 +13,8 @@ interface AnalyticsViewProps {
 }
 
 export function AnalyticsView({ products }: AnalyticsViewProps) {
+  const { stageAgeByProductId } = useStageAge();
+
   return (
     <div>
       <div className="section-heading">Analytics</div>
@@ -77,6 +81,20 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           <div className="chart-mt">
             <CategoryChart products={products} />
           </div>
+        </div>
+      </div>
+      <hr className="section-divider" />
+      <div className="panel">
+        <div className="section-heading section-heading-sm">
+          Time in current stage
+        </div>
+        <div className="panel-accent" />
+        <div className="chart-mt">
+          <StageAgeChart stageAgeByProductId={stageAgeByProductId} />
+        </div>
+        <div className="callout callout-inline">
+          Average days products currently sitting in each stage have been
+          there — a taller bar means that stage is where work is piling up.
         </div>
       </div>
     </div>

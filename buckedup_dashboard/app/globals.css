@@ -1951,3 +1951,20 @@ select:focus,
   opacity: 0.5;
   cursor: default;
 }
+
+/* ---------- STAGE AGING ---------- */
+.stage-age-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.stage-age-warn {
+  color: #b3760e;
+}
+
+.stage-age-stale {
+  color: #b02a37;
+  font-weight: 800;
+}

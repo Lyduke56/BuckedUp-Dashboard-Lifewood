@@ -14,8 +14,10 @@ import {
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
+import { useStageAge } from "@/lib/useStageAge";
 import { ProductFormModal } from "./ProductFormModal";
 import { ProductReviewModal } from "./ProductReviewModal";
+import { StageAgeBadge } from "./StageAgeBadge";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -63,6 +65,7 @@ export function VideoLibraryView({
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
+  const { stageAgeByProductId } = useStageAge();
   const isAuthenticated = !!user;
   const canEditProduction = role === "editor" || role === "admin";
   const canReview = role === "approver" || role === "admin";
@@ -308,7 +311,10 @@ export function VideoLibraryView({
                           className={`status-pill ${STATUS_CLASS[item.status]}`}
                         >
                           {item.status}
-                        </span>
+                        </span>{" "}
+                        <StageAgeBadge
+                          days={stageAgeByProductId.get(product.id)?.days}
+                        />
                       </td>
                       <td>
                         <span
