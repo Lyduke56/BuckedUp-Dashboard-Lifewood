@@ -92,3 +92,23 @@ export interface DailyCompletionPoint {
   target: number;
   actual: number;
 }
+
+/**
+ * The corporate-level plan the pipeline is measured against — admin-only
+ * write, public read (see supabase/schema.sql's production_plans table).
+ * Only one row has isActive at a time, DB-enforced via a unique partial
+ * index; the app always reads "the" plan as `is_active = true`.
+ */
+export interface ProductionPlan {
+  id: string;
+  name: string;
+  isActive: boolean;
+  totalVideoTarget: number;
+  dailyVideoTarget: number;
+  startDate: string;
+  deadline: string;
+  stageTargets: Record<string, number>;
+  languageTargets: Record<string, number>;
+  categoryTargets: Record<string, number>;
+  notes: string | null;
+}

@@ -382,6 +382,53 @@ create policy "Editor and admin update videos" on storage.objects for update
 create policy "Admin delete videos" on storage.objects for delete
   using (bucket_id = 'videos' and get_my_role() = 'admin');
 
+-- Production plan: the corporate-level targets the pipeline is measured
+-- against — daily throughput, per-stage/language/category breakdowns, and
+-- the delivery deadline. Replaces the hardcoded placeholder constants
+-- lib/data.ts carried since before this was a real database (their own
+-- comments anticipated exactly this: "should become a real setting ...
+-- once one exists"). Per-stage/language/category targets are jsonb
+-- rather than child tables — they're small admin-edited config maps with
+-- open-ended keys (language especially isn't a fixed enum), not
+-- high-volume relational data.
+create table production_plans (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  is_active boolean not null default true,
+  total_video_target integer not null default 0,
+  daily_video_target integer not null default 0,
+  start_date date not null,
+  deadline date not null,
+  stage_targets jsonb not null default '{}'::jsonb,
+  language_targets jsonb not null default '{}'::jsonb,
+  category_targets jsonb not null default '{}'::jsonb,
+  notes text,
+  created_by uuid references profiles(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Only one active plan at a time — the app always reads "the" plan via
+-- is_active = true, so this is a DB-enforced invariant, not a UI convention.
+create unique index production_plans_one_active
+  on production_plans (is_active)
+  where is_active;
+
+create trigger production_plans_set_updated_at
+  before update on production_plans
+  for each row
+  execute function set_updated_at();
+
+alter table production_plans enable row level security;
+
+create policy "Public read" on production_plans for select using (true);
+create policy "Admin insert" on production_plans for insert
+  with check (get_my_role() = 'admin');
+create policy "Admin update" on production_plans for update
+  using (get_my_role() = 'admin');
+create policy "Admin delete" on production_plans for delete
+  using (get_my_role() = 'admin');
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
@@ -389,3 +436,4 @@ alter publication supabase_realtime add table issues;
 alter publication supabase_realtime add table profiles;
 alter publication supabase_realtime add table product_status_history;
 alter publication supabase_realtime add table notifications;
+alter publication supabase_realtime add table production_plans;

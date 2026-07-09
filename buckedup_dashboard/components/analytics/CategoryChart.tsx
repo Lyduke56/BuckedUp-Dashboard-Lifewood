@@ -7,6 +7,7 @@ import { productBucket } from "@/lib/utils";
 
 interface CategoryChartProps {
   products: Product[];
+  categoryTargets?: Record<string, number>;
 }
 
 interface TooltipState {
@@ -16,7 +17,7 @@ interface TooltipState {
   visible: boolean;
 }
 
-export function CategoryChart({ products }: CategoryChartProps) {
+export function CategoryChart({ products, categoryTargets }: CategoryChartProps) {
   const [tooltip, setTooltip] = useState<TooltipState>({ x: 0, y: 0, content: "", visible: false });
 
   const rows = Object.keys(CATEGORY_TREE)
@@ -69,6 +70,9 @@ export function CategoryChart({ products }: CategoryChartProps) {
             </div>
             <div className="snapshot-count">
               {row.published}/{row.total} published
+              {categoryTargets?.[row.category] ? (
+                <span className="legend-target"> / target {categoryTargets[row.category]}</span>
+              ) : null}
             </div>
           </div>
         );

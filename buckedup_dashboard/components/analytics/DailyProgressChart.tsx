@@ -3,16 +3,20 @@ import type { DailyCompletionPoint } from "@/lib/types";
 
 interface DailyProgressChartProps {
   points: DailyCompletionPoint[];
+  dailyTarget?: number;
 }
 
-export function DailyProgressChart({ points }: DailyProgressChartProps) {
+export function DailyProgressChart({
+  points,
+  dailyTarget = DAILY_VIDEO_TARGET,
+}: DailyProgressChartProps) {
   if (points.length === 0) {
     return (
       <div className="empty-state">
         No daily history yet — Supabase only holds current state, not a
         change log, so this needs a periodic snapshot job (e.g. a scheduled
         function that records daily completion counts) before this chart can
-        populate. Configured daily target: {DAILY_VIDEO_TARGET} videos/day.
+        populate. Configured daily target: {dailyTarget} videos/day.
       </div>
     );
   }

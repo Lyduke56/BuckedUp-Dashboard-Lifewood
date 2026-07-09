@@ -107,10 +107,13 @@ export const REVIEW_STATUS_HEX: Record<string, string> = {
   Rejected: "#D03B3B",
 };
 
-// Placeholder config for the Daily Target vs Actual analytics chart —
-// there's no settings UI yet, so this is a plain constant. Should become
-// a real setting (admin UI or a settings table row) once one exists.
+// Fallback only — used until an admin creates a production_plans row (see
+// lib/useProductionPlan.ts). Once one exists, ProjectProgressCard and
+// DailyProgressChart read the real daily_video_target/start_date/deadline
+// instead of these.
 export const DAILY_VIDEO_TARGET = 3;
+export const PROJECT_START_DATE = "2026-07-01";
+export const PROJECT_DEADLINE = "2026-09-01";
 
 // Illustrative-only sample data for the Daily Target chart — there's no
 // real snapshot history yet (see DailyProgressChart's empty-state path,
@@ -124,12 +127,6 @@ export const MOCK_DAILY_PROGRESS: DailyCompletionPoint[] = [
   { date: "Jul 7", target: DAILY_VIDEO_TARGET, actual: 4 },
   { date: "Jul 8", target: DAILY_VIDEO_TARGET, actual: 1 },
 ];
-
-// Placeholder project timeline — no real target ship date exists yet.
-// Swap these for the real start/deadline once the team sets one; nothing
-// else needs to change, computeProjectPacing() reads only these two.
-export const PROJECT_START_DATE = "2026-07-01";
-export const PROJECT_DEADLINE = "2026-09-01";
 
 export interface ProjectPacing {
   status: "COMPLETE" | "ON TRACK" | "AT RISK" | "LATE";
@@ -150,9 +147,11 @@ const PACING_HEX = {
 export function computeProjectPacing(
   actualPct: number,
   today: Date = new Date(),
+  startDate: string = PROJECT_START_DATE,
+  deadlineDate: string = PROJECT_DEADLINE,
 ): ProjectPacing {
-  const start = new Date(PROJECT_START_DATE).getTime();
-  const deadline = new Date(PROJECT_DEADLINE).getTime();
+  const start = new Date(startDate).getTime();
+  const deadline = new Date(deadlineDate).getTime();
   const now = today.getTime();
 
   const totalMs = deadline - start;

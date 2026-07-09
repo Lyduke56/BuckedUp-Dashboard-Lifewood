@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from "react";
 import { computeProjectPacing } from "@/lib/data";
+import { useProductionPlan } from "@/lib/useProductionPlan";
 import type { Product } from "@/lib/types";
 import { averageProgressPct } from "@/lib/utils";
 
@@ -13,10 +14,12 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const shimmerRef = useRef<HTMLDivElement>(null);
+  const { plan } = useProductionPlan();
 
   const progressPct = Math.round(averageProgressPct(products));
-  const { status, statusHex, daysToDeadline } =
-    computeProjectPacing(progressPct);
+  const { status, statusHex, daysToDeadline } = plan
+    ? computeProjectPacing(progressPct, new Date(), plan.startDate, plan.deadline)
+    : computeProjectPacing(progressPct);
 
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",

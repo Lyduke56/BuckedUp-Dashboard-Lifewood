@@ -1,6 +1,7 @@
 import { MOCK_DAILY_PROGRESS } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { useStageAge } from "@/lib/useStageAge";
+import { useProductionPlan } from "@/lib/useProductionPlan";
 import { CategoryChart } from "./CategoryChart";
 import { DailyProgressChart } from "./DailyProgressChart";
 import { LanguageProgressChart } from "./LanguageProgressChart";
@@ -15,6 +16,7 @@ interface AnalyticsViewProps {
 
 export function AnalyticsView({ products }: AnalyticsViewProps) {
   const { stageAgeByProductId } = useStageAge();
+  const { plan } = useProductionPlan();
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +40,10 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
               Daily target vs actual
             </div>
             <div className="chart-mt">
-              <DailyProgressChart points={MOCK_DAILY_PROGRESS} />
+              <DailyProgressChart
+                points={MOCK_DAILY_PROGRESS}
+                dailyTarget={plan?.dailyVideoTarget}
+              />
             </div>
           </div>
 
@@ -48,7 +53,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
               Completion by category
             </div>
             <div className="chart-mt flex flex-col gap-4">
-              <CategoryChart products={products} />
+              <CategoryChart products={products} categoryTargets={plan?.categoryTargets} />
             </div>
           </div>
 
@@ -115,7 +120,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
               Delivery progress by language
             </div>
             <div className="chart-mt flex flex-col gap-4">
-              <LanguageProgressChart products={products} />
+              <LanguageProgressChart products={products} languageTargets={plan?.languageTargets} />
             </div>
           </div>
 
@@ -125,7 +130,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
               Production stage distribution
             </div>
             <div className="chart-mt">
-              <StatusChart products={products} />
+              <StatusChart products={products} stageTargets={plan?.stageTargets} />
             </div>
           </div>
 

@@ -5,10 +5,12 @@ import type { Product } from "@/lib/types";
 
 interface LanguageProgressChartProps {
   products: Product[];
+  languageTargets?: Record<string, number>;
 }
 
 export function LanguageProgressChart({
   products,
+  languageTargets,
 }: LanguageProgressChartProps) {
   const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
 
@@ -54,6 +56,9 @@ export function LanguageProgressChart({
             </div>
             <div className="snapshot-count">
               {row.delivered}/{row.total} accepted
+              {languageTargets?.[row.language] ? (
+                <span className="legend-target"> / target {languageTargets[row.language]}</span>
+              ) : null}
             </div>
           </div>
         );
