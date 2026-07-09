@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useProfiles } from "@/lib/useProfiles";
 import type { PipelineStatus, Product } from "@/lib/types";
+
+interface VideoVersionRow {
+  id: string;
+  video_url: string;
+  note: string | null;
+  is_current: boolean;
+  created_at: string;
+}
 
 interface ProductFormModalProps {
   mode: "add" | "edit";
@@ -84,6 +92,54 @@ export function ProductFormModal({
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { profiles } = useProfiles();
+
+  const [versions, setVersions] = useState<VideoVersionRow[]>([]);
+  const [newVersionUrl, setNewVersionUrl] = useState("");
+  const [newVersionNote, setNewVersionNote] = useState("");
+  const [addingVersion, setAddingVersion] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode !== "edit" || !product) return;
+    const supabase = createClient();
+    supabase
+      .from("video_versions")
+      .select("id, video_url, note, is_current, created_at")
+      .eq("product_id", product.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) setVersions(data as VideoVersionRow[]);
+      });
+  }, [mode, product]);
+
+  const handleAddVersion = async () => {
+    if (!product || !newVersionUrl.trim()) return;
+    setAddingVersion(true);
+    setVersionError(null);
+
+    const supabase = createClient();
+    const { error: rpcError } = await supabase.rpc("set_current_video_version", {
+      p_product_id: product.id,
+      p_video_url: newVersionUrl.trim(),
+      p_note: newVersionNote.trim() || null,
+    });
+
+    setAddingVersion(false);
+    if (rpcError) {
+      setVersionError(rpcError.message);
+      return;
+    }
+
+    setNewVersionUrl("");
+    setNewVersionNote("");
+    const { data } = await supabase
+      .from("video_versions")
+      .select("id, video_url, note, is_current, created_at")
+      .eq("product_id", product.id)
+      .order("created_at", { ascending: false });
+    if (data) setVersions(data as VideoVersionRow[]);
+    update("videoUrl", newVersionUrl.trim());
+  };
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => {
@@ -295,12 +351,19 @@ export function ProductFormModal({
             />
           </label>
           <label className="form-field">
-            <span>Video URL</span>
+            <span>{mode === "edit" ? "Video URL (current)" : "Video URL"}</span>
             <input
               type="url"
               value={form.videoUrl}
+              readOnly={mode === "edit"}
+              disabled={mode === "edit"}
               onChange={(event) => update("videoUrl", event.target.value)}
             />
+            {mode === "edit" ? (
+              <span className="form-hint">
+                Add a new version below to change this.
+              </span>
+            ) : null}
           </label>
           <label className="form-field form-field-wide">
             <span>Content angle</span>
@@ -337,6 +400,56 @@ export function ProductFormModal({
             </button>
           </div>
         </form>
+
+        {mode === "edit" && product ? (
+          <div className="video-versions">
+            <div className="content-angle-label">Video versions</div>
+            {versionError ? (
+              <div className="callout form-error">{versionError}</div>
+            ) : null}
+            {versions.length === 0 ? (
+              <div className="issue-empty">No versions uploaded yet.</div>
+            ) : (
+              <ul className="video-version-list">
+                {versions.map((version) => (
+                  <li key={version.id} className="video-version-item">
+                    <a href={version.video_url} target="_blank" rel="noopener noreferrer">
+                      {version.video_url.replace(/^https?:\/\//, "")}
+                    </a>
+                    {version.note ? (
+                      <span className="video-version-note">{version.note}</span>
+                    ) : null}
+                    {version.is_current ? (
+                      <span className="video-version-current">Current</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="issue-form">
+              <input
+                type="url"
+                placeholder="New video URL…"
+                value={newVersionUrl}
+                onChange={(event) => setNewVersionUrl(event.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Note (optional)…"
+                value={newVersionNote}
+                onChange={(event) => setNewVersionNote(event.target.value)}
+              />
+              <button
+                type="button"
+                className="issue-submit-btn"
+                disabled={addingVersion || !newVersionUrl.trim()}
+                onClick={handleAddVersion}
+              >
+                {addingVersion ? "Adding…" : "Add version"}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -285,6 +285,49 @@ create trigger products_notify_changes
   for each row
   execute function notify_product_changes();
 
+-- Video revision history — additive alongside products.video_url, not a
+-- replacement for it. Every existing consumer (VideoModal, the table's
+-- progress/watch behavior) keeps reading products.video_url unchanged;
+-- set_current_video_version() below keeps it in sync with the latest
+-- version so nothing else needs to change to pick this up.
+create table video_versions (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references products(id) on delete cascade,
+  video_url text not null,
+  note text,
+  is_current boolean not null default false,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now()
+);
+
+alter table video_versions enable row level security;
+
+create policy "Public read" on video_versions for select using (true);
+create policy "Editor and admin insert" on video_versions for insert
+  with check (get_my_role() in ('editor', 'admin'));
+create policy "Editor and admin update" on video_versions for update
+  using (get_my_role() in ('editor', 'admin'));
+
+-- security invoker (the default) so this runs under the caller's own RLS —
+-- an approver calling this gets rejected by video_versions' insert policy,
+-- same as if they'd tried it directly.
+create or replace function set_current_video_version(
+  p_product_id uuid,
+  p_video_url text,
+  p_note text
+)
+returns void as $$
+begin
+  update video_versions set is_current = false
+    where product_id = p_product_id and is_current = true;
+
+  insert into video_versions (product_id, video_url, note, is_current, created_by)
+  values (p_product_id, p_video_url, p_note, true, auth.uid());
+
+  update products set video_url = p_video_url where id = p_product_id;
+end;
+$$ language plpgsql;
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
