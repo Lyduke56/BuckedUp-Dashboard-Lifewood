@@ -76,6 +76,22 @@ const SignInIcon = () => (
   </svg>
 );
 
+const KeyIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="12"
+    height="12"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginRight: "4px" }}
+  >
+    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+  </svg>
+);
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -104,9 +120,14 @@ export default function LoginPage() {
     router.refresh();
   };
 
+  const handleQuickFill = (roleEmail: string) => {
+    setEmail(roleEmail);
+    setPassword("password");
+  };
+
   return (
     <div className="login-shell">
-      <Tilt maxTilt={6} className="login-tilt-container" style={{ width: "100%", maxWidth: "420px" }}>
+      <Tilt maxTilt={5} className="login-tilt-container" style={{ width: "100%", maxWidth: "480px" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
             <img
@@ -123,16 +144,20 @@ export default function LoginPage() {
             />
           </div>
           
-          <h1 className="login-title">Sign In</h1>
+          <div className="login-header-group">
+            <h1 className="login-title">Video Production Monitor</h1>
+            <div className="login-badge-wrap">
+              <span className="login-badge">Secure Access</span>
+            </div>
+          </div>
           
           <p className="login-sub">
-            Access editor and administrator tools for AIGC video queues. 
-            All other users can continue viewing the public dashboard.
+            AIGC video queues monitoring & pipeline administration. Authorized partners sign in to manage, edit, and update video tasks.
           </p>
 
           {error ? <div className="callout login-error">{error}</div> : null}
 
-          <div className="login-fields-container" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div className="login-fields-container" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             <label className="login-field">
               <span>Email Address</span>
               <div className="input-with-icon">
@@ -166,9 +191,34 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className="login-submit-btn" disabled={submitting}>
-            <span>{submitting ? "Signing in…" : "Sign In"}</span>
+            <span>{submitting ? "Authenticating…" : "Sign In"}</span>
             {!submitting && <SignInIcon />}
           </button>
+
+          {/* Quick access/demo login helper section */}
+          <div className="quick-access-section">
+            <div className="quick-access-divider">
+              <span>Quick Access / Demo autofill</span>
+            </div>
+            <div className="quick-access-buttons">
+              <button
+                type="button"
+                className="quick-access-btn"
+                onClick={() => handleQuickFill("admin@buckedup.com")}
+              >
+                <KeyIcon />
+                Admin Fill
+              </button>
+              <button
+                type="button"
+                className="quick-access-btn"
+                onClick={() => handleQuickFill("editor@buckedup.com")}
+              >
+                <KeyIcon />
+                Editor Fill
+              </button>
+            </div>
+          </div>
 
           <Link className="login-back-link" href="/">
             <ArrowLeftIcon />
