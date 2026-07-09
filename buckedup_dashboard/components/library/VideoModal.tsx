@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Product } from "@/lib/types";
 import { parseDriveFileId, parseModalKey } from "@/lib/utils";
 import { PlayCircleIcon, VideoCameraIcon } from "@/components/shared/icons";
@@ -11,7 +13,13 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!modalKey) return null;
+  if (!mounted) return null;
 
   const { rank, index } = parseModalKey(modalKey);
   const product = products.find((p) => p.rank === rank);
@@ -29,7 +37,7 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
     product.publishDate ? `Published ${product.publishDate}` : null,
   ].filter((part): part is string => Boolean(part));
 
-  return (
+  return createPortal(
     <div
       className={`overlay show`}
       onClick={(event) => {
@@ -121,6 +129,7 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

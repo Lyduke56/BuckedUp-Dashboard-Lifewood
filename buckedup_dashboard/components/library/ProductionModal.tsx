@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import type { PipelineStatus, Product } from "@/lib/types";
@@ -16,6 +17,11 @@ interface ProductionModalProps {
 // enforce_product_update_permissions() in supabase/schema.sql, which
 // blocks editors from touching those columns even if this UI didn't.
 export function ProductionModal({ product, onClose }: ProductionModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [status, setStatus] = useState<PipelineStatus>(product.items[0].status);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +45,9 @@ export function ProductionModal({ product, onClose }: ProductionModalProps) {
     onClose();
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="overlay show"
       onClick={(event) => {
@@ -80,6 +88,7 @@ export function ProductionModal({ product, onClose }: ProductionModalProps) {
 
         <VideoVersionsPanel productId={product.id} onVersionAdded={() => {}} />
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
