@@ -2,7 +2,7 @@ import type { Product } from "@/lib/types";
 import { KpiRow } from "./KpiRow";
 import { OverviewSnapshot } from "./OverviewSnapshot";
 import { ProjectProgressCard } from "./ProjectProgressCard";
-import { StorageQuotaWidget } from "./StorageQuotaWidget";
+import { ProductionOutputWidget } from "./ProductionOutputWidget";
 import { RecentActivityWidget } from "./RecentActivityWidget";
 import { Tilt } from "@/components/shared/Tilt";
 
@@ -24,7 +24,7 @@ export function OverviewView({
       <ProjectProgressCard products={products} />
       <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
 
-      {/* Row 1: Requests by category (2/3) & Cloud Storage (1/3) */}
+      {/* Row 1: Requests by category (2/3) & Production output (1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="panel panel-glass lg:col-span-2 flex flex-col justify-between">
           <div>
@@ -39,7 +39,7 @@ export function OverviewView({
           </div>
         </div>
         <div className="lg:col-span-1 flex">
-          <StorageQuotaWidget />
+          <ProductionOutputWidget />
         </div>
       </div>
 
