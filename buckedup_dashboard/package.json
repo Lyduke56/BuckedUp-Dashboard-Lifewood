@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts",
     "migrate:supabase": "tsx --env-file=.env.local scripts/migrate-to-supabase.ts"
   },
   "dependencies": {
@@ -21,10 +22,12 @@
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "pg": "^8.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5"
