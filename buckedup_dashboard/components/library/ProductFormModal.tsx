@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
+import { useProfiles } from "@/lib/useProfiles";
 import type { PipelineStatus, Product } from "@/lib/types";
 
 interface ProductFormModalProps {
@@ -21,7 +22,7 @@ interface FormState {
   language: string;
   productUrl: string;
   contentAngle: string;
-  owner: string;
+  ownerId: string;
   publishDate: string;
   reviewStatus: string;
   status: PipelineStatus;
@@ -44,7 +45,7 @@ function initialState(
       language: product.language,
       productUrl: product.productUrl ?? "",
       contentAngle: product.contentAngle,
-      owner: product.owner ?? "",
+      ownerId: product.ownerId ?? "",
       publishDate: product.publishDate ?? "",
       reviewStatus: product.reviewStatus ?? "",
       status: item.status,
@@ -62,7 +63,7 @@ function initialState(
     language: "English",
     productUrl: "",
     contentAngle: "",
-    owner: "",
+    ownerId: "",
     publishDate: "",
     reviewStatus: "",
     status: "Not Started",
@@ -82,6 +83,7 @@ export function ProductFormModal({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { profiles } = useProfiles();
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => {
@@ -114,7 +116,7 @@ export function ProductFormModal({
       language: form.language.trim() || "English",
       product_url: form.productUrl.trim() || null,
       content_angle: form.contentAngle.trim() || null,
-      owner: form.owner.trim() || null,
+      owner_id: form.ownerId || null,
       publish_date: form.publishDate || null,
       review_status: form.reviewStatus.trim() || null,
       status: form.status,
@@ -261,11 +263,20 @@ export function ProductFormModal({
           </label>
           <label className="form-field">
             <span>Owner</span>
-            <input
-              type="text"
-              value={form.owner}
-              onChange={(event) => update("owner", event.target.value)}
-            />
+            <select
+              value={form.ownerId}
+              onChange={(event) => update("ownerId", event.target.value)}
+            >
+              <option value="">Unassigned</option>
+              {profiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.email}
+                </option>
+              ))}
+            </select>
+            {!form.ownerId && product?.owner ? (
+              <span className="form-hint">Sheet-era: {product.owner}</span>
+            ) : null}
           </label>
           <label className="form-field">
             <span>Publish date</span>

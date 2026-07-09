@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils";
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
+import { useProfiles } from "@/lib/useProfiles";
 import { ProductFormModal } from "./ProductFormModal";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
@@ -48,6 +49,7 @@ export function VideoLibraryView({
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
   const [currentStatusFilter, setCurrentStatusFilter] =
     useState<StatusFilter>("all");
+  const [mineOnly, setMineOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
   const [formModal, setFormModal] = useState<{
@@ -57,9 +59,14 @@ export function VideoLibraryView({
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user } = useAuth();
+  const { profiles } = useProfiles();
   const isAuthenticated = !!user;
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
+  const profileEmailById = useMemo(
+    () => new Map(profiles.map((profile) => [profile.id, profile.email])),
+    [profiles],
+  );
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
@@ -79,6 +86,9 @@ export function VideoLibraryView({
       ) {
         return false;
       }
+      if (mineOnly && product.ownerId !== user?.id) {
+        return false;
+      }
       if (query && !product.name.toLowerCase().includes(query)) {
         return false;
       }
@@ -89,6 +99,8 @@ export function VideoLibraryView({
     currentCategory,
     currentSubcategory,
     currentStatusFilter,
+    mineOnly,
+    user,
     searchTerm,
   ]);
 
@@ -185,6 +197,15 @@ export function VideoLibraryView({
                 {filter.label}
               </button>
             ))}
+            {isAuthenticated ? (
+              <button
+                type="button"
+                className={`pill${mineOnly ? " active" : ""}`}
+                onClick={() => setMineOnly((prev) => !prev)}
+              >
+                My items
+              </button>
+            ) : null}
           </div>
         </div>
         <div className="filter-group">
@@ -331,6 +352,11 @@ export function VideoLibraryView({
                             product={product}
                             issues={rowIssues}
                             isAuthenticated={isAuthenticated}
+                            ownerEmail={
+                              product.ownerId
+                                ? profileEmailById.get(product.ownerId)
+                                : undefined
+                            }
                             onReportIssue={reportIssue}
                             onResolveIssue={resolveIssue}
                           />
@@ -361,6 +387,7 @@ interface RowDetailProps {
   product: Product;
   issues: Issue[];
   isAuthenticated: boolean;
+  ownerEmail: string | undefined;
   onReportIssue: (
     rank: number,
     description: string,
@@ -373,6 +400,7 @@ function RowDetail({
   product,
   issues,
   isAuthenticated,
+  ownerEmail,
   onReportIssue,
   onResolveIssue,
 }: RowDetailProps) {
@@ -396,7 +424,8 @@ function RowDetail({
     <div className="row-detail">
       <div className="detail-meta-row">
         <span className="detail-meta-item">
-          <strong>Owner:</strong> {product.owner ?? "Unassigned"}
+          <strong>Owner:</strong>{" "}
+          {ownerEmail ?? product.owner ?? "Unassigned"}
         </span>
         {product.productUrl ? (
           <span className="detail-meta-item">

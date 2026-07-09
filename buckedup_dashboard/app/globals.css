@@ -1889,6 +1889,12 @@ select:focus,
   grid-column: 1 / -1;
 }
 
+.form-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 .form-field input,
 .form-field select,
 .form-field textarea {
