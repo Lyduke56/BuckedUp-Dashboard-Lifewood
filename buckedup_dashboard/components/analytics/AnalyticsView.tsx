@@ -30,10 +30,10 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
 
       {/* Masonry 2-Column Grid to stack panels of varying heights without vertical gaps */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
+
         {/* Left Column (2/3 span) - Stacks wide charts */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          
+
           {/* Daily target vs actual */}
           <div className="panel flex flex-col">
             <div className="section-heading section-heading-sm">
@@ -97,7 +97,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
 
         {/* Right Column (1/3 span) - Stacks compact widgets */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          
+
           {/* Review status distribution */}
           <div className="panel flex flex-col justify-between">
             <div>

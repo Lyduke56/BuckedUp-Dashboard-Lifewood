@@ -17,9 +17,8 @@ export function CategoryLegend({
     <div className="category-legend">
       <button
         type="button"
-        className={`category-legend-item${
-          currentCategory === "all" ? " selected" : ""
-        }`}
+        className={`category-legend-item${currentCategory === "all" ? " selected" : ""
+          }`}
         onClick={() => onSelect("all")}
       >
         <span
