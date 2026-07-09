@@ -1737,3 +1737,245 @@ select:focus,
   border-color: transparent;
   background: none;
 }
+
+/* ---------- AUTH / LOGIN ---------- */
+.auth-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-email {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--paper);
+}
+
+.login-link {
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.login-link:hover {
+  border-color: var(--saffron);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--serpent);
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-brand-row {
+  margin-bottom: 6px;
+}
+
+.login-brand-logo {
+  filter: invert(1);
+}
+
+.login-brand-divider {
+  background: var(--line);
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+}
+
+.login-sub {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: -8px 0 0;
+  line-height: 1.5;
+}
+
+.login-error {
+  border-left-color: #dc3545;
+  color: #b02a37;
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.login-field input {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+}
+
+.login-field input:focus {
+  outline: 2px solid var(--castleton);
+  outline-offset: 1px;
+}
+
+.login-submit-btn {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--castleton);
+  border: none;
+  border-radius: 9px;
+  padding: 11px 14px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+  background: var(--g2);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.login-back-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.login-back-link:hover {
+  color: var(--castleton);
+}
+
+/* ---------- ROW ACTIONS / PRODUCT FORM MODAL ---------- */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-btn {
+  font-size: 13px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink-soft);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.15s;
+}
+
+.edit-btn:hover {
+  border-color: var(--castleton);
+  color: var(--castleton);
+}
+
+.form-modal {
+  max-width: 720px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: 2px solid var(--castleton);
+  outline-offset: 1px;
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  border-left-color: #dc3545;
+  color: #b02a37;
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.delete-btn {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b02a37;
+  background: rgba(220, 53, 69, 0.08);
+  border: 1px solid rgba(220, 53, 69, 0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.15);
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

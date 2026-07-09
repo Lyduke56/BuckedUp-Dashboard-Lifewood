@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/lib/useAuth";
 
 interface AppHeaderProps {
   loading: boolean;
@@ -10,6 +12,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ loading, lastUpdated, onRefresh }: AppHeaderProps) {
   const [syncSeconds, setSyncSeconds] = useState<number | null>(null);
+  const { user, loading: authLoading, signOut } = useAuth();
 
   useEffect(() => {
     function updateSeconds() {
@@ -41,7 +44,18 @@ export function AppHeader({ loading, lastUpdated, onRefresh }: AppHeaderProps) {
         />
       </div>
       <div className="app-header-right">
-        <span className="readonly-badge">Read-only view</span>
+        {authLoading ? null : user ? (
+          <div className="auth-status">
+            <span className="auth-email">{user.email}</span>
+            <button type="button" className="refresh-btn" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <Link href="/login" className="readonly-badge login-link">
+            Sign in to edit
+          </Link>
+        )}
         <button
           type="button"
           className="refresh-btn"

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import Link from "next/link";
 import { CATEGORY_TREE, STATUS_CLASS, reviewStatusClass } from "@/lib/data";
 import type { Issue, IssueSeverity, Product, StatusFilter } from "@/lib/types";
 import {
@@ -11,6 +12,8 @@ import {
   subcategoryCountProducts,
 } from "@/lib/utils";
 import { useIssues } from "@/lib/useIssues";
+import { useAuth } from "@/lib/useAuth";
+import { ProductFormModal } from "./ProductFormModal";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -47,8 +50,16 @@ export function VideoLibraryView({
     useState<StatusFilter>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
+  const [formModal, setFormModal] = useState<{
+    mode: "add" | "edit";
+    product: Product | null;
+  } | null>(null);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+  const nextRank =
+    products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
@@ -111,9 +122,7 @@ export function VideoLibraryView({
     return (
       <div>
         <div className="section-heading">Video Library</div>
-        <div className="empty-state">
-          Couldn&apos;t reach the Google Sheet: {error}
-        </div>
+        <div className="empty-state">Couldn&apos;t reach Supabase: {error}</div>
       </div>
     );
   }
@@ -178,13 +187,24 @@ export function VideoLibraryView({
             ))}
           </div>
         </div>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search product…"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
+        <div className="filter-group">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search product…"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          {isAuthenticated ? (
+            <button
+              type="button"
+              className="issue-submit-btn"
+              onClick={() => setFormModal({ mode: "add", product: null })}
+            >
+              + Add product
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {filteredProducts.length === 0 ? (
@@ -197,13 +217,13 @@ export function VideoLibraryView({
           <table className="video-table">
             <colgroup>
               <col style={{ width: "5%" }} />
-              <col style={{ width: "32%" }} />
+              <col style={{ width: "28%" }} />
               <col style={{ width: "10%" }} />
               <col style={{ width: "12%" }} />
               <col style={{ width: "12%" }} />
               <col style={{ width: "10%" }} />
-              <col style={{ width: "13%" }} />
-              <col style={{ width: "6%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "11%" }} />
             </colgroup>
             <thead>
               <tr>
@@ -214,7 +234,7 @@ export function VideoLibraryView({
                 <th>Status</th>
                 <th>Completed</th>
                 <th>Progress</th>
-                <th>Issue</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -277,16 +297,31 @@ export function VideoLibraryView({
                         </div>
                       </td>
                       <td>
-                        <button
-                          type="button"
-                          className={`issue-btn${openCount > 0 ? " has-issues" : ""}`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleExpanded(product.rank);
-                          }}
-                        >
-                          🚩{openCount > 0 ? ` ${openCount}` : ""}
-                        </button>
+                        <div className="row-actions">
+                          {isAuthenticated ? (
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              title="Edit product"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setFormModal({ mode: "edit", product });
+                              }}
+                            >
+                              ✎
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className={`issue-btn${openCount > 0 ? " has-issues" : ""}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleExpanded(product.rank);
+                            }}
+                          >
+                            🚩{openCount > 0 ? ` ${openCount}` : ""}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                     {expanded ? (
@@ -295,6 +330,7 @@ export function VideoLibraryView({
                           <RowDetail
                             product={product}
                             issues={rowIssues}
+                            isAuthenticated={isAuthenticated}
                             onReportIssue={reportIssue}
                             onResolveIssue={resolveIssue}
                           />
@@ -308,6 +344,15 @@ export function VideoLibraryView({
           </table>
         </div>
       )}
+
+      {formModal ? (
+        <ProductFormModal
+          mode={formModal.mode}
+          product={formModal.product}
+          nextRank={nextRank}
+          onClose={() => setFormModal(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -315,6 +360,7 @@ export function VideoLibraryView({
 interface RowDetailProps {
   product: Product;
   issues: Issue[];
+  isAuthenticated: boolean;
   onReportIssue: (
     rank: number,
     description: string,
@@ -326,6 +372,7 @@ interface RowDetailProps {
 function RowDetail({
   product,
   issues,
+  isAuthenticated,
   onReportIssue,
   onResolveIssue,
 }: RowDetailProps) {
@@ -383,13 +430,15 @@ function RowDetail({
                 <span className="issue-severity">{issue.severity}</span>
                 <span className="issue-desc">{issue.description}</span>
                 {issue.status === "open" ? (
-                  <button
-                    type="button"
-                    className="issue-resolve-btn"
-                    onClick={() => onResolveIssue(issue.id)}
-                  >
-                    Resolve
-                  </button>
+                  isAuthenticated ? (
+                    <button
+                      type="button"
+                      className="issue-resolve-btn"
+                      onClick={() => onResolveIssue(issue.id)}
+                    >
+                      Resolve
+                    </button>
+                  ) : null
                 ) : (
                   <span className="issue-resolved-tag">Resolved</span>
                 )}
@@ -397,35 +446,41 @@ function RowDetail({
             ))}
           </ul>
         )}
-        <div className="issue-form">
-          <select
-            value={severity}
-            onChange={(event) =>
-              setSeverity(event.target.value as IssueSeverity)
-            }
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Describe the problem…"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") handleSubmit();
-            }}
-          />
-          <button
-            type="button"
-            className="issue-submit-btn"
-            disabled={submitting || !description.trim()}
-            onClick={handleSubmit}
-          >
-            {submitting ? "Reporting…" : "Report issue"}
-          </button>
-        </div>
+        {isAuthenticated ? (
+          <div className="issue-form">
+            <select
+              value={severity}
+              onChange={(event) =>
+                setSeverity(event.target.value as IssueSeverity)
+              }
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Describe the problem…"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") handleSubmit();
+              }}
+            />
+            <button
+              type="button"
+              className="issue-submit-btn"
+              disabled={submitting || !description.trim()}
+              onClick={handleSubmit}
+            >
+              {submitting ? "Reporting…" : "Report issue"}
+            </button>
+          </div>
+        ) : (
+          <div className="issue-empty">
+            <Link href="/login">Sign in</Link> to report an issue.
+          </div>
+        )}
       </div>
     </div>
   );

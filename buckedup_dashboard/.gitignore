@@ -32,9 +32,6 @@ yarn-error.log*
 dev-out.log
 dev-err.log
 
-# local-only Issues store (dashboard-native, not part of the Sheet)
-/data/issues.json
-
 # env files (can opt-in for committing if needed)
 .env*
 

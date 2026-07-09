@@ -31,6 +31,7 @@ export interface VideoItem {
 }
 
 export interface Product {
+  id: string;
   rank: number;
   name: string;
   category: string;

@@ -41,8 +41,7 @@ export function Dashboard() {
               background: "rgba(220, 53, 69, 0.05)",
             }}
           >
-            ⚠️ Running in fallback mode. Failed to load live Google Sheets
-            data: {error}
+            ⚠️ Couldn&apos;t load live data from Supabase: {error}
           </div>
         )}
         <div className={`view${activeView === "overview" ? " active" : ""}`}>

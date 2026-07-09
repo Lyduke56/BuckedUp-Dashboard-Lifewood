@@ -73,3 +73,8 @@ create policy "Authenticated insert" on issues for insert
   with check (auth.role() = 'authenticated');
 create policy "Authenticated update" on issues for update
   using (auth.role() = 'authenticated');
+
+-- Realtime: the dashboard subscribes to postgres_changes on both tables
+-- so multiple editors see writes live, instead of polling.
+alter publication supabase_realtime add table products;
+alter publication supabase_realtime add table issues;

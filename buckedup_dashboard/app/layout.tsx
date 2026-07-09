@@ -11,8 +11,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "BuckedUp — Video Production Dashboard",
-  description:
-    "Read-only video production dashboard for BuckedUp × Lifewood",
+  description: "Video production dashboard for BuckedUp × Lifewood",
 };
 
 export default function RootLayout({

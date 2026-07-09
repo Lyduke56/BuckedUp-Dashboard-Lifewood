@@ -7,21 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts",
-    "migrate:supabase": "tsx --env-file=.env.local scripts/migrate-to-supabase.ts"
+    "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.1",
     "next": "16.2.10",
-    "papaparse": "^5.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/papaparse": "^5.5.2",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
