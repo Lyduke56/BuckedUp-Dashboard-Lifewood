@@ -15,9 +15,12 @@ import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { useStageAge } from "@/lib/useStageAge";
+import { KanbanBoard } from "./KanbanBoard";
 import { ProductFormModal } from "./ProductFormModal";
 import { ProductReviewModal } from "./ProductReviewModal";
 import { StageAgeBadge } from "./StageAgeBadge";
+
+type LibraryLayout = "table" | "board";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -59,6 +62,7 @@ export function VideoLibraryView({
   const [mineOnly, setMineOnly] = useState(false);
   const [rejectedOnly, setRejectedOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [layout, setLayout] = useState<LibraryLayout>("table");
 
   // Adjusted during render (React's sanctioned pattern for syncing local
   // state from a prop) rather than an effect, since this is the component's
@@ -255,6 +259,22 @@ export function VideoLibraryView({
           </div>
         </div>
         <div className="filter-group">
+          <div className="layout-toggle">
+            <button
+              type="button"
+              className={`pill${layout === "table" ? " active" : ""}`}
+              onClick={() => setLayout("table")}
+            >
+              Table
+            </button>
+            <button
+              type="button"
+              className={`pill${layout === "board" ? " active" : ""}`}
+              onClick={() => setLayout("board")}
+            >
+              Board
+            </button>
+          </div>
           <input
             type="text"
             className="search-input"
@@ -279,6 +299,15 @@ export function VideoLibraryView({
           No products currently requested in this category yet — it will
           appear here automatically once BuckedUp adds one.
         </div>
+      ) : layout === "board" ? (
+        <KanbanBoard
+          products={filteredProducts}
+          issues={issues}
+          canEditProduction={canEditProduction}
+          stageAgeByProductId={stageAgeByProductId}
+          profileEmailById={profileEmailById}
+          onOpenModal={onOpenModal}
+        />
       ) : (
         <div className="table-scroll">
           <table className="video-table">
