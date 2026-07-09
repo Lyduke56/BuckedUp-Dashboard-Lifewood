@@ -28,7 +28,7 @@ export function AppHeader({
         />
         <span className="brand-divider-line" />
         <img
-          src="/buckedup.svg"
+          src="/buckedup-alt.svg"
           alt="BuckedUp"
           className="brand-logo logo-buckedup"
         />

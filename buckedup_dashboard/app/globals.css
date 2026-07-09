@@ -1909,7 +1909,15 @@ a {
   color: rgba(255, 255, 255, 0.45) !important;
 }
 
-.login-field input {
+.input-with-icon {
+  position: relative;
+  width: 100%;
+}
+
+.input-with-icon input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 44px !important;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -1921,16 +1929,31 @@ a {
   transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.login-field input:hover {
+.input-with-icon input:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
-.login-field input:focus {
+.input-with-icon input:focus {
   outline: none !important;
   border-color: var(--saffron) !important;
   background: rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 0 0 4px rgba(255, 179, 71, 0.15) !important;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.35);
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+.input-with-icon input:focus ~ .input-icon {
+  color: var(--saffron);
+  transform: translateY(-50%) scale(1.08);
 }
 
 .login-submit-btn {
@@ -1946,6 +1969,10 @@ a {
   margin-top: 10px;
   box-shadow: 0 8px 24px rgba(217, 131, 36, 0.2);
   transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .login-submit-btn:hover:not(:disabled) {
@@ -1970,13 +1997,18 @@ a {
   margin-top: 8px;
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   align-self: center;
 }
 
 .login-back-link:hover {
   color: var(--saffron) !important;
-  transform: translateX(-3px);
+}
+
+.login-back-link:hover .back-arrow-icon {
+  transform: translateX(-4px) !important;
 }
 
 /* ---------- ROW ACTIONS / PRODUCT FORM MODAL ---------- */
