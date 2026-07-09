@@ -10,8 +10,7 @@ import { OverviewView } from "./overview/OverviewView";
 import { VideoLibraryView } from "./library/VideoLibraryView";
 import { VideoModal } from "./library/VideoModal";
 import { AnalyticsView } from "./analytics/AnalyticsView";
-import { ManageUsersView } from "./admin/ManageUsersView";
-import { ProductionPlanView } from "./admin/ProductionPlanView";
+import { AdminView } from "./admin/AdminView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
@@ -95,9 +94,7 @@ export function Dashboard() {
         </div>
         {role === "admin" ? (
           <div className={`view${activeView === "admin" ? " active" : ""}`}>
-            <ProductionPlanView />
-            <hr className="section-divider" />
-            <ManageUsersView />
+            <AdminView />
           </div>
         ) : null}
       </div>
