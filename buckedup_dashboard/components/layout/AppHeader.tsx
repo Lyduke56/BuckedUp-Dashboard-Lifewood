@@ -1,15 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { RefreshCw, Lock, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/lib/useAuth";
 import { NotificationBell } from "./NotificationBell";
 
 interface AppHeaderProps {
+  loading: boolean;
+  lastUpdated: Date | null;
+  onRefresh: () => void;
+  theme: "dark" | "light";
+  onToggleTheme: () => void;
   onNotificationNavigate: (productName: string) => void;
 }
 
-export function AppHeader({ onNotificationNavigate }: AppHeaderProps) {
+export function AppHeader({
+  loading,
+  lastUpdated,
+  onRefresh,
+  theme,
+  onToggleTheme,
+  onNotificationNavigate,
+}: AppHeaderProps) {
   const { user, loading: authLoading, signOut } = useAuth();
+  const [syncSeconds, setSyncSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    function updateSeconds() {
+      setSyncSeconds(
+        lastUpdated
+          ? Math.max(0, Math.floor((Date.now() - lastUpdated.getTime()) / 1000))
+          : null,
+      );
+    }
+    updateSeconds();
+    const interval = setInterval(updateSeconds, 1000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
 
   return (
     <header className="app-header">
@@ -23,24 +51,109 @@ export function AppHeader({ onNotificationNavigate }: AppHeaderProps) {
         <img
           src="/buckedup.svg"
           alt="BuckedUp"
-          className="brand-logo"
+          className="brand-logo logo-buckedup"
           style={{ width: "30px" }}
         />
       </div>
-      <div className="app-header-right">
+      <div className="app-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        
         {authLoading ? null : user ? (
-          <div className="auth-status">
+          <div className="auth-status" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <NotificationBell onNavigate={onNotificationNavigate} />
-            <span className="auth-email">{user.email}</span>
-            <button type="button" className="header-btn" onClick={signOut}>
+            <span className="auth-email" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{user.email}</span>
+            <button type="button" className="header-btn" onClick={signOut} style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#ffffff',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background 0.2s ease'
+            }}>
               Sign out
             </button>
           </div>
         ) : (
-          <Link href="/login" className="header-badge login-link">
+          <Link href="/login" className="login-link" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            color: '#ffffff',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            textDecoration: 'none',
+            transition: 'background 0.2s ease'
+          }}>
+            <Lock size={12} />
             Sign in to edit
           </Link>
         )}
+
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          style={{
+            width: "56px",
+            height: "28px",
+            position: "relative",
+            borderRadius: "9999px",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            background: "rgba(255, 255, 255, 0.06)",
+            cursor: "pointer",
+            padding: "2px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            transition: "background 0.3s ease",
+            outline: "none",
+            flexShrink: 0
+          }}
+          title="Toggle Theme"
+        >
+          {/* Sliding white circular thumb */}
+          <div
+            style={{
+              position: "absolute",
+              top: "2px",
+              left: theme === "light" ? "2px" : "28px",
+              width: "22px",
+              height: "22px",
+              borderRadius: "50%",
+              background: "#ffffff",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.25)",
+              transition: "left 0.25s cubic-bezier(0.25, 1, 0.5, 1)",
+              zIndex: 1
+            }}
+          />
+          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "light" ? "#133020" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
+            <Sun size={12} />
+          </div>
+          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "dark" ? "#133020" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
+            <Moon size={12} />
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={`refresh-btn ${loading ? "loading" : ""}`}
+          onClick={onRefresh}
+          disabled={loading}
+        >
+          <RefreshCw size={14} className={`refresh-icon ${loading ? "animate-spin" : ""}`} />
+          {loading ? "Refreshing…" : "Refresh"}
+        </button>
+
+        <span className="sync-indicator">
+          <span className="pulse-dot" />
+          {syncSeconds === null ? "Syncing…" : `Synced ${syncSeconds}s ago`}
+        </span>
       </div>
     </header>
   );
