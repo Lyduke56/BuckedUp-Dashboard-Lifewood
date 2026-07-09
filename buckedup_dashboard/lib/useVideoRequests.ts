@@ -71,12 +71,15 @@ interface VideoRequestsState {
   products: Product[];
   loading: boolean;
   error: string | null;
+  lastUpdated: Date | null;
+  refresh: () => Promise<void>;
 }
 
 export function useVideoRequests(): VideoRequestsState {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const supabaseRef = useRef(createClient());
 
   const load = useCallback(async () => {
@@ -89,6 +92,7 @@ export function useVideoRequests(): VideoRequestsState {
       setError(fetchError.message);
     } else {
       setProducts((data as ProductRow[]).map(toProduct));
+      setLastUpdated(new Date());
       setError(null);
     }
     setLoading(false);
@@ -112,5 +116,5 @@ export function useVideoRequests(): VideoRequestsState {
     };
   }, [load]);
 
-  return { products, loading, error };
+  return { products, loading, error, lastUpdated, refresh: load };
 }

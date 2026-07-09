@@ -22,24 +22,24 @@ export function CategoryChart({ products }: CategoryChartProps) {
       {rows.map((row) => {
         if (row.total === 0) {
           return (
-            <div key={row.category} className="cat2-row inactive">
-              <div className="cat2-label">{row.category}</div>
-              <div className="cat2-track">
-                <div className="cat2-fill" style={{ width: "0%" }} />
+            <div key={row.category} className="snapshot-row inactive" style={{ opacity: 0.5 }}>
+              <div className="snapshot-label">{row.category}</div>
+              <div className="snapshot-track">
+                <div className="snapshot-fill" style={{ width: "0%" }} />
               </div>
-              <div className="cat2-count">No requests yet</div>
+              <div className="snapshot-count">No requests yet</div>
             </div>
           );
         }
 
         const pct = Math.round((row.published / row.total) * 100);
         return (
-          <div key={row.category} className="cat2-row">
-            <div className="cat2-label">{row.category}</div>
-            <div className="cat2-track">
-              <div className="cat2-fill" style={{ width: `${pct}%` }} />
+          <div key={row.category} className="snapshot-row">
+            <div className="snapshot-label">{row.category}</div>
+            <div className="snapshot-track">
+              <div className="snapshot-fill" style={{ width: `${pct}%` }} />
             </div>
-            <div className="cat2-count">
+            <div className="snapshot-count">
               {row.published}/{row.total} published
             </div>
           </div>

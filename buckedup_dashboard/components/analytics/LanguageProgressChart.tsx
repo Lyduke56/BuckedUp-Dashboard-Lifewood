@@ -29,12 +29,12 @@ export function LanguageProgressChart({
         const pct =
           row.total === 0 ? 0 : Math.round((row.delivered / row.total) * 100);
         return (
-          <div key={row.language} className="cat2-row">
-            <div className="cat2-label">{row.language}</div>
-            <div className="cat2-track">
-              <div className="cat2-fill" style={{ width: `${pct}%` }} />
+          <div key={row.language} className="snapshot-row">
+            <div className="snapshot-label">{row.language}</div>
+            <div className="snapshot-track">
+              <div className="snapshot-fill" style={{ width: `${pct}%` }} />
             </div>
-            <div className="cat2-count">
+            <div className="snapshot-count">
               {row.delivered}/{row.total} accepted
             </div>
           </div>

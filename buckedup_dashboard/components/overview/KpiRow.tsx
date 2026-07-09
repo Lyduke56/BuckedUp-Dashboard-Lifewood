@@ -4,40 +4,16 @@ import { productBucket, totalVideos } from "@/lib/utils";
 import { Card } from "@/components/shared/Card";
 import { CardGrid } from "@/components/shared/CardGrid";
 import React from 'react';
+import { Tilt } from "@/components/shared/Tilt";
+
+import { Package, Clapperboard, CheckCircle2, Clock, CircleDashed } from "lucide-react";
 
 const ICONS: Record<string, React.ReactNode> = {
-  package: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 8l-9-5-9 5 9 5 9-5z" />
-      <path d="M3 8v8l9 5 9-5V8" />
-      <path d="M12 13v8" />
-    </svg>
-  ),
-  clapper: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 8l2-4h3l-2 4" />
-      <path d="M10 8l2-4h3l-2 4" />
-      <path d="M16 8l2-4h2v4" />
-      <rect x="3" y="8" width="18" height="12" rx="2" />
-    </svg>
-  ),
-  published: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  ),
-  progress: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 6v6l4 2" />
-    </svg>
-  ),
-  notstarted: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-    </svg>
-  ),
+  package: <Package size={22} />,
+  clapper: <Clapperboard size={22} />,
+  published: <CheckCircle2 size={22} />,
+  progress: <Clock size={22} />,
+  notstarted: <CircleDashed size={22} />,
 };
 
 interface KpiRowProps {
@@ -65,11 +41,13 @@ export function KpiRow({ products, isLoading, hasError }: KpiRowProps) {
   return (
     <CardGrid columns={5} className="kpi-row">
       {kpis.map((kpi) => (
-        <Card key={kpi.l} height={130} className={`kpi-card ${kpi.cls}`}>
-          <div className="kpi-icon">{ICONS[kpi.icon]}</div>
-          <div className="kpi-number">{kpi.n}</div>
-          <div className="kpi-label">{kpi.l}</div>
-        </Card>
+        <Tilt key={kpi.l} maxTilt={8} className="kpi-tilt-wrapper" style={{ width: '100%' }}>
+          <Card height={145} className={`kpi-card card-glass ${kpi.cls}`}>
+            <div className="kpi-icon">{ICONS[kpi.icon]}</div>
+            <div className="kpi-number">{kpi.n}</div>
+            <div className="kpi-label">{kpi.l}</div>
+          </Card>
+        </Tilt>
       ))}
     </CardGrid>
   );

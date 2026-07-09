@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ViewId } from "@/lib/types";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
@@ -14,14 +14,29 @@ import { ManageUsersView } from "./admin/ManageUsersView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
-  const { products, loading, error } = useVideoRequests();
+  const { products, loading, error, lastUpdated, refresh } = useVideoRequests();
   const { role } = useAuth();
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
   };
+
+  const toggleTheme = () => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  };
+
+  useEffect(() => {
+    // Apply theme to the whole document so body background changes too
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      document.body.classList.add("light");
+    } else {
+      document.body.classList.remove("light");
+    }
+  }, [theme]);
 
   const handleNotificationNavigate = (productName: string) => {
     setLibrarySearch(productName);
@@ -31,7 +46,14 @@ export function Dashboard() {
   return (
     <div className="shell">
       <div className="shell-header">
-        <AppHeader onNotificationNavigate={handleNotificationNavigate} />
+        <AppHeader
+          loading={loading}
+          lastUpdated={lastUpdated}
+          onRefresh={refresh}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onNotificationNavigate={handleNotificationNavigate}
+        />
         <TabBar
           activeView={activeView}
           onViewChange={switchView}

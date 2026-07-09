@@ -194,9 +194,10 @@ export function VideoLibraryView({
         Priority-ranked shot list — grows automatically as new products are
         requested, across any category in the catalog.
       </div>
-      <div className="toolbar">
-        <div className="filter-group">
+      <div className="filter-row">
+        <div className="filter-row-left">
           <select
+            className="filter-select"
             value={currentCategory}
             onChange={(event) => handleCategoryChange(event.target.value)}
           >
@@ -208,6 +209,7 @@ export function VideoLibraryView({
             ))}
           </select>
           <select
+            className="filter-select"
             value={currentSubcategory}
             disabled={currentCategory === "all"}
             onChange={(event) => setCurrentSubcategory(event.target.value)}
@@ -263,7 +265,7 @@ export function VideoLibraryView({
             </button>
           </div>
         </div>
-        <div className="filter-group">
+        <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="layout-toggle">
             <button
               type="button"
@@ -280,18 +282,41 @@ export function VideoLibraryView({
               Board
             </button>
           </div>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search product…"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <input
+              type="text"
+              className="search-input"
+              style={{ paddingLeft: '36px' }}
+              placeholder="Search product…"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+            <svg
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--ink-soft)',
+                pointerEvents: 'none'
+              }}
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.3-4.3" />
+            </svg>
+          </div>
           {canManageCatalog ? (
             <button
               type="button"
               className="issue-submit-btn"
               onClick={() => setFormModal({ mode: "add", product: null })}
+              style={{ height: '38px', borderRadius: '12px' }}
             >
               + Add product
             </button>
@@ -446,24 +471,31 @@ export function VideoLibraryView({
                         </div>
                       </td>
                     </tr>
-                    {expanded ? (
-                      <tr className="video-table-expand-row">
-                        <td colSpan={8}>
-                          <RowDetail
-                            product={product}
-                            issues={rowIssues}
-                            isAuthenticated={isAuthenticated}
-                            ownerEmail={
-                              product.ownerId
-                                ? profileEmailById.get(product.ownerId)
-                                : undefined
-                            }
-                            onReportIssue={reportIssue}
-                            onResolveIssue={resolveIssue}
-                          />
-                        </td>
-                      </tr>
-                    ) : null}
+                    <tr className={`video-table-expand-row${expanded ? " expanded" : ""}`}>
+                      <td colSpan={8}>
+                        <div className="expand-wrapper" style={{
+                          display: 'grid',
+                          gridTemplateRows: expanded ? '1fr' : '0fr',
+                          opacity: expanded ? 1 : 0,
+                          transition: 'grid-template-rows 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease'
+                        }}>
+                          <div style={{ overflow: 'hidden' }}>
+                            <RowDetail
+                              product={product}
+                              issues={rowIssues}
+                              isAuthenticated={isAuthenticated}
+                              ownerEmail={
+                                product.ownerId
+                                  ? profileEmailById.get(product.ownerId)
+                                  : undefined
+                              }
+                              onReportIssue={reportIssue}
+                              onResolveIssue={resolveIssue}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                   </Fragment>
                 );
               })}

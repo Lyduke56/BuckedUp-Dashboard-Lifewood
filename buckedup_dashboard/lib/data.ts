@@ -63,11 +63,11 @@ export const STATUS_CLASS: Record<PipelineStatus, string> = {
 };
 
 export const STATUS_HEX: Record<PipelineStatus, string> = {
-  "Not Started": "#CCCCCC",
-  Scripting: "#9CAFA4",
-  Filming: "#708E7C",
-  Editing: "#417256",
-  "In Review": "#034E34",
+  "Not Started": "#E5E5E5",
+  Scripting: "#FFC370",
+  Filming: "#FFB347",
+  Editing: "#8CA496",
+  "In Review": "#417256",
   Scheduled: "#133020",
   Published: "#046241",
 };
@@ -102,8 +102,8 @@ export const REVIEW_STATUS_ORDER = [
 // table pills (app/globals.css .rs-*) and ReviewStatusChart read from it.
 export const REVIEW_STATUS_HEX: Record<string, string> = {
   "Not Started": "#999999",
-  "In Production": "#2A78D6",
-  Accepted: "#0CA30C",
+  "In Production": "#FFB347",
+  Accepted: "#046241",
   Rejected: "#D03B3B",
 };
 
