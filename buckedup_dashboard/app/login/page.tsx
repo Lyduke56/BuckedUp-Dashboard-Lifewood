@@ -4,6 +4,77 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Tilt } from "@/components/shared/Tilt";
+
+const MailIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="input-icon"
+  >
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="input-icon"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const ArrowLeftIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="back-arrow-icon"
+    style={{ marginRight: "8px", display: "inline-block", transition: "transform 0.2s ease" }}
+  >
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+);
+
+const SignInIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginLeft: "8px", display: "inline-block" }}
+  >
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+    <polyline points="10 17 15 12 10 7" />
+    <line x1="15" y1="12" x2="3" y2="12" />
+  </svg>
+);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,55 +106,76 @@ export default function LoginPage() {
 
   return (
     <div className="login-shell">
-      <form className="login-card" onSubmit={handleSubmit}>
-        <div className="brand-row login-brand-row">
-          <img
-            src="/lifewood-full-cream.svg"
-            alt="Lifewood"
-            className="brand-logo login-brand-logo"
-          />
-          <span className="brand-divider-line login-brand-divider" />
-          <img
-            src="/buckedup.svg"
-            alt="BuckedUp"
-            className="brand-logo"
-            style={{ width: "30px" }}
-          />
-        </div>
-        <h1 className="login-title">Sign in</h1>
-        <p className="login-sub">
-          Sign in to add, edit, or resolve items on the dashboard. Everyone
-          can still view it without an account.
-        </p>
-        {error ? <div className="callout login-error">{error}</div> : null}
-        <label className="login-field">
-          <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            autoFocus
-            required
-          />
-        </label>
-        <label className="login-field">
-          <span>Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </label>
-        <button type="submit" className="login-submit-btn" disabled={submitting}>
-          {submitting ? "Signing in…" : "Sign in"}
-        </button>
-        <Link className="login-back-link" href="/">
-          ← Back to dashboard
-        </Link>
-      </form>
+      <Tilt maxTilt={6} className="login-tilt-container" style={{ width: "100%", maxWidth: "420px" }}>
+        <form className="login-card" onSubmit={handleSubmit}>
+          <div className="brand-row login-brand-row">
+            <img
+              src="/lifewood-full-cream.svg"
+              alt="Lifewood"
+              className="brand-logo login-brand-logo"
+            />
+            <span className="brand-divider-line login-brand-divider" />
+            <img
+              src="/buckedup-alt.svg"
+              alt="BuckedUp"
+              className="brand-logo"
+              style={{ width: "32px", height: "auto" }}
+            />
+          </div>
+          
+          <h1 className="login-title">Sign In</h1>
+          
+          <p className="login-sub">
+            Access editor and administrator tools for AIGC video queues. 
+            All other users can continue viewing the public dashboard.
+          </p>
+
+          {error ? <div className="callout login-error">{error}</div> : null}
+
+          <div className="login-fields-container" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <label className="login-field">
+              <span>Email Address</span>
+              <div className="input-with-icon">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="email"
+                  autoFocus
+                  required
+                  placeholder="name@company.com"
+                />
+                <MailIcon />
+              </div>
+            </label>
+
+            <label className="login-field">
+              <span>Password</span>
+              <div className="input-with-icon">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                />
+                <LockIcon />
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" className="login-submit-btn" disabled={submitting}>
+            <span>{submitting ? "Signing in…" : "Sign In"}</span>
+            {!submitting && <SignInIcon />}
+          </button>
+
+          <Link className="login-back-link" href="/">
+            <ArrowLeftIcon />
+            Back to Dashboard
+          </Link>
+        </form>
+      </Tilt>
     </div>
   );
 }
