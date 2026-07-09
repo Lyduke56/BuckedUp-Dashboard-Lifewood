@@ -53,6 +53,19 @@
   
   /* Shell header always 046241 analogous */
   --header-bg: rgba(4, 98, 65, 0.85);
+
+  /* Progress Card & Pill custom variables (Dark mode) */
+  --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%);
+  --progress-card-bar-glow: 0 0 12px rgba(255, 179, 71, 0.5);
+  --progress-card-mouse-glow: radial-gradient(circle, rgba(255, 179, 71, 0.25) 0%, transparent 70%);
+  --progress-card-shimmer-color: rgba(255, 179, 71, 0.12);
+  
+  --pill-active-bg: rgba(16, 185, 129, 0.15);
+  --pill-active-border: rgba(16, 185, 129, 0.4);
+  --pill-active-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  
+  --submit-btn-bg: linear-gradient(135deg, var(--castleton) 0%, #059669 100%);
+  --submit-btn-glow: rgba(16, 185, 129, 0.25);
 }
 
 :root[data-theme='light'],
@@ -85,6 +98,19 @@
   --g3: #f7a83b;
   --g4: #d98324;
   --g5: #9a621e;
+
+  /* Progress Card & Pill custom variables (Light mode - Green progress bar) */
+  --progress-card-bar-bg: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  --progress-card-bar-glow: 0 0 12px rgba(16, 185, 129, 0.4);
+  --progress-card-mouse-glow: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+  --progress-card-shimmer-color: rgba(16, 185, 129, 0.08);
+  
+  --pill-active-bg: rgba(217, 131, 36, 0.15);
+  --pill-active-border: rgba(217, 131, 36, 0.4);
+  --pill-active-shadow: 0 0 12px rgba(217, 131, 36, 0.15);
+  
+  --submit-btn-bg: linear-gradient(135deg, #d98324 0%, #9a621e 100%);
+  --submit-btn-glow: rgba(217, 131, 36, 0.25);
 }
 
 /* ================= BASE RESET & UTILITIES ================= */
@@ -587,27 +613,110 @@ a {
 
 .kpi-card {
   background: var(--panel-bg);
-  border: 1px solid var(--glass-hover);
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 145px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   position: relative;
   overflow: hidden;
 }
 
-/* Status-specific KPI Glowing Outlines */
-.kpi-card.c-published { border-left: 3px solid var(--castleton); }
-.kpi-card.c-progress { border-left: 3px solid var(--saffron); }
-.kpi-card.c-notstarted { border-left: 3px solid var(--earth-yellow); }
-.kpi-card.c-neutral { border-left: 3px solid rgba(255, 255, 255, 0.2); }
+/* Color-coded Outlines & Shadows for KPI cards */
+.kpi-card.c-categories {
+  border: 1px solid rgba(20, 184, 166, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.05), inset 0 0 12px rgba(20, 184, 166, 0.05) !important;
+}
+.kpi-card.c-categories:hover {
+  border-color: rgba(20, 184, 166, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(20, 184, 166, 0.15), inset 0 0 16px rgba(20, 184, 166, 0.08) !important;
+}
 
-.kpi-card:hover {
-  border-color: rgba(150, 150, 150, 0.2);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+.kpi-card.c-planned {
+  border: 1px solid rgba(99, 102, 241, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.05), inset 0 0 12px rgba(99, 102, 241, 0.05) !important;
+}
+.kpi-card.c-planned:hover {
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15), inset 0 0 16px rgba(99, 102, 241, 0.08) !important;
+}
+
+.kpi-card.c-published {
+  border: 1px solid rgba(16, 185, 129, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.05), inset 0 0 12px rgba(16, 185, 129, 0.05) !important;
+}
+.kpi-card.c-published:hover {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15), inset 0 0 16px rgba(16, 185, 129, 0.08) !important;
+}
+
+.kpi-card.c-progress {
+  border: 1px solid rgba(255, 159, 28, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(255, 159, 28, 0.05), inset 0 0 12px rgba(255, 159, 28, 0.05) !important;
+}
+.kpi-card.c-progress:hover {
+  border-color: rgba(255, 159, 28, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(255, 159, 28, 0.15), inset 0 0 16px rgba(255, 159, 28, 0.08) !important;
+}
+
+.kpi-card.c-notstarted {
+  border: 1px solid rgba(244, 63, 94, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(244, 63, 94, 0.05), inset 0 0 12px rgba(244, 63, 94, 0.05) !important;
+}
+.kpi-card.c-notstarted:hover {
+  border-color: rgba(244, 63, 94, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(244, 63, 94, 0.15), inset 0 0 16px rgba(244, 63, 94, 0.08) !important;
+}
+
+/* Light mode overrides for KPI Outlines & Shadows */
+[data-theme='light'] .kpi-card {
+  background: #ffffff !important;
+}
+[data-theme='light'] .kpi-card.c-categories {
+  border: 1.5px solid rgba(20, 184, 166, 0.25) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.05) !important;
+}
+[data-theme='light'] .kpi-card.c-categories:hover {
+  border-color: rgba(20, 184, 166, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.1) !important;
+}
+
+[data-theme='light'] .kpi-card.c-planned {
+  border: 1.5px solid rgba(99, 102, 241, 0.25) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.05) !important;
+}
+[data-theme='light'] .kpi-card.c-planned:hover {
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.1) !important;
+}
+
+[data-theme='light'] .kpi-card.c-published {
+  border: 1.5px solid rgba(4, 98, 65, 0.25) !important;
+  box-shadow: 0 6px 16px rgba(4, 98, 65, 0.05) !important;
+}
+[data-theme='light'] .kpi-card.c-published:hover {
+  border-color: rgba(4, 98, 65, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(4, 98, 65, 0.1) !important;
+}
+
+[data-theme='light'] .kpi-card.c-progress {
+  border: 1.5px solid rgba(217, 131, 36, 0.28) !important;
+  box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
+}
+[data-theme='light'] .kpi-card.c-progress:hover {
+  border-color: rgba(217, 131, 36, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(217, 131, 36, 0.1) !important;
+}
+
+[data-theme='light'] .kpi-card.c-notstarted {
+  border: 1.5px solid rgba(244, 63, 94, 0.25) !important;
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.05) !important;
+}
+[data-theme='light'] .kpi-card.c-notstarted:hover {
+  border-color: rgba(244, 63, 94, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.1) !important;
 }
 
 .kpi-icon {
@@ -780,10 +889,10 @@ a {
 }
 
 .pill.active {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--pill-active-bg);
   color: var(--castleton);
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  border-color: var(--pill-active-border);
+  box-shadow: var(--pill-active-shadow);
 }
 
 .search-input {
@@ -1197,7 +1306,7 @@ a {
 }
 
 .issue-submit-btn {
-  background: linear-gradient(135deg, var(--castleton) 0%, #059669 100%);
+  background: var(--submit-btn-bg);
   color: #ffffff;
   border: none;
   padding: 8px 20px;
@@ -1211,7 +1320,7 @@ a {
 
 .issue-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--castleton-glow);
+  box-shadow: 0 4px 12px var(--submit-btn-glow);
 }
 
 .issue-submit-btn:disabled {
@@ -1812,13 +1921,13 @@ a {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   color: var(--ink-soft);
-  cursor: pointer;
+  cursor: pointer !important;
   font-size: 11px;
   font-weight: 700;
   transition: all 0.18s ease;
@@ -1829,6 +1938,7 @@ a {
 .row-action-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  cursor: pointer !important;
 }
 
 .row-action-edit:hover {
@@ -1905,7 +2015,7 @@ a {
 }
 
 .form-modal {
-  max-width: 720px;
+  max-width: 850px;
   max-height: 88vh;
   overflow-y: auto;
 }
@@ -2356,9 +2466,6 @@ a {
   box-shadow: 0 16px 48px rgba(217, 131, 36, 0.12);
 }
 
-.form-modal {
-  max-width: 540px;
-}
 
 .modal-close {
   position: absolute;
@@ -2814,3 +2921,91 @@ a {
   z-index: 999;
   background: transparent;
 }
+
+/* ── Custom Kanban card color coding ────────────────────────── */
+.kanban-card[data-status="Not Started"] {
+  border-left: 4px solid #cbd5e1 !important;
+  background: rgba(203, 213, 225, 0.04) !important;
+}
+.kanban-card[data-status="Scripting"] {
+  border-left: 4px solid #FFC370 !important;
+  background: rgba(255, 195, 112, 0.04) !important;
+}
+.kanban-card[data-status="Filming"] {
+  border-left: 4px solid #FFB347 !important;
+  background: rgba(255, 179, 71, 0.04) !important;
+}
+.kanban-card[data-status="Editing"] {
+  border-left: 4px solid #8CA496 !important;
+  background: rgba(140, 164, 150, 0.04) !important;
+}
+.kanban-card[data-status="In Review"] {
+  border-left: 4px solid #417256 !important;
+  background: rgba(65, 114, 86, 0.04) !important;
+}
+.kanban-card[data-status="Scheduled"] {
+  border-left: 4px solid #133020 !important;
+  background: rgba(19, 48, 32, 0.04) !important;
+}
+.kanban-card[data-status="Published"] {
+  border-left: 4px solid #046241 !important;
+  background: rgba(4, 98, 65, 0.04) !important;
+}
+
+/* Light Mode specific Kanban card backgrounds */
+[data-theme='light'] .kanban-card[data-status="Not Started"] {
+  background: #ffffff !important;
+  border-left-color: #cbd5e1 !important;
+}
+[data-theme='light'] .kanban-card[data-status="Scripting"] {
+  background: #fffef8 !important;
+  border-left-color: #f7a83b !important;
+}
+[data-theme='light'] .kanban-card[data-status="Filming"] {
+  background: #fffaf2 !important;
+  border-left-color: #FFB347 !important;
+}
+[data-theme='light'] .kanban-card[data-status="Editing"] {
+  background: #f9fbf9 !important;
+  border-left-color: #8CA496 !important;
+}
+[data-theme='light'] .kanban-card[data-status="In Review"] {
+  background: #f4faf6 !important;
+  border-left-color: #417256 !important;
+}
+[data-theme='light'] .kanban-card[data-status="Scheduled"] {
+  background: #f1f8f3 !important;
+  border-left-color: #133020 !important;
+}
+[data-theme='light'] .kanban-card[data-status="Published"] {
+  background: #edf7f1 !important;
+  border-left-color: #046241 !important;
+}
+
+/* ── Light Mode table row styling (solid white backgrounds) ─── */
+[data-theme='light'] .video-table-row {
+  background: #ffffff !important;
+}
+[data-theme='light'] .video-table-row:hover {
+  background: rgba(19, 48, 32, 0.04) !important;
+}
+
+/* ── Kanban / Rich multi-line Tooltips ──────────────────────── */
+.kanban-tooltip {
+  white-space: normal !important;
+  max-width: 280px !important;
+  line-height: 1.5 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  border-width: 1.5px !important;
+}
+
+.kanban-tooltip strong {
+  color: var(--ink-soft);
+}
+
+.row-action-btn svg {
+  cursor: pointer !important;
+}
+

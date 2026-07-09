@@ -31,8 +31,8 @@ export function KpiRow({ products, isLoading, hasError }: KpiRowProps) {
   const displayVal = (val: number) => (isLoading || hasError ? "--" : val);
 
   const kpis = [
-    { n: displayVal(total), l: "Categories Requested", cls: "c-neutral", icon: "package" },
-    { n: isLoading || hasError ? "--" : totalVideos(products), l: "Videos planned", cls: "c-neutral", icon: "clapper" },
+    { n: displayVal(total), l: "Categories Requested", cls: "c-categories", icon: "package" },
+    { n: isLoading || hasError ? "--" : totalVideos(products), l: "Videos planned", cls: "c-planned", icon: "clapper" },
     { n: displayVal(published), l: "Published", cls: "c-published", icon: "published" },
     { n: displayVal(inProgress), l: "In progress", cls: "c-progress", icon: "progress" },
     { n: displayVal(notStarted), l: "Not started", cls: "c-notstarted", icon: "notstarted" },

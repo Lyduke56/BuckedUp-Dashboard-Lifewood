@@ -14,10 +14,10 @@ const MIN_LABEL_HEIGHT = 22;
 const LIGHT_STAGES = new Set(["Not Started", "Scripting"]);
 
 export function StatusChart({ products }: StatusChartProps) {
-  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
+  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", borderColor: "", visible: false });
 
-  const showTip = (e: React.MouseEvent, content: string) =>
-    setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
+  const showTip = (e: React.MouseEvent, content: string, borderColor: string = "") =>
+    setTooltip({ x: e.clientX, y: e.clientY, content, borderColor, visible: true });
   const moveTip = (e: React.MouseEvent) =>
     setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
   const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
@@ -51,7 +51,7 @@ export function StatusChart({ products }: StatusChartProps) {
               className="stack-segment"
               style={{ height: `${segmentHeight}px`, background: STATUS_HEX[status] }}
               title={`${status}: ${count} (${pct}%)`}
-              onMouseMove={(e) => { showTip(e, `${status}: ${count} video${count === 1 ? "" : "s"} (${pct}%)`); moveTip(e); }}
+              onMouseMove={(e) => { showTip(e, `${status}: ${count} video${count === 1 ? "" : "s"} (${pct}%)`, STATUS_HEX[status]); moveTip(e); }}
               onMouseLeave={hideTip}
             >
               {segmentHeight >= MIN_LABEL_HEIGHT ? (
@@ -75,7 +75,7 @@ export function StatusChart({ products }: StatusChartProps) {
           <div
             key={status}
             className="category-legend-item"
-            onMouseMove={(e) => { showTip(e, `${status}: ${counts[status]} video${counts[status] === 1 ? "" : "s"} (${Math.round((counts[status] / total) * 100)}%)`); moveTip(e); }}
+            onMouseMove={(e) => { showTip(e, `${status}: ${counts[status]} video${counts[status] === 1 ? "" : "s"} (${Math.round((counts[status] / total) * 100)}%)`, STATUS_HEX[status]); moveTip(e); }}
             onMouseLeave={hideTip}
             style={{ cursor: "default" }}
           >
@@ -98,6 +98,8 @@ export function StatusChart({ products }: StatusChartProps) {
             top: tooltip.y - 8,
             zIndex: 10000,
             pointerEvents: "none",
+            borderColor: tooltip.borderColor,
+            borderWidth: tooltip.borderColor ? "1.5px" : "1px",
           }}
         >
           {tooltip.content}
