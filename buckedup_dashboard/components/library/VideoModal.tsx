@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useMounted } from "@/lib/useMounted";
 import type { Product } from "@/lib/types";
 import { parseDriveFileId, parseModalKey } from "@/lib/utils";
 import { PlayCircleIcon, VideoCameraIcon } from "@/components/shared/icons";
@@ -13,10 +13,7 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!modalKey) return null;
   if (!mounted) return null;

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
+import { useMounted } from "@/lib/useMounted";
 import type { PipelineStatus, Product } from "@/lib/types";
 import { VideoVersionsPanel } from "./VideoVersionsPanel";
 
@@ -17,10 +18,7 @@ interface ProductionModalProps {
 // enforce_product_update_permissions() in supabase/schema.sql, which
 // blocks editors from touching those columns even if this UI didn't.
 export function ProductionModal({ product, onClose }: ProductionModalProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const [status, setStatus] = useState<PipelineStatus>(product.items[0].status);
   const [error, setError] = useState<string | null>(null);
