@@ -47,9 +47,9 @@ export interface Product {
 }
 
 /**
- * Issues are tracked locally by this dashboard (see lib/useIssues.ts) —
- * they are NOT written to the Google Sheet. The Sheet stays read-only per
- * the project's architecture; this is a separate, dashboard-only resource.
+ * Issues live in Supabase's `issues` table (see lib/useIssues.ts), foreign
+ * keyed to `products` — a dashboard-native resource, not something that
+ * ever came from or synced back to the old Google Sheet.
  */
 export type IssueSeverity = "low" | "medium" | "high";
 export type IssueStatus = "open" | "resolved";

@@ -9,10 +9,10 @@ export function DailyProgressChart({ points }: DailyProgressChartProps) {
   if (points.length === 0) {
     return (
       <div className="empty-state">
-        No daily history yet — this needs a periodic snapshot job (see
-        04-architecture.md, Phase 4), since Google Sheets doesn&apos;t retain
-        a change history this could be reconstructed from. Configured daily
-        target: {DAILY_VIDEO_TARGET} videos/day.
+        No daily history yet — Supabase only holds current state, not a
+        change log, so this needs a periodic snapshot job (e.g. a scheduled
+        function that records daily completion counts) before this chart can
+        populate. Configured daily target: {DAILY_VIDEO_TARGET} videos/day.
       </div>
     );
   }

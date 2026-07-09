@@ -75,7 +75,7 @@ export function VideoModal({ products, modalKey, onClose }: VideoModalProps) {
               <div className="vp-title">Video ready to watch</div>
               <div className="vp-sub">
                 {isPublished
-                  ? "Published — available in the source Google Sheet"
+                  ? "Published"
                   : `Early cut — currently ${item.status.toLowerCase()}, not yet Published`}
               </div>
               <a

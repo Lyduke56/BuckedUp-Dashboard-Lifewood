@@ -65,10 +65,8 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           <div className="callout callout-inline">
             One column, stacked by current stage — reads bottom-to-top as not
             started → published, so a taller top segment means more of the
-            queue has cleared production. Status is edited only in the
-            source Google Sheet by whoever runs production; this dashboard
-            reads and displays it automatically, with no editing surface of
-            its own.
+            queue has cleared production. Editing a product&apos;s stage in
+            the Video Library updates this chart live.
           </div>
         </div>
         <div className="panel">
