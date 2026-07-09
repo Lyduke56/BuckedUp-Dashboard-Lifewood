@@ -47,15 +47,14 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
     const tiltY = ((cx - x) / cx) * 3;
     card.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.01)`;
 
-    // Radial glow follows cursor
+    // Direct positioning for maximum reliability
     glow.style.left = `${x}px`;
     glow.style.top = `${y}px`;
     glow.style.opacity = "1";
 
-    // Shimmer gradient
     const pctX = (x / rect.width) * 100;
     const pctY = (y / rect.height) * 100;
-    shimmer.style.background = `radial-gradient(circle at ${pctX}% ${pctY}%, rgba(255,179,71,0.12) 0%, transparent 65%)`;
+    shimmer.style.background = `radial-gradient(circle at ${pctX}% ${pctY}%, var(--progress-card-shimmer-color) 0%, transparent 65%)`;
     shimmer.style.opacity = "1";
   }, []);
 
@@ -90,7 +89,7 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
           width: "280px",
           height: "280px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,179,71,0.25) 0%, transparent 70%)",
+          background: "var(--progress-card-mouse-glow)",
           transform: "translate(-50%, -50%)",
           pointerEvents: "none",
           opacity: 0,
@@ -133,7 +132,7 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
       
       <div style={{ position: "relative", zIndex: 1, width: '100%', marginTop: '20px' }}>
         <div style={{ height: '8px', background: 'var(--glass-border)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-bg)' }}>
-          <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%)', borderRadius: '10px', boxShadow: '0 0 12px rgba(255, 179, 71, 0.5)', transition: 'width 0.8s cubic-bezier(0.25, 1, 0.5, 1)' }} />
+          <div style={{ width: `${progressPct}%`, height: '100%', background: 'var(--progress-card-bar-bg)', borderRadius: '10px', boxShadow: 'var(--progress-card-bar-glow)', transition: 'width 0.8s cubic-bezier(0.25, 1, 0.5, 1)' }} />
         </div>
       </div>
     </div>

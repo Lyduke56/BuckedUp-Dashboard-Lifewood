@@ -13,7 +13,7 @@ interface StageAgeChartProps {
 // lib/useStageAge.ts for why (there's no completed-transition history to
 // average yet, and this is useful from day one).
 export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
-  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
+  const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", borderColor: "", visible: false });
 
   const entries = Array.from(stageAgeByProductId.values());
 
@@ -28,8 +28,8 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
 
   const maxDays = Math.max(...rows.map((row) => row.avgDays), 1);
 
-  const showTip = (e: React.MouseEvent, content: string) =>
-    setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
+  const showTip = (e: React.MouseEvent, content: string, borderColor: string = "") =>
+    setTooltip({ x: e.clientX, y: e.clientY, content, borderColor, visible: true });
   const moveTip = (e: React.MouseEvent) =>
     setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
   const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
@@ -64,7 +64,7 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
           <div
             key={row.status}
             className="cat2-row"
-            onMouseMove={(e) => { showTip(e, tooltipText); moveTip(e); }}
+            onMouseMove={(e) => { showTip(e, tooltipText, STATUS_HEX[row.status]); moveTip(e); }}
             onMouseLeave={hideTip}
             style={{ cursor: "default" }}
           >
@@ -92,6 +92,8 @@ export function StageAgeChart({ stageAgeByProductId }: StageAgeChartProps) {
             top: tooltip.y - 8,
             zIndex: 10000,
             pointerEvents: "none",
+            borderColor: tooltip.borderColor,
+            borderWidth: tooltip.borderColor ? "1.5px" : "1px",
           }}
         >
           {tooltip.content}
