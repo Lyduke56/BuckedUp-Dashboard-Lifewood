@@ -215,7 +215,7 @@ export function ProductionPlanView() {
         breakdowns. Public read, admin-only edit.
       </div>
 
-      <form className="form-grid" onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
+      <form className="form-grid plan-form" onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
         {error ? <div className="callout form-error">{error}</div> : null}
         {saved ? (
           <div className="callout" style={{ borderLeftColor: "var(--castleton)", gridColumn: "1 / -1" }}>

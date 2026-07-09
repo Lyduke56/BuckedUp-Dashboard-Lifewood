@@ -3373,6 +3373,19 @@ a {
 }
 
 /* ---------- PRODUCTION PLAN ---------- */
+/* .form-grid is reused by ProductFormModal (app/globals.css ~line 2701),
+   which caps it at max-height:65vh + overflow-y:auto for its own inner
+   scroll — that rule loads after the plain page-level .form-grid and wins
+   the cascade for every element with the class, including this page's
+   form. .plan-form's two-class selector outranks the single-class
+   .form-grid regardless of source order, so this page's form scrolls with
+   the rest of the page instead of getting its own inner scrollbar. */
+.plan-form.form-grid {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
 .plan-target-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
