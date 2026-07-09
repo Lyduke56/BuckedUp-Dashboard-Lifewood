@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { REVIEW_STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/lib/types";
@@ -11,6 +12,11 @@ interface ProductReviewModalProps {
 }
 
 export function ProductReviewModal({ product, onClose }: ProductReviewModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [reviewStatus, setReviewStatus] = useState(
     product.reviewStatus ?? "Not Started",
   );
@@ -50,7 +56,9 @@ export function ProductReviewModal({ product, onClose }: ProductReviewModalProps
     onClose();
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="overlay show"
       onClick={(event) => {
@@ -117,6 +125,7 @@ export function ProductReviewModal({ product, onClose }: ProductReviewModalProps
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useProfiles } from "@/lib/useProfiles";
@@ -75,6 +76,11 @@ export function ProductFormModal({
   nextRank,
   onClose,
 }: ProductFormModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [form, setForm] = useState<FormState>(() =>
     initialState(mode, product, nextRank),
   );
@@ -156,7 +162,9 @@ export function ProductFormModal({
     onClose();
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="overlay show"
       onClick={(event) => {
@@ -340,6 +348,7 @@ export function ProductFormModal({
           />
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

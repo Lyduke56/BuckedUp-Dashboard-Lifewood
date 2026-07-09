@@ -1550,7 +1550,7 @@ a {
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 9999;
   background: rgba(5, 7, 6, 0.85);
   backdrop-filter: blur(12px);
   display: flex;
@@ -2053,9 +2053,12 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.2s ease;
 }
 
 .notification-bell-trigger svg {
@@ -2610,4 +2613,170 @@ a {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Notification trigger (circular, no outline/border) */
+.notification-bell-trigger {
+  width: 40px;
+  height: 40px;
+  border-radius: 50% !important;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: none !important;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 0 !important;
+}
+
+.notification-bell-trigger:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  transform: scale(1.05);
+}
+
+.notification-bell-trigger svg {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f43f5e !important;
+  color: #ffffff !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #046241 !important;
+}
+
+/* Notification dropdown list layout */
+.notification-bell {
+  position: relative;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 320px;
+  background: var(--panel-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-theme='light'] .notification-dropdown {
+  background: #ffffff;
+  border: 1px solid rgba(19, 48, 32, 0.1);
+  box-shadow: 0 12px 32px rgba(19, 48, 32, 0.1);
+}
+
+.notification-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 10px;
+}
+
+.notification-dropdown-header span {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.notification-dropdown-header button {
+  background: transparent;
+  border: none;
+  color: var(--castleton);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notification-item:hover {
+  background: var(--glass-hover);
+  border-color: var(--glass-border);
+}
+
+.notification-item.unread {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme='light'] .notification-item.unread {
+  background: rgba(4, 98, 65, 0.05);
+  border-color: rgba(4, 98, 65, 0.1);
+}
+
+.notification-message {
+  font-size: 12.5px;
+  color: var(--text-main);
+  line-height: 1.4;
+  text-align: left;
+}
+
+.notification-time {
+  font-size: 10px;
+  color: var(--ink-soft);
+  align-self: flex-end;
+}
+
+.notification-empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.notification-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+  background: transparent;
 }
