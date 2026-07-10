@@ -24,6 +24,7 @@ interface KpiRowProps {
 
 export function KpiRow({ products, isLoading, hasError }: KpiRowProps) {
   const total = products.length;
+  const uniqueCategories = new Set(products.map((p) => p.category)).size;
   const published = products.filter((p) => productBucket(p) === "published").length;
   const inProgress = products.filter((p) => productBucket(p) === "in-progress").length;
   const notStarted = products.filter((p) => productBucket(p) === "not-started").length;
@@ -31,7 +32,7 @@ export function KpiRow({ products, isLoading, hasError }: KpiRowProps) {
   const displayVal = (val: number) => (isLoading || hasError ? "--" : val);
 
   const kpis = [
-    { n: displayVal(total), l: "Categories Requested", cls: "c-categories", icon: "package" },
+    { n: displayVal(uniqueCategories), l: "Categories Requested", cls: "c-categories", icon: "package" },
     { n: isLoading || hasError ? "--" : totalVideos(products), l: "Videos planned", cls: "c-planned", icon: "clapper" },
     { n: displayVal(published), l: "Published", cls: "c-published", icon: "published" },
     { n: displayVal(inProgress), l: "In progress", cls: "c-progress", icon: "progress" },
