@@ -94,7 +94,7 @@
   --ink: #133020;
   --ink-soft: #4d7d68;
   --serpent: #fcf8f2;
-  --header-bg: linear-gradient(135deg, rgba(16, 87, 37, 1) 0%, rgba(11, 22, 17, 0.8) 100%);
+  --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.8) 0%, rgba(6, 11, 15, 0.8) 100%);
   --header-border: rgba(16, 185, 129, 0.35);
   --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
   --active-tab-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 100%);
@@ -337,7 +337,7 @@ a {
   display: flex;
   background: var(--glass-bg);
   border-top: 1px solid var(--glass-hover);
-  padding: 16px 16px;
+  padding: 6px 16px;
   gap: 8px;
 }
 
@@ -2625,8 +2625,7 @@ a {
 
 .kanban-column {
   flex: 0 0 220px;
-  background: var(--panel-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--seasalt);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -2635,13 +2634,8 @@ a {
 }
 
 .kanban-column.drag-over {
-  background: color-mix(in srgb, var(--stage-color) 12%, transparent);
-  box-shadow: inset 0 0 0 2px var(--stage-color);
-}
-
-[data-theme='light'] .kanban-column {
-  background: #ffffff;
-  border: 1px solid rgba(19, 48, 32, 0.1);
+  background: rgba(4, 98, 65, 0.08);
+  box-shadow: inset 0 0 0 2px var(--castleton);
 }
 
 .kanban-column-header {
@@ -3901,3 +3895,102 @@ a {
   background: #fff;
   border-color: rgba(19, 48, 32, 0.15);
 }
+
+/* Dynamic targets list with max 3 visible rows and scrollbar */
+.plan-targets-scroll-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 410px; /* Fits exactly 3 rows with padding/gaps */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.plan-targets-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.plan-targets-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.plan-targets-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 3px;
+}
+
+.plan-target-row-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+[data-theme='light'] .plan-target-row-container {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.plan-target-row-container:hover {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='light'] .plan-target-row-container:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.plan-target-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.plan-target-row-select {
+  flex: 1;
+  min-width: 120px;
+}
+
+.plan-target-row-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-target-btn {
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.plan-target-btn-add {
+  background: rgba(4, 98, 65, 0.2);
+  color: #059669;
+  border-color: rgba(4, 98, 65, 0.3);
+}
+
+.plan-target-btn-add:hover {
+  background: rgba(4, 98, 65, 0.35);
+  border-color: #059669;
+}
+
+.plan-target-btn-delete {
+  background: rgba(220, 53, 69, 0.15);
+  color: #ef4444;
+  border-color: rgba(220, 53, 69, 0.25);
+}
+
+.plan-target-btn-delete:hover {
+  background: rgba(220, 53, 69, 0.25);
+  border-color: #ef4444;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { Film, Grid3x3, Globe } from "lucide-react";
 import { CATEGORY_TREE } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
@@ -25,14 +25,13 @@ function toFormState(plan: ProductionPlan | null): FormState {
     categoryTargets[category] = String(plan?.categoryTargets[category] ?? "");
   });
 
-  const languageTargets = plan
+  const languageTargets = plan && Object.keys(plan.languageTargets).length > 0
     ? Object.entries(plan.languageTargets).map(([language, target]) => ({
         language,
         target: String(target),
       }))
     : [
         { language: "English", target: "" },
-        { language: "Spanish", target: "" },
       ];
 
   return {
@@ -51,8 +50,6 @@ function toInt(value: string): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-const NEW_LANGUAGE = "__new__";
-
 export function ProductionPlanView() {
   const { plan, loading } = useProductionPlan();
   const todayStats = useTodayStats();
@@ -62,6 +59,10 @@ export function ProductionPlanView() {
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Dynamic lists of target categories & custom inputs for languages
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [customLanguageRowIndices, setCustomLanguageRowIndices] = useState<number[]>([]);
+
   // Adjusted during render (React's sanctioned pattern for syncing local
   // state from a loaded value) rather than an effect — re-syncs exactly
   // once when the plan identity changes, not on every keystroke, which
@@ -70,22 +71,113 @@ export function ProductionPlanView() {
   const currentKey = loading ? undefined : (plan?.id ?? "none");
   if (currentKey !== undefined && currentKey !== lastSyncedKey) {
     setLastSyncedKey(currentKey);
-    setForm(toFormState(plan));
+    const initialForm = toFormState(plan);
+    setForm(initialForm);
+    
+    // Initialize active categories to those that have targets, or fallback to first category
+    const active = Object.keys(initialForm.categoryTargets).filter(
+      (cat) => initialForm.categoryTargets[cat] !== "" && initialForm.categoryTargets[cat] !== "0"
+    );
+    setActiveCategories(active.length > 0 ? active : [Object.keys(CATEGORY_TREE)[0]]);
   }
-
-  // Which category/language each dropdown card is currently focused
-  // on — one at a time, rather than showing every key's input at once.
-  const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(CATEGORY_TREE)[0]);
-  const [selectedLanguageIndex, setSelectedLanguageIndex] = useState(0);
-  const [newLanguageName, setNewLanguageName] = useState("");
-  const [addingLanguage, setAddingLanguage] = useState(false);
-
-  const selectedLanguageRow = form.languageTargets[selectedLanguageIndex] as
-    | { language: string; target: string }
-    | undefined;
 
   const setCategoryTarget = (category: string, value: string) => {
     setForm((prev) => ({ ...prev, categoryTargets: { ...prev.categoryTargets, [category]: value } }));
+  };
+
+  const getAvailableCategories = (currentIndex: number) => {
+    const selectedElsewhere = activeCategories.filter((_, idx) => idx !== currentIndex);
+    return Object.keys(CATEGORY_TREE).filter((cat) => !selectedElsewhere.includes(cat));
+  };
+
+  const handleAddCategory = (index: number) => {
+    const available = Object.keys(CATEGORY_TREE).filter((cat) => !activeCategories.includes(cat));
+    if (available.length === 0) return;
+    const newCat = available[0];
+    const updated = [...activeCategories];
+    updated.splice(index + 1, 0, newCat);
+    setActiveCategories(updated);
+    setForm((prev) => ({
+      ...prev,
+      categoryTargets: {
+        ...prev.categoryTargets,
+        [newCat]: prev.categoryTargets[newCat] || "",
+      },
+    }));
+  };
+
+  const handleDeleteCategory = (index: number) => {
+    if (activeCategories.length <= 1) return;
+    const removedCategory = activeCategories[index];
+    const updated = activeCategories.filter((_, idx) => idx !== index);
+    setActiveCategories(updated);
+    setForm((prev) => ({
+      ...prev,
+      categoryTargets: {
+        ...prev.categoryTargets,
+        [removedCategory]: "",
+      },
+    }));
+  };
+
+  const handleChangeCategory = (index: number, newCat: string) => {
+    const oldCat = activeCategories[index];
+    const updated = [...activeCategories];
+    updated[index] = newCat;
+    setActiveCategories(updated);
+    setForm((prev) => {
+      const nextTargets = { ...prev.categoryTargets };
+      nextTargets[newCat] = nextTargets[oldCat];
+      nextTargets[oldCat] = "";
+      return {
+        ...prev,
+        categoryTargets: nextTargets,
+      };
+    });
+  };
+
+  // Collect unique language options from the products catalog dynamically, plus standard defaults
+  const ALL_LANGUAGES = useMemo(() => {
+    const uniqueProductLanguages = Array.from(new Set(products.map((p) => p.language))).filter(Boolean);
+    return Array.from(new Set(["English", "Spanish", "German", "French", "Italian", "Japanese", "Chinese", ...uniqueProductLanguages]));
+  }, [products]);
+
+  const getAvailableLanguages = (currentIndex: number) => {
+    const selectedElsewhere = form.languageTargets
+      .filter((_, idx) => idx !== currentIndex)
+      .map((row) => row.language);
+    return ALL_LANGUAGES.filter((lang) => !selectedElsewhere.includes(lang));
+  };
+
+  const handleAddLanguage = (index: number) => {
+    const selectedLanguages = form.languageTargets.map((row) => row.language);
+    const available = ALL_LANGUAGES.filter((lang) => !selectedLanguages.includes(lang));
+    if (available.length === 0) return;
+    const newLang = available[0];
+    const updated = [...form.languageTargets];
+    updated.splice(index + 1, 0, { language: newLang, target: "" });
+    setForm((prev) => ({
+      ...prev,
+      languageTargets: updated,
+    }));
+  };
+
+  const handleDeleteLanguage = (index: number) => {
+    if (form.languageTargets.length <= 1) return;
+    const updated = form.languageTargets.filter((_, idx) => idx !== index);
+    setForm((prev) => ({
+      ...prev,
+      languageTargets: updated,
+    }));
+  };
+
+  const handleChangeLanguage = (index: number, newLang: string) => {
+    setForm((prev) => ({
+      ...prev,
+      languageTargets: prev.languageTargets.map((row, idx) =>
+        idx === index ? { ...row, language: newLang } : row
+      ),
+    }));
   };
 
   const setLanguageTargetAt = (index: number, value: string) => {
@@ -93,26 +185,6 @@ export function ProductionPlanView() {
       ...prev,
       languageTargets: prev.languageTargets.map((row, i) => (i === index ? { ...row, target: value } : row)),
     }));
-  };
-
-  const removeLanguageAt = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      languageTargets: prev.languageTargets.filter((_, i) => i !== index),
-    }));
-    setSelectedLanguageIndex(0);
-  };
-
-  const confirmAddLanguage = () => {
-    const name = newLanguageName.trim();
-    if (!name) return;
-    setForm((prev) => ({
-      ...prev,
-      languageTargets: [...prev.languageTargets, { language: name, target: "" }],
-    }));
-    setSelectedLanguageIndex(form.languageTargets.length);
-    setNewLanguageName("");
-    setAddingLanguage(false);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -168,16 +240,6 @@ export function ProductionPlanView() {
 
   const dailyGoal = Object.values(form.categoryTargets).reduce((acc, val) => acc + toInt(val), 0);
   const dailyPct = dailyGoal > 0 ? Math.min(100, Math.round((todayStats.publishedToday / dailyGoal) * 100)) : 0;
-
-  const categoryGoal = toInt(form.categoryTargets[selectedCategory]);
-  const categoryActual = todayStats.publishedByCategory[selectedCategory] ?? 0;
-  const categoryPct = categoryGoal > 0 ? Math.min(100, Math.round((categoryActual / categoryGoal) * 100)) : 0;
-
-  const languageGoal = toInt(selectedLanguageRow?.target ?? "");
-  const languageActual = selectedLanguageRow
-    ? products.filter((p) => p.language === selectedLanguageRow.language && p.items[0]?.status === "Published").length
-    : 0;
-  const languagePct = languageGoal > 0 ? Math.min(100, Math.round((languageActual / languageGoal) * 100)) : 0;
 
   // Staged progress analysis
   const totalVideoTarget = toInt(form.totalVideoTarget);
@@ -289,145 +351,228 @@ export function ProductionPlanView() {
               </div>
             </div>
 
-            {/* Category output — pick one category, set its daily goal. */}
+            {/* Category output — multiple active categories in a list */}
             <div className="stat-card">
-              <div className="stat-card-header">
+              <div className="stat-card-header" style={{ marginBottom: "4px" }}>
                 <div className="stat-card-title">
                   <Grid3x3 size={14} />
                   Category output
                 </div>
-                <select
-                  className="stat-card-select"
-                  value={selectedCategory}
-                  onChange={(event) => setSelectedCategory(event.target.value)}
-                >
-                  {Object.keys(CATEGORY_TREE).map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
               </div>
-              <div className="stat-tile-row">
-                <div className="stat-tile">
-                  <div className="stat-tile-value">{categoryActual}</div>
-                  <div className="stat-tile-label">Published today</div>
-                </div>
-                <div className="stat-tile">
-                  <div className="stat-tile-value">
-                    <input
-                      type="number"
-                      min={0}
-                      value={form.categoryTargets[selectedCategory]}
-                      onChange={(event) => setCategoryTarget(selectedCategory, event.target.value)}
-                    />
-                  </div>
-                  <div className="stat-tile-label">Daily goal</div>
-                </div>
-                <div className="stat-tile">
-                  <div className="stat-tile-value">{categoryPct}%</div>
-                  <div className="stat-tile-label">
-                    {categoryGoal > 0 ? `${Math.max(0, categoryGoal - categoryActual)} to go` : "Goal progress"}
-                  </div>
-                </div>
-              </div>
-              <div className="stat-progress-track">
-                <div className="stat-progress-fill" style={{ width: `${categoryPct}%` }} />
+              <div className="plan-targets-scroll-container">
+                {activeCategories.map((cat, idx) => {
+                  const categoryGoal = toInt(form.categoryTargets[cat]);
+                  const categoryActual = todayStats.publishedByCategory[cat] ?? 0;
+                  const categoryPct = categoryGoal > 0 ? Math.min(100, Math.round((categoryActual / categoryGoal) * 100)) : 0;
+
+                  const availableCats = getAvailableCategories(idx);
+                  const options = [cat, ...availableCats.filter((c) => c !== cat)];
+
+                  return (
+                    <div key={idx} className="plan-target-row-container">
+                      <div className="plan-target-row-header">
+                        <select
+                          className="stat-card-select plan-target-row-select"
+                          value={cat}
+                          onChange={(e) => handleChangeCategory(idx, e.target.value)}
+                        >
+                          {options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="plan-target-row-buttons">
+                          <button
+                            type="button"
+                            className="plan-target-btn plan-target-btn-add"
+                            onClick={() => handleAddCategory(idx)}
+                            title="Add target section below"
+                          >
+                            Add
+                          </button>
+                          {activeCategories.length > 1 && (
+                            <button
+                              type="button"
+                              className="plan-target-btn plan-target-btn-delete"
+                              onClick={() => handleDeleteCategory(idx)}
+                              title="Delete target section"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="stat-tile-row">
+                        <div className="stat-tile">
+                          <div className="stat-tile-value">{categoryActual}</div>
+                          <div className="stat-tile-label">Published today</div>
+                        </div>
+                        <div className="stat-tile">
+                          <div className="stat-tile-value">
+                            <input
+                              type="number"
+                              min={0}
+                              value={form.categoryTargets[cat]}
+                              onChange={(event) => setCategoryTarget(cat, event.target.value)}
+                            />
+                          </div>
+                          <div className="stat-tile-label">Daily goal</div>
+                        </div>
+                        <div className="stat-tile">
+                          <div className="stat-tile-value">{categoryPct}%</div>
+                          <div className="stat-tile-label">
+                            {categoryGoal > 0 ? `${Math.max(0, categoryGoal - categoryActual)} to go` : "Goal progress"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="stat-progress-track">
+                        <div className="stat-progress-fill" style={{ width: `${categoryPct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Language output — pick one language, set its overall total goal */}
+            {/* Language output — multiple active languages in a list */}
             <div className="stat-card">
-              <div className="stat-card-header">
+              <div className="stat-card-header" style={{ marginBottom: "4px" }}>
                 <div className="stat-card-title">
                   <Globe size={14} />
                   Language output
                 </div>
-                {!addingLanguage ? (
-                  <select
-                     className="stat-card-select"
-                     value={selectedLanguageIndex}
-                     onChange={(event) => {
-                       if (event.target.value === NEW_LANGUAGE) {
-                         setAddingLanguage(true);
-                         return;
-                       }
-                       setSelectedLanguageIndex(Number(event.target.value));
-                     }}
-                   >
-                     {form.languageTargets.map((row, index) => (
-                       <option key={index} value={index}>
-                         {row.language || "(unnamed)"}
-                       </option>
-                     ))}
-                     <option value={NEW_LANGUAGE}>+ Add language…</option>
-                   </select>
-                ) : null}
               </div>
+              <div className="plan-targets-scroll-container">
+                {form.languageTargets.length === 0 ? (
+                  <div className="stat-card-empty">No languages configured yet.</div>
+                ) : (
+                  form.languageTargets.map((row, idx) => {
+                    const languageGoal = toInt(row.target);
+                    const languageActual = products.filter((p) => p.language === row.language && p.items[0]?.status === "Published").length;
+                    const languagePct = languageGoal > 0 ? Math.min(100, Math.round((languageActual / languageGoal) * 100)) : 0;
 
-              {addingLanguage ? (
-                <div className="plan-language-row" style={{ gridTemplateColumns: "1fr auto auto" }}>
-                  <input
-                    type="text"
-                    placeholder="Language name"
-                    value={newLanguageName}
-                    onChange={(event) => setNewLanguageName(event.target.value)}
-                    autoFocus
-                  />
-                  <button type="button" className="header-btn" onClick={confirmAddLanguage}>
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    className="delete-btn"
-                    onClick={() => {
-                      setAddingLanguage(false);
-                      setNewLanguageName("");
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : selectedLanguageRow ? (
-                <>
-                  <div className="stat-tile-row">
-                    <div className="stat-tile">
-                      <div className="stat-tile-value">{languageActual}</div>
-                      <div className="stat-tile-label">Overall published</div>
-                    </div>
-                    <div className="stat-tile">
-                      <div className="stat-tile-value">
-                        <input
-                          type="number"
-                          min={0}
-                          value={selectedLanguageRow.target}
-                          onChange={(event) => setLanguageTargetAt(selectedLanguageIndex, event.target.value)}
-                        />
+                    const availableLangs = getAvailableLanguages(idx);
+                    const options = [row.language, ...availableLangs.filter((l) => l !== row.language)];
+
+                    return (
+                      <div key={idx} className="plan-target-row-container">
+                        <div className="plan-target-row-header">
+                          {customLanguageRowIndices.includes(idx) ? (
+                            <input
+                              type="text"
+                              placeholder="Enter language..."
+                              style={{
+                                flex: 1,
+                                fontFamily: "var(--font-manrope)",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                padding: "6px 10px",
+                                borderRadius: "8px",
+                                border: "1px solid var(--line)",
+                                background: "var(--white)",
+                                color: "var(--ink)",
+                                height: "28px",
+                              }}
+                              onBlur={(e) => {
+                                const val = e.target.value.trim();
+                                if (val) {
+                                  setForm((prev) => {
+                                    const updated = [...prev.languageTargets];
+                                    updated[idx] = { ...updated[idx], language: val };
+                                    return { ...prev, languageTargets: updated };
+                                  });
+                                }
+                                setCustomLanguageRowIndices((prev) => prev.filter((i) => i !== idx));
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  if (val) {
+                                    setForm((prev) => {
+                                      const updated = [...prev.languageTargets];
+                                      updated[idx] = { ...updated[idx], language: val };
+                                      return { ...prev, languageTargets: updated };
+                                    });
+                                  }
+                                  setCustomLanguageRowIndices((prev) => prev.filter((i) => i !== idx));
+                                }
+                              }}
+                              autoFocus
+                            />
+                          ) : (
+                            <select
+                              className="stat-card-select plan-target-row-select"
+                              value={row.language}
+                              onChange={(e) => {
+                                if (e.target.value === "__add_custom__") {
+                                  setCustomLanguageRowIndices((prev) => [...prev, idx]);
+                                } else {
+                                  handleChangeLanguage(idx, e.target.value);
+                                }
+                              }}
+                            >
+                              {options.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                              <option value="__add_custom__">+ Add custom...</option>
+                            </select>
+                          )}
+                          <div className="plan-target-row-buttons">
+                            <button
+                              type="button"
+                              className="plan-target-btn plan-target-btn-add"
+                              onClick={() => handleAddLanguage(idx)}
+                              title="Add target language section below"
+                            >
+                              Add
+                            </button>
+                            {form.languageTargets.length > 1 && (
+                              <button
+                                type="button"
+                                className="plan-target-btn plan-target-btn-delete"
+                                onClick={() => handleDeleteLanguage(idx)}
+                                title="Delete target language"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="stat-tile-row">
+                          <div className="stat-tile">
+                            <div className="stat-tile-value">{languageActual}</div>
+                            <div className="stat-tile-label">Overall published</div>
+                          </div>
+                          <div className="stat-tile">
+                            <div className="stat-tile-value">
+                              <input
+                                type="number"
+                                min={0}
+                                value={row.target}
+                                onChange={(event) => setLanguageTargetAt(idx, event.target.value)}
+                              />
+                            </div>
+                            <div className="stat-tile-label">Overall target</div>
+                          </div>
+                          <div className="stat-tile">
+                            <div className="stat-tile-value">{languagePct}%</div>
+                            <div className="stat-tile-label">
+                              {languageGoal > 0 ? `${Math.max(0, languageGoal - languageActual)} to go` : "Goal progress"}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="stat-progress-track">
+                          <div className="stat-progress-fill" style={{ width: `${languagePct}%` }} />
+                        </div>
                       </div>
-                      <div className="stat-tile-label">Overall target</div>
-                    </div>
-                    <div className="stat-tile">
-                      <div className="stat-tile-value">{languagePct}%</div>
-                      <div className="stat-tile-label">
-                        {languageGoal > 0 ? `${Math.max(0, languageGoal - languageActual)} to go` : "Goal progress"}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stat-progress-track">
-                    <div className="stat-progress-fill" style={{ width: `${languagePct}%` }} />
-                  </div>
-                  <button
-                    type="button"
-                    className="delete-btn"
-                    style={{ alignSelf: "flex-start" }}
-                    onClick={() => removeLanguageAt(selectedLanguageIndex)}
-                  >
-                    Remove {selectedLanguageRow.language || "language"}
-                  </button>
-                </>
-              ) : (
-                <div className="stat-card-empty">No languages configured yet.</div>
-              )}
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>
