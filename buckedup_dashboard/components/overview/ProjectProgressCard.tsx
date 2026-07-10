@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { computeProjectPacing } from "@/lib/data";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import type { Product } from "@/lib/types";
@@ -17,21 +17,51 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
   const { plan } = useProductionPlan();
 
   const progressPct = Math.round(averageProgressPct(products));
-  const { status, statusHex, daysToDeadline } = plan
-    ? computeProjectPacing(progressPct, new Date(), plan.startDate, plan.deadline)
-    : computeProjectPacing(progressPct);
 
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // All Date-dependent values are computed client-side only (inside useEffect)
+  // to prevent a SSR/client hydration mismatch from `new Date()` returning
+  // slightly different floating-point values between the two renders.
+  interface ClientPacing {
+    status: string;
+    statusHex: string;
+    daysToDeadline: number;
+    expectedPct: number;
+    today: string;
+    deadlineText: string;
+  }
+  const [clientPacing, setClientPacing] = useState<ClientPacing | null>(null);
 
-  const daysAbs = Math.abs(daysToDeadline);
-  const deadlineText =
-    daysToDeadline >= 0
-      ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
-      : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`;
+  useEffect(() => {
+    const now = new Date();
+    const pacing = plan
+      ? computeProjectPacing(progressPct, now, plan.startDate, plan.deadline)
+      : computeProjectPacing(progressPct);
+
+    const daysAbs = Math.abs(pacing.daysToDeadline);
+
+    setClientPacing({
+      ...pacing,
+      today: now.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      deadlineText:
+        pacing.daysToDeadline >= 0
+          ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
+          : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressPct, plan]);
+
+  // Destructure for convenience — null-safe fallbacks are used in the render
+  const { status, statusHex, expectedPct, today, deadlineText } = clientPacing ?? {
+    status: "—",
+    statusHex: "transparent",
+    expectedPct: 0,
+    today: "",
+    deadlineText: "—",
+  };
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
@@ -134,8 +164,39 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
       </div>
       
       <div style={{ position: "relative", zIndex: 1, width: '100%', marginTop: '20px' }}>
-        <div style={{ height: '8px', background: 'var(--glass-border)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-bg)' }}>
+        <div style={{ position: "relative", height: '8px', background: 'var(--glass-border)', borderRadius: '10px', border: '1px solid var(--glass-bg)' }}>
+          {/* Progress Bar Fill */}
           <div style={{ width: `${progressPct}%`, height: '100%', background: 'var(--progress-card-bar-bg)', borderRadius: '10px', boxShadow: 'var(--progress-card-bar-glow)', transition: 'width 0.8s cubic-bezier(0.25, 1, 0.5, 1)' }} />
+          
+          {/* Target Pacing Line */}
+          {expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
+            <div 
+              style={{ 
+                position: "absolute", 
+                left: `${expectedPct}%`, 
+                top: "-6px", 
+                bottom: "-6px", 
+                width: "3px", 
+                backgroundColor: "var(--saffron)", 
+                borderRadius: "1.5px",
+                boxShadow: "0 0 8px var(--saffron)",
+                zIndex: 2,
+                transform: "translateX(-50%)"
+              }} 
+              title={`Target Pacing: ${Math.round(expectedPct)}%`}
+            />
+          )}
+        </div>
+        
+        {/* Dates & Pacing text labels */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--ink-soft)', marginTop: '8px', fontWeight: 600 }}>
+          <span>Start: {plan?.startDate ? new Date(plan.startDate).toLocaleDateString("en-US", {month: 'short', day: 'numeric'}) : '—'}</span>
+          {expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
+            <span style={{ color: 'var(--saffron)' }}>
+              Target pace: {Math.round(expectedPct)}%
+            </span>
+          )}
+          <span>Deadline: {plan?.deadline ? new Date(plan.deadline).toLocaleDateString("en-US", {month: 'short', day: 'numeric'}) : '—'}</span>
         </div>
       </div>
     </div>

@@ -132,6 +132,7 @@ export interface ProjectPacing {
   status: "COMPLETE" | "ON TRACK" | "AT RISK" | "LATE";
   statusHex: string;
   daysToDeadline: number;
+  expectedPct: number;
 }
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -164,16 +165,16 @@ export function computeProjectPacing(
   const gap = expectedPct - actualPct;
 
   if (actualPct >= 100) {
-    return { status: "COMPLETE", statusHex: PACING_HEX.good, daysToDeadline };
+    return { status: "COMPLETE", statusHex: PACING_HEX.good, daysToDeadline, expectedPct };
   }
   if (now > deadline) {
-    return { status: "LATE", statusHex: PACING_HEX.critical, daysToDeadline };
+    return { status: "LATE", statusHex: PACING_HEX.critical, daysToDeadline, expectedPct };
   }
   if (gap <= 5) {
-    return { status: "ON TRACK", statusHex: PACING_HEX.good, daysToDeadline };
+    return { status: "ON TRACK", statusHex: PACING_HEX.good, daysToDeadline, expectedPct };
   }
   if (gap <= 20) {
-    return { status: "AT RISK", statusHex: PACING_HEX.warning, daysToDeadline };
+    return { status: "AT RISK", statusHex: PACING_HEX.warning, daysToDeadline, expectedPct };
   }
-  return { status: "LATE", statusHex: PACING_HEX.critical, daysToDeadline };
+  return { status: "LATE", statusHex: PACING_HEX.critical, daysToDeadline, expectedPct };
 }
