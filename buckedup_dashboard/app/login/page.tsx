@@ -1,7 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Tilt } from "@/components/shared/Tilt";
@@ -40,23 +40,6 @@ const LockIcon = () => (
   </svg>
 );
 
-const ArrowLeftIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="14"
-    height="14"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="back-arrow-icon"
-    style={{ marginRight: "8px", display: "inline-block", transition: "transform 0.2s ease" }}
-  >
-    <line x1="19" y1="12" x2="5" y2="12" />
-    <polyline points="12 19 5 12 12 5" />
-  </svg>
-);
 
 const SignInIcon = () => (
   <svg
@@ -172,11 +155,6 @@ export default function LoginPage() {
             <span>{submitting ? "Authenticating…" : "Sign In"}</span>
             {!submitting && <SignInIcon />}
           </button>
-
-          <Link className="login-back-link" href="/">
-            <ArrowLeftIcon />
-            Back to Dashboard
-          </Link>
         </form>
       </Tilt>
     </div>
