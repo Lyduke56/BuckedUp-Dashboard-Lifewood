@@ -48,7 +48,7 @@ export function useStageAge(): UseStageAgeState {
       next.set(productId, {
         status: row.status as PipelineStatus,
         enteredAt,
-        days: Math.max(0, Math.floor((now - enteredAt.getTime()) / MS_PER_DAY)),
+        days: Math.max(0, (now - enteredAt.getTime()) / MS_PER_DAY),
       });
     });
     setStageAgeByProductId(next);

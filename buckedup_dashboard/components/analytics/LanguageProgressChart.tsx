@@ -39,26 +39,56 @@ export function LanguageProgressChart({
   return (
     <>
       {rows.map((row) => {
-        const pct =
-          row.total === 0 ? 0 : Math.round((row.delivered / row.total) * 100);
-        const tipText = `${row.language}: ${row.delivered}/${row.total} accepted (${pct}%)`;
+        const targetVal = languageTargets?.[row.language];
+        const targetPct = row.total > 0 && targetVal ? (targetVal / row.total) * 100 : 0;
+
+        if (row.total === 0) {
+          return (
+            <div key={row.language} className="flex flex-col mb-4 last:mb-0 opacity-30 select-none">
+              <div className="flex justify-between items-center text-xs font-bold mb-1.5 text-[var(--ink-soft)]">
+                <span>{row.language}</span>
+                <span>No items</span>
+              </div>
+              <div className="h-2 w-full bg-white/[0.02] border border-white/[0.04] rounded-full overflow-hidden" />
+            </div>
+          );
+        }
+
+        const pct = Math.round((row.delivered / row.total) * 100);
+        const tipText = `${row.language}: ${row.delivered}/${row.total} accepted (${pct}%)${targetVal ? ` · Target: ${targetVal}` : ""}`;
         return (
           <div
             key={row.language}
-            className="snapshot-row"
+            className="flex flex-col mb-4 last:mb-0 group"
             onMouseMove={(e) => { showTip(e, tipText); moveTip(e); }}
             onMouseLeave={hideTip}
             style={{ cursor: "default" }}
           >
-            <div className="snapshot-label">{row.language}</div>
-            <div className="snapshot-track">
-              <div className="snapshot-fill" style={{ width: `${pct}%` }} />
+            <div className="flex justify-between items-center text-xs font-bold mb-1.5">
+              <span className="text-[var(--text-main)] group-hover:text-[var(--castleton)] transition-colors duration-200 truncate pr-2 max-w-[170px]">
+                {row.language}
+              </span>
+              <span className="text-[var(--ink-soft)] font-semibold flex-shrink-0">
+                {row.delivered} / {row.total} <span className="text-[var(--text-main)]">accepted</span>
+              </span>
             </div>
-            <div className="snapshot-count">
-              {row.delivered}/{row.total} accepted
-              {languageTargets?.[row.language] ? (
-                <span className="legend-target"> / target {languageTargets[row.language]}</span>
-              ) : null}
+            <div className="h-2 w-full bg-white/[0.03] border border-white/[0.05] rounded-full overflow-hidden relative backdrop-blur-md transition-all duration-300 group-hover:bg-white/[0.05] group-hover:border-white/[0.08]">
+              {/* Progress Fill */}
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[var(--castleton)] to-[#059669] transition-all duration-1000 ease-out"
+                style={{
+                  width: `${Math.max(pct, 1.5)}%`,
+                  boxShadow: "0 0 8px rgba(16, 185, 129, 0.2)",
+                }}
+              />
+              {/* Target Marker Tick */}
+              {targetVal && targetVal > 0 && (
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-white/70 border-r border-black/40 z-10"
+                  style={{ left: `${Math.min(targetPct, 100)}%` }}
+                  title={`Target: ${targetVal}`}
+                />
+              )}
             </div>
           </div>
         );

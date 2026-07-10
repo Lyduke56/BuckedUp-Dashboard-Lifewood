@@ -46,13 +46,16 @@ export function StatusChart({ products, stageTargets }: StatusChartProps) {
           if (count === 0) return null;
           const segmentHeight = (count / total) * COLUMN_HEIGHT;
           const pct = Math.round((count / total) * 100);
+          const targetVal = stageTargets?.[status];
+          const tipText = `${status}: ${count} video${count === 1 ? "" : "s"} (${pct}%)${targetVal ? ` · Target: ${targetVal}` : ""}`;
+          
           return (
             <div
               key={status}
               className="stack-segment"
               style={{ height: `${segmentHeight}px`, background: STATUS_HEX[status] }}
-              title={`${status}: ${count} (${pct}%)`}
-              onMouseMove={(e) => { showTip(e, `${status}: ${count} video${count === 1 ? "" : "s"} (${pct}%)`, STATUS_HEX[status]); moveTip(e); }}
+              title={tipText}
+              onMouseMove={(e) => { showTip(e, tipText, STATUS_HEX[status]); moveTip(e); }}
               onMouseLeave={hideTip}
             >
               {segmentHeight >= MIN_LABEL_HEIGHT ? (
@@ -72,25 +75,25 @@ export function StatusChart({ products, stageTargets }: StatusChartProps) {
         })}
       </div>
       <div className="category-legend stack-legend">
-        {stackOrder.map((status) => (
-          <div
-            key={status}
-            className="category-legend-item"
-            onMouseMove={(e) => { showTip(e, `${status}: ${counts[status]} video${counts[status] === 1 ? "" : "s"} (${Math.round((counts[status] / total) * 100)}%)`, STATUS_HEX[status]); moveTip(e); }}
-            onMouseLeave={hideTip}
-            style={{ cursor: "default" }}
-          >
-            <span
-              className="category-legend-dot"
-              style={{ background: STATUS_HEX[status] }}
-            />
-            {status} — {counts[status]} (
-            {Math.round((counts[status] / total) * 100)}%)
-            {stageTargets?.[status] ? (
-              <span className="legend-target"> / target {stageTargets[status]}</span>
-            ) : null}
-          </div>
-        ))}
+        {stackOrder.map((status) => {
+          const targetVal = stageTargets?.[status];
+          const tipText = `${status}: ${counts[status]} video${counts[status] === 1 ? "" : "s"} (${Math.round((counts[status] / total) * 100)}%)${targetVal ? ` · Target: ${targetVal}` : ""}`;
+          return (
+            <div
+              key={status}
+              className="category-legend-item"
+              onMouseMove={(e) => { showTip(e, tipText, STATUS_HEX[status]); moveTip(e); }}
+              onMouseLeave={hideTip}
+              style={{ cursor: "default" }}
+            >
+              <span
+                className="category-legend-dot"
+                style={{ background: STATUS_HEX[status] }}
+              />
+              {status} — {counts[status]} ({Math.round((counts[status] / total) * 100)}%)
+            </div>
+          );
+        })}
       </div>
 
       {tooltip.visible && (
