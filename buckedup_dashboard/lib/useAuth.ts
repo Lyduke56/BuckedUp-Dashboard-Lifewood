@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "./supabase/client";
 import type { UserRole } from "./types";
@@ -13,6 +14,7 @@ interface UseAuthState {
 }
 
 export function useAuth(): UseAuthState {
+  const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,7 @@ export function useAuth(): UseAuthState {
   const signOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    router.push("/login");
   };
 
   return { user: session?.user ?? null, role, loading, signOut };
