@@ -9,38 +9,38 @@
   --panel-bg: rgba(15, 23, 20, 0.6);
   --paper: #f8fafc;
   --line: rgba(255, 255, 255, 0.06);
-  
+
   /* Glassmorphism generic */
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(255, 255, 255, 0.02);
   --glass-hover: rgba(255, 255, 255, 0.06);
   --text-main: #ffffff;
-  
+
   /* Brand accents */
-  --serpent: #022c16; 
+  --serpent: #022c16;
   --castleton: #10b981;
   --castleton-glow: rgba(16, 185, 129, 0.15);
-  
+
   --saffron: #ff9f1c;
   --earth-yellow: #f43f5e;
   --rose-glow: rgba(244, 63, 94, 0.15);
-  
+
   /* Text and details */
   --ink: #f8fafc;
   --ink-soft: #94a3b8;
-  
+
   /* Stage colors */
   --g2: #022c16;
   --g3: #065f46;
   --g4: #059669;
   --g5: #10b981;
-  
+
   /* Grays */
   --gray1: #f1f5f9;
   --gray2: #cbd5e1;
   --gray3: #64748b;
   --gray4: #334155;
-  
+
   /* Analytics category palette */
   --cat-teal: #14b8a6;
   --cat-amber: #f59e0b;
@@ -50,22 +50,25 @@
   --cat-olive: #84cc16;
   --cat-rust: #f97316;
   --cat-slate: #64748b;
-  
+
   /* Shell header glassmorphism variables */
-  --header-bg: rgba(6, 18, 12, 0.65);
-  --header-border: rgba(16, 185, 129, 0.4);
-  --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 16px rgba(16, 185, 129, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.75) 0%, rgba(6, 11, 15, 0.75) 100%);
+  --header-border: rgba(16, 185, 129, 0.35);
+  --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 16px rgba(16, 185, 129, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --active-tab-bg: linear-gradient(135deg, rgba(255, 179, 71, 0.25) 0%, rgba(255, 157, 0, 0.05) 100%);
+  --active-tab-border: rgba(255, 179, 71, 0.5);
+  --active-tab-shadow: 0 0 15px rgba(255, 179, 71, 0.3);
 
   /* Progress Card & Pill custom variables (Dark mode) */
   --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%);
   --progress-card-bar-glow: 0 0 12px rgba(255, 179, 71, 0.5);
   --progress-card-mouse-glow: radial-gradient(circle, rgba(255, 179, 71, 0.25) 0%, transparent 70%);
   --progress-card-shimmer-color: rgba(255, 179, 71, 0.12);
-  
+
   --pill-active-bg: rgba(16, 185, 129, 0.15);
   --pill-active-border: rgba(16, 185, 129, 0.4);
   --pill-active-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
-  
+
   --submit-btn-bg: linear-gradient(135deg, var(--castleton) 0%, #059669 100%);
   --submit-btn-glow: rgba(16, 185, 129, 0.25);
 }
@@ -79,40 +82,43 @@
   --panel-bg: #ffffff;
   --paper: #133020;
   --line: rgba(19, 48, 32, 0.08);
-  
+
   --glass-border: rgba(19, 48, 32, 0.1);
   --glass-bg: rgba(19, 48, 32, 0.03);
   --glass-hover: rgba(19, 48, 32, 0.07);
   --text-main: #133020;
-  
+
   /* Brand accents: Use Figma Warm Gold #d98324 and Muted green #4d7d68 */
   --castleton: #d98324;
   --castleton-glow: rgba(217, 131, 36, 0.12);
   --ink: #133020;
   --ink-soft: #4d7d68;
   --serpent: #fcf8f2;
-  --header-bg: rgba(252, 248, 242, 0.7);
-  --header-border: rgba(217, 131, 36, 0.35);
-  --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 12px rgba(217, 131, 36, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-  
+  --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.8) 0%, rgba(6, 11, 15, 0.8) 100%);
+  --header-border: rgba(16, 185, 129, 0.35);
+  --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --active-tab-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 100%);
+  --active-tab-border: rgba(16, 185, 129, 0.45);
+  --active-tab-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+
   --saffron: #d98324;
   --earth-yellow: #9a621e;
-  
+
   --g2: #fcf8f2;
   --g3: #f7a83b;
   --g4: #d98324;
   --g5: #9a621e;
 
-  /* Progress Card & Pill custom variables (Light mode - Green progress bar) */
-  --progress-card-bar-bg: linear-gradient(90deg, #10b981 0%, #059669 100%);
-  --progress-card-bar-glow: 0 0 12px rgba(16, 185, 129, 0.4);
-  --progress-card-mouse-glow: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
-  --progress-card-shimmer-color: rgba(16, 185, 129, 0.08);
-  
+  /* Progress Card & Pill custom variables (Light mode - Green progress bar dialed up) */
+  --progress-card-bar-bg: linear-gradient(90deg, #00d685 0%, #059669 100%);
+  --progress-card-bar-glow: 0 0 14px rgba(0, 214, 133, 0.5);
+  --progress-card-mouse-glow: radial-gradient(circle, rgba(0, 214, 133, 0.2) 0%, transparent 70%);
+  --progress-card-shimmer-color: rgba(0, 214, 133, 0.08);
+
   --pill-active-bg: rgba(217, 131, 36, 0.15);
   --pill-active-border: rgba(217, 131, 36, 0.4);
   --pill-active-shadow: 0 0 12px rgba(217, 131, 36, 0.15);
-  
+
   --submit-btn-bg: linear-gradient(135deg, #d98324 0%, #9a621e 100%);
   --submit-btn-glow: rgba(217, 131, 36, 0.25);
 }
@@ -135,7 +141,7 @@ body {
 }
 
 body {
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(244, 63, 94, 0.04) 0%, transparent 40%);
   background-attachment: fixed;
@@ -177,9 +183,17 @@ a {
 
 /* ================= ANIMATIONS ================= */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 @keyframes dropIn {
@@ -187,6 +201,7 @@ a {
     opacity: 0;
     transform: translateY(24px) scale(0.97);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -229,7 +244,7 @@ a {
 }
 
 .shell-header .tab-bar-item {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
 }
 
 .shell-header .tab-bar-item:hover {
@@ -264,7 +279,12 @@ a {
 .logo-buckedup {
   height: 28px;
   width: auto;
-  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.3));
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.55)) drop-shadow(0 0 3px rgba(239, 68, 68, 0.2)) !important;
+  transition: filter 0.3s ease;
+}
+
+[data-theme='light'] .logo-buckedup {
+  filter: drop-shadow(0 0 8px rgba(217, 131, 36, 0.88)) drop-shadow(0 0 2px rgba(217, 131, 36, 0.4)) !important;
 }
 
 .brand-divider-line {
@@ -400,8 +420,8 @@ a {
 }
 
 /* Page titles layout formatting styling */
-.view > div > .section-heading,
-.view > div > div > .section-heading {
+.view>div>.section-heading,
+.view>div>div>.section-heading {
   border-left: 4px solid var(--castleton);
   padding-left: 14px;
   font-size: 26px;
@@ -464,7 +484,7 @@ a {
 
 /* Project progress card */
 .progress-banner {
-  background: linear-gradient(135deg, rgba(11, 22, 17, 0.9) 0%, rgba(6, 11, 15, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(14, 38, 28, 0.88) 0%, rgba(6, 11, 15, 0.9) 100%);
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: 24px;
   padding: 28px 36px;
@@ -477,9 +497,9 @@ a {
 }
 
 [data-theme='light'] .progress-banner {
-  background: linear-gradient(135deg, rgba(11, 22, 17, 0.9) 0%, rgba(6, 11, 15, 0.9) 100%) !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
-  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.08) !important;
+  background: linear-gradient(135deg, rgba(18, 48, 36, 0.75) 0%, rgba(10, 18, 22, 0.75) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.06) !important;
 }
 
 [data-theme='light'] .progress-banner .progress-pct,
@@ -491,6 +511,14 @@ a {
 [data-theme='light'] .progress-banner .progress-label,
 [data-theme='light'] .progress-banner .progress-today {
   color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Light mode green hover highlights for topbar shell-header buttons */
+[data-theme='light'] .shell-header .header-btn:hover,
+[data-theme='light'] .shell-header .login-link:hover,
+[data-theme='light'] .shell-header .notification-bell-trigger:hover {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
 }
 
 .progress-banner::after {
@@ -621,11 +649,25 @@ a {
   animation: dropIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.kpi-tilt-wrapper:nth-child(1) { animation-delay: 0.2s; }
-.kpi-tilt-wrapper:nth-child(2) { animation-delay: 0.25s; }
-.kpi-tilt-wrapper:nth-child(3) { animation-delay: 0.3s; }
-.kpi-tilt-wrapper:nth-child(4) { animation-delay: 0.35s; }
-.kpi-tilt-wrapper:nth-child(5) { animation-delay: 0.4s; }
+.kpi-tilt-wrapper:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.kpi-tilt-wrapper:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.kpi-tilt-wrapper:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.kpi-tilt-wrapper:nth-child(4) {
+  animation-delay: 0.35s;
+}
+
+.kpi-tilt-wrapper:nth-child(5) {
+  animation-delay: 0.4s;
+}
 
 .kpi-card {
   background: var(--panel-bg);
@@ -646,6 +688,7 @@ a {
   border-left: 5px solid var(--cat-teal) !important;
   box-shadow: 0 8px 24px rgba(20, 184, 166, 0.05), inset 0 0 12px rgba(20, 184, 166, 0.05) !important;
 }
+
 .kpi-card.c-categories:hover {
   border-color: rgba(20, 184, 166, 0.5) !important;
   box-shadow: 0 12px 32px rgba(20, 184, 166, 0.15), inset 0 0 16px rgba(20, 184, 166, 0.08) !important;
@@ -656,6 +699,7 @@ a {
   border-left: 5px solid var(--cat-indigo) !important;
   box-shadow: 0 8px 24px rgba(99, 102, 241, 0.05), inset 0 0 12px rgba(99, 102, 241, 0.05) !important;
 }
+
 .kpi-card.c-planned:hover {
   border-color: rgba(99, 102, 241, 0.5) !important;
   box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15), inset 0 0 16px rgba(99, 102, 241, 0.08) !important;
@@ -666,6 +710,7 @@ a {
   border-left: 5px solid #10b981 !important;
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.05), inset 0 0 12px rgba(16, 185, 129, 0.05) !important;
 }
+
 .kpi-card.c-published:hover {
   border-color: rgba(16, 185, 129, 0.5) !important;
   box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15), inset 0 0 16px rgba(16, 185, 129, 0.08) !important;
@@ -676,6 +721,7 @@ a {
   border-left: 5px solid #ff9f1c !important;
   box-shadow: 0 8px 24px rgba(255, 159, 28, 0.05), inset 0 0 12px rgba(255, 159, 28, 0.05) !important;
 }
+
 .kpi-card.c-progress:hover {
   border-color: rgba(255, 159, 28, 0.5) !important;
   box-shadow: 0 12px 32px rgba(255, 159, 28, 0.15), inset 0 0 16px rgba(255, 159, 28, 0.08) !important;
@@ -686,6 +732,7 @@ a {
   border-left: 5px solid #f43f5e !important;
   box-shadow: 0 8px 24px rgba(244, 63, 94, 0.05), inset 0 0 12px rgba(244, 63, 94, 0.05) !important;
 }
+
 .kpi-card.c-notstarted:hover {
   border-color: rgba(244, 63, 94, 0.5) !important;
   box-shadow: 0 12px 32px rgba(244, 63, 94, 0.15), inset 0 0 16px rgba(244, 63, 94, 0.08) !important;
@@ -695,11 +742,13 @@ a {
 [data-theme='light'] .kpi-card {
   background: #ffffff !important;
 }
+
 [data-theme='light'] .kpi-card.c-categories {
   border: 1.5px solid rgba(20, 184, 166, 0.25) !important;
   border-left: 5px solid var(--cat-teal) !important;
   box-shadow: 0 6px 16px rgba(20, 184, 166, 0.05) !important;
 }
+
 [data-theme='light'] .kpi-card.c-categories:hover {
   border-color: rgba(20, 184, 166, 0.6) !important;
   box-shadow: 0 12px 28px rgba(20, 184, 166, 0.1) !important;
@@ -710,6 +759,7 @@ a {
   border-left: 5px solid var(--cat-indigo) !important;
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.05) !important;
 }
+
 [data-theme='light'] .kpi-card.c-planned:hover {
   border-color: rgba(99, 102, 241, 0.6) !important;
   box-shadow: 0 12px 28px rgba(99, 102, 241, 0.1) !important;
@@ -720,6 +770,7 @@ a {
   border-left: 5px solid #10b981 !important;
   box-shadow: 0 6px 16px rgba(4, 98, 65, 0.05) !important;
 }
+
 [data-theme='light'] .kpi-card.c-published:hover {
   border-color: rgba(4, 98, 65, 0.6) !important;
   box-shadow: 0 12px 28px rgba(4, 98, 65, 0.1) !important;
@@ -730,6 +781,7 @@ a {
   border-left: 5px solid #ff9f1c !important;
   box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
 }
+
 [data-theme='light'] .kpi-card.c-progress:hover {
   border-color: rgba(217, 131, 36, 0.6) !important;
   box-shadow: 0 12px 28px rgba(217, 131, 36, 0.1) !important;
@@ -740,6 +792,7 @@ a {
   border-left: 5px solid #f43f5e !important;
   box-shadow: 0 6px 16px rgba(244, 63, 94, 0.05) !important;
 }
+
 [data-theme='light'] .kpi-card.c-notstarted:hover {
   border-color: rgba(244, 63, 94, 0.6) !important;
   box-shadow: 0 12px 28px rgba(244, 63, 94, 0.1) !important;
@@ -1405,7 +1458,8 @@ a {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding-bottom: 24px; /* offset axis labels to match bars */
+  padding-bottom: 24px;
+  /* offset axis labels to match bars */
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 600;
@@ -1433,7 +1487,8 @@ a {
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: calc(100% - 24px); /* offset label height */
+  height: calc(100% - 24px);
+  /* offset label height */
   width: 100%;
   justify-content: center;
 }
@@ -1813,9 +1868,17 @@ a {
 }
 
 @keyframes loginBgShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Floating dynamic background orbs */
@@ -1844,16 +1907,35 @@ a {
 }
 
 @keyframes floatOrb1 {
-  0% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(70px, -50px) scale(1.1); }
-  66% { transform: translate(-40px, 40px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(70px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-40px, 40px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 @keyframes floatOrb2 {
-  0% { transform: translate(0, 0) scale(1.05); }
-  50% { transform: translate(-90px, 50px) scale(0.95); }
-  100% { transform: translate(0, 0) scale(1.05); }
+  0% {
+    transform: translate(0, 0) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-90px, 50px) scale(0.95);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1.05);
+  }
 }
 
 .login-card {
@@ -2018,7 +2100,7 @@ a {
   pointer-events: none;
 }
 
-.input-with-icon input:focus ~ .input-icon {
+.input-with-icon input:focus~.input-icon {
   color: var(--saffron);
   transform: translateY(-50%) scale(1.08);
 }
@@ -2131,7 +2213,7 @@ a {
 
 .row-action-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   cursor: pointer !important;
 }
 
@@ -2185,27 +2267,34 @@ a {
 .chart-tooltip {
   background: rgba(10, 18, 14, 0.92);
   border: 1px solid rgba(4, 98, 65, 0.35);
-  color: rgba(255,255,255,0.92);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 11.5px;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 10px;
   backdrop-filter: blur(12px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
   animation: tooltipIn 0.12s ease;
 }
 
 @keyframes tooltipIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 [data-theme="light"] .chart-tooltip {
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   border-color: rgba(4, 98, 65, 0.2);
   color: var(--ink);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
 .form-modal {
@@ -2944,6 +3033,7 @@ a {
     opacity: 0;
     transform: translateY(30px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -3121,26 +3211,32 @@ a {
   border-left: 4px solid #cbd5e1 !important;
   background: rgba(203, 213, 225, 0.04) !important;
 }
+
 .kanban-card[data-status="Scripting"] {
   border-left: 4px solid #FFC370 !important;
   background: rgba(255, 195, 112, 0.04) !important;
 }
+
 .kanban-card[data-status="Filming"] {
   border-left: 4px solid #FFB347 !important;
   background: rgba(255, 179, 71, 0.04) !important;
 }
+
 .kanban-card[data-status="Editing"] {
   border-left: 4px solid #8CA496 !important;
   background: rgba(140, 164, 150, 0.04) !important;
 }
+
 .kanban-card[data-status="In Review"] {
   border-left: 4px solid #417256 !important;
   background: rgba(65, 114, 86, 0.04) !important;
 }
+
 .kanban-card[data-status="Scheduled"] {
   border-left: 4px solid #133020 !important;
   background: rgba(19, 48, 32, 0.04) !important;
 }
+
 .kanban-card[data-status="Published"] {
   border-left: 4px solid #046241 !important;
   background: rgba(4, 98, 65, 0.04) !important;
@@ -3151,26 +3247,32 @@ a {
   background: #ffffff !important;
   border-left-color: #cbd5e1 !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="Scripting"] {
   background: #fffef8 !important;
   border-left-color: #f7a83b !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="Filming"] {
   background: #fffaf2 !important;
   border-left-color: #FFB347 !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="Editing"] {
   background: #f9fbf9 !important;
   border-left-color: #8CA496 !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="In Review"] {
   background: #f4faf6 !important;
   border-left-color: #417256 !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="Scheduled"] {
   background: #f1f8f3 !important;
   border-left-color: #133020 !important;
 }
+
 [data-theme='light'] .kanban-card[data-status="Published"] {
   background: #edf7f1 !important;
   border-left-color: #046241 !important;
@@ -3180,6 +3282,7 @@ a {
 [data-theme='light'] .video-table-row {
   background: #ffffff !important;
 }
+
 [data-theme='light'] .video-table-row:hover {
   background: rgba(19, 48, 32, 0.04) !important;
 }
@@ -3637,4 +3740,3 @@ a {
   opacity: 0.5;
   cursor: default;
 }
-

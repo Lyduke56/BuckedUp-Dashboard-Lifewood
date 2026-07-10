@@ -57,11 +57,11 @@ export function TabBar({ activeView, onViewChange, showAdmin }: TabBarProps) {
                 style={{
                   position: "absolute",
                   inset: 0,
-                  background: "linear-gradient(135deg, rgba(255, 179, 71, 0.25) 0%, rgba(255, 157, 0, 0.05) 100%)",
+                  background: "var(--active-tab-bg, linear-gradient(135deg, rgba(255, 179, 71, 0.25) 0%, rgba(255, 157, 0, 0.05) 100%))",
                   borderRadius: "24px",
                   zIndex: 0,
-                  boxShadow: "0 0 15px rgba(255, 179, 71, 0.3)",
-                  border: "1px solid rgba(255, 179, 71, 0.5)",
+                  boxShadow: "var(--active-tab-shadow, 0 0 15px rgba(255, 179, 71, 0.3))",
+                  border: "1px solid var(--active-tab-border, rgba(255, 179, 71, 0.5))",
                 }}
               />
             )}

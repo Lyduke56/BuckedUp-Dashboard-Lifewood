@@ -33,6 +33,21 @@ export function AppHeader({
           alt="BuckedUp"
           className="brand-logo logo-buckedup"
         />
+        <span style={{
+          fontSize: '12px',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.9)',
+          marginLeft: '14px',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.15)',
+          paddingLeft: '14px',
+          height: '14px',
+          display: 'inline-flex',
+          alignItems: 'center'
+        }} className="hidden md:inline-flex select-none">
+          BuckedUp AIGC Video Monitoring
+        </span>
       </div>
       <div className="app-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
@@ -96,7 +111,7 @@ export function AppHeader({
           }}
           title="Toggle Theme"
         >
-          {/* Sliding white circular thumb */}
+          {/* Sliding white/gold circular thumb */}
           <div
             style={{
               position: "absolute",
@@ -105,16 +120,16 @@ export function AppHeader({
               width: "22px",
               height: "22px",
               borderRadius: "50%",
-              background: "#ffffff",
+              background: theme === "light" ? "#d98324" : "#ffffff",
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.25)",
-              transition: "left 0.25s cubic-bezier(0.25, 1, 0.5, 1)",
+              transition: "left 0.25s cubic-bezier(0.25, 1, 0.5, 1), background 0.25s ease",
               zIndex: 1
             }}
           />
-          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "light" ? "#133020" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
+          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "light" ? "#ffffff" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
             <Sun size={12} />
           </div>
-          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "dark" ? "#133020" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
+          <div style={{ zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", color: theme === "dark" ? "#090e0c" : "rgba(255, 255, 255, 0.65)", transition: "color 0.25s ease" }}>
             <Moon size={12} />
           </div>
         </button>
