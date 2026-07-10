@@ -74,6 +74,9 @@ export function KanbanBoard({
           <div
             key={status}
             className={`kanban-column${dragOverStatus === status ? " drag-over" : ""}`}
+            style={{
+              "--stage-color": STATUS_HEX[status],
+            } as React.CSSProperties}
             onDragOver={(event) => {
               if (!canMoveStage || !draggingId) return;
               event.preventDefault();
@@ -90,8 +93,23 @@ export function KanbanBoard({
               if (productId) moveToStage(productId, status);
             }}
           >
-            <div className="kanban-column-header">
-              {status}
+            <div
+              className="kanban-column-header"
+              style={{ borderLeft: `3px solid ${STATUS_HEX[status]}` }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: STATUS_HEX[status],
+                    flexShrink: 0,
+                  }}
+                />
+                {status}
+              </div>
               <span className="kanban-column-count">{columnProducts.length}</span>
             </div>
             <div className="kanban-column-body">

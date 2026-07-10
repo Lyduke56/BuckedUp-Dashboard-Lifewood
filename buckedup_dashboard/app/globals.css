@@ -94,7 +94,7 @@
   --ink: #133020;
   --ink-soft: #4d7d68;
   --serpent: #fcf8f2;
-  --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.8) 0%, rgba(6, 11, 15, 0.8) 100%);
+  --header-bg: linear-gradient(135deg, rgba(16, 87, 37, 1) 0%, rgba(11, 22, 17, 0.8) 100%);
   --header-border: rgba(16, 185, 129, 0.35);
   --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
   --active-tab-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 100%);
@@ -337,7 +337,7 @@ a {
   display: flex;
   background: var(--glass-bg);
   border-top: 1px solid var(--glass-hover);
-  padding: 6px 16px;
+  padding: 16px 16px;
   gap: 8px;
 }
 
@@ -2625,7 +2625,8 @@ a {
 
 .kanban-column {
   flex: 0 0 220px;
-  background: var(--seasalt);
+  background: var(--panel-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -2634,8 +2635,13 @@ a {
 }
 
 .kanban-column.drag-over {
-  background: rgba(4, 98, 65, 0.08);
-  box-shadow: inset 0 0 0 2px var(--castleton);
+  background: color-mix(in srgb, var(--stage-color) 12%, transparent);
+  box-shadow: inset 0 0 0 2px var(--stage-color);
+}
+
+[data-theme='light'] .kanban-column {
+  background: #ffffff;
+  border: 1px solid rgba(19, 48, 32, 0.1);
 }
 
 .kanban-column-header {
