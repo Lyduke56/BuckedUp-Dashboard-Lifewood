@@ -39,19 +39,22 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
 
     const daysAbs = Math.abs(pacing.daysToDeadline);
 
-    setClientPacing({
-      ...pacing,
-      today: now.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      deadlineText:
-        pacing.daysToDeadline >= 0
-          ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
-          : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => {
+      setClientPacing({
+        ...pacing,
+        today: now.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        deadlineText:
+          pacing.daysToDeadline >= 0
+            ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
+            : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`,
+      });
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [progressPct, plan]);
 
   // Destructure for convenience — null-safe fallbacks are used in the render

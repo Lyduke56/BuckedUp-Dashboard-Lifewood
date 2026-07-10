@@ -36,7 +36,7 @@ export function ProductionOutputWidget() {
   if (!plan) {
     return (
       <Tilt maxTilt={6} className="w-full h-full flex">
-        <div className="panel panel-glass output-widget">
+        <div className="panel panel-glass output-widget w-full flex flex-col justify-between" style={{ flex: 1, height: "100%" }}>
           <div className="output-widget-title">
             <Rocket size={18} color="var(--saffron)" />
             Production output
@@ -68,7 +68,7 @@ export function ProductionOutputWidget() {
 
   return (
     <Tilt maxTilt={6} className="w-full h-full flex">
-      <div className="panel panel-glass output-widget">
+      <div className="panel panel-glass output-widget w-full flex flex-col justify-between" style={{ flex: 1, height: "100%" }}>
         <div className="output-widget-title">
           <Rocket size={18} color="var(--saffron)" />
           Today&apos;s target

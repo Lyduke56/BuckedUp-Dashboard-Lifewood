@@ -40,7 +40,7 @@ export function OverviewView({
       <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
 
       {/* Row 1: Requests by category (2/3) & Production output (1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <div className="panel panel-glass lg:col-span-2 flex flex-col justify-between">
           <div>
             <div className="section-heading font-bold mb-1">Requests by category</div>
@@ -59,13 +59,13 @@ export function OverviewView({
       </div>
 
       {/* Row 2: Recent Deliveries (2/3) & Browse the library (1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <div className="lg:col-span-2 flex">
           <RecentActivityWidget products={products} />
         </div>
 
         <div className="lg:col-span-1 flex">
-          <Tilt maxTilt={4} className="w-full flex">
+          <Tilt maxTilt={4} className="w-full h-full flex">
             <button
               type="button"
               className="cta-card w-full text-left p-6 relative overflow-hidden flex flex-col justify-between cursor-pointer"
