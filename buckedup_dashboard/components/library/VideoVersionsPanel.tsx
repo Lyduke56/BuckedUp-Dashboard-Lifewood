@@ -13,7 +13,19 @@ interface VideoVersionRow {
 
 interface VideoVersionsPanelProps {
   productId: string;
+  /** Called after a version is successfully uploaded */
   onVersionAdded: (url: string) => void;
+  
+  /** Whether the controls (note, file, upload trigger) are handled by the parent */
+  externalControls?: boolean;
+
+  // The following props are only required if externalControls is true:
+  noteValue?: string;
+  onNoteChange?: (value: string) => void;
+  onUploadReady?: (handler: () => Promise<void>) => void;
+  uploading?: boolean;
+  setUploading?: (value: boolean) => void;
+  onFileChange?: (file: File | null) => void;
 }
 
 async function fetchVersions(productId: string): Promise<VideoVersionRow[]> {
@@ -34,32 +46,48 @@ function fileNameFromUrl(url: string): string {
   }
 }
 
-export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsPanelProps) {
+export function VideoVersionsPanel({
+  productId,
+  onVersionAdded,
+  externalControls = false,
+  noteValue = "",
+  onNoteChange,
+  onUploadReady,
+  uploading = false,
+  setUploading,
+  onFileChange,
+}: VideoVersionsPanelProps) {
   const [versions, setVersions] = useState<VideoVersionRow[]>([]);
-  const [file, setFile] = useState<File | null>(null);
-  const [newNote, setNewNote] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Local state used ONLY if externalControls is false
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const [localNote, setLocalNote] = useState("");
+  const [localUploading, setLocalUploading] = useState(false);
+
+  const isUploading = externalControls ? uploading : localUploading;
+  const currentNote = externalControls ? noteValue : localNote;
+  const currentFile = externalControls ? null : localFile; // Only used internally if not external
 
   useEffect(() => {
     fetchVersions(productId).then(setVersions);
   }, [productId]);
 
-  const handleAdd = async () => {
-    if (!file) return;
-    setUploading(true);
+  // Upload handler logic (unified)
+  const executeUpload = async (fileToUpload: File, noteText: string, setUploadState: (val: boolean) => void) => {
+    setUploadState(true);
     setError(null);
 
     const supabase = createClient();
-    const path = `${productId}/${Date.now()}-${file.name}`;
+    const path = `${productId}/${Date.now()}-${fileToUpload.name}`;
 
     const { error: uploadError } = await supabase.storage
       .from("videos")
-      .upload(path, file, { contentType: file.type });
+      .upload(path, fileToUpload, { contentType: fileToUpload.type });
 
     if (uploadError) {
-      setUploading(false);
+      setUploadState(false);
       setError(uploadError.message);
       return;
     }
@@ -71,20 +99,57 @@ export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsP
     const { error: rpcError } = await supabase.rpc("set_current_video_version", {
       p_product_id: productId,
       p_video_url: publicUrl,
-      p_note: newNote.trim() || null,
+      p_note: noteText.trim() || null,
     });
 
-    setUploading(false);
+    setUploadState(false);
     if (rpcError) {
       setError(rpcError.message);
       return;
     }
 
-    setFile(null);
-    setNewNote("");
+    // Reset inputs
     if (fileInputRef.current) fileInputRef.current.value = "";
     setVersions(await fetchVersions(productId));
     onVersionAdded(publicUrl);
+
+    if (externalControls) {
+      onFileChange?.(null);
+      onNoteChange?.("");
+    } else {
+      setLocalFile(null);
+      setLocalNote("");
+    }
+  };
+
+  // Register external upload handler if externalControls is true
+  useEffect(() => {
+    if (externalControls && onUploadReady && onFileChange) {
+      const handler = async () => {
+        // Find if parent file state exists via fileInputRef
+        const selectedParentFile = fileInputRef.current?.files?.[0];
+        if (selectedParentFile) {
+          await executeUpload(selectedParentFile, noteValue, setUploading || (() => {}));
+        }
+      };
+      onUploadReady(handler);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalControls, noteValue, productId, onFileChange, onUploadReady]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0] ?? null;
+    if (externalControls) {
+      onFileChange?.(selected);
+    } else {
+      setLocalFile(selected);
+    }
+  };
+
+  const handleLocalUploadClick = async () => {
+    if (localFile) {
+      await executeUpload(localFile, localNote, setLocalUploading);
+    }
   };
 
   return (
@@ -110,28 +175,41 @@ export function VideoVersionsPanel({ productId, onVersionAdded }: VideoVersionsP
           ))}
         </ul>
       )}
-      <div className="issue-form">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-        />
-        <input
-          type="text"
-          placeholder="Note (optional)…"
-          value={newNote}
-          onChange={(event) => setNewNote(event.target.value)}
-        />
-        <button
-          type="button"
-          className="issue-submit-btn"
-          disabled={uploading || !file}
-          onClick={handleAdd}
-        >
-          {uploading ? "Uploading…" : "Upload version"}
-        </button>
-      </div>
+
+      {/* Render depending on mode */}
+      {externalControls ? (
+        <div className="issue-form versions-file-row">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
+            onChange={handleFileChange}
+          />
+        </div>
+      ) : (
+        <div className="issue-form">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
+            onChange={handleFileChange}
+          />
+          <input
+            type="text"
+            placeholder="Note (optional)…"
+            value={localNote}
+            onChange={(event) => setLocalNote(event.target.value)}
+          />
+          <button
+            type="button"
+            className="issue-submit-btn"
+            disabled={localUploading || !localFile}
+            onClick={handleLocalUploadClick}
+          >
+            {localUploading ? "Uploading…" : "Upload version"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

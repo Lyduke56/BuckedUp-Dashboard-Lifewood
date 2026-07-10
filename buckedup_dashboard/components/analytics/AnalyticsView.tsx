@@ -43,7 +43,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           <div className="chart-mt">
             <DailyProgressChart
               points={MOCK_DAILY_PROGRESS}
-              dailyTarget={plan?.dailyVideoTarget}
+              dailyTarget={plan?.categoryTargets ? Object.values(plan.categoryTargets).reduce((sum, val) => sum + Number(val), 0) : undefined}
             />
           </div>
         </div>

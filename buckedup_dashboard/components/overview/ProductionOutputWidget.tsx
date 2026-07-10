@@ -2,20 +2,23 @@
 
 import { useState } from "react";
 import { Rocket, Calendar, Pencil, Check, X } from "lucide-react";
-import { STATUS_ORDER, computeProjectPacing } from "@/lib/data";
+import { CATEGORY_TREE, computeProjectPacing } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/useAuth";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useTodayStats } from "@/lib/useTodayStats";
+import { useVideoRequests } from "@/lib/useVideoRequests";
 import { Tilt } from "@/components/shared/Tilt";
 
 export function ProductionOutputWidget() {
   const { plan } = useProductionPlan();
   const todayStats = useTodayStats();
+  const { products } = useVideoRequests();
   const { role } = useAuth();
   const [editingDeadline, setEditingDeadline] = useState(false);
   const [deadlineDraft, setDeadlineDraft] = useState("");
   const [saving, setSaving] = useState(false);
+
 
   const isAdmin = role === "admin";
 
@@ -50,21 +53,31 @@ export function ProductionOutputWidget() {
     );
   }
 
-  const dailyGoal = plan.dailyVideoTarget || 0;
+  const dailyGoal = Object.values(plan.categoryTargets || {}).reduce((sum, val) => sum + Number(val), 0);
   const dailyPct = dailyGoal > 0 ? Math.min(100, Math.round((todayStats.publishedToday / dailyGoal) * 100)) : 0;
 
-  const { daysToDeadline } = computeProjectPacing(0, new Date(), plan.startDate, plan.deadline);
+  const totalTarget = plan.totalVideoTarget || 0;
+  const overallStaged = products.filter((p) => p.items[0]?.status !== "Not Started").length;
+  const remainingToStage = Math.max(0, totalTarget - overallStaged);
+  const stagingPct = totalTarget > 0 ? Math.min(100, Math.round((overallStaged / totalTarget) * 100)) : 0;
+
+  const overallPublished = products.filter((p) => p.items[0]?.status === "Published").length;
+  const publishedPct = totalTarget > 0 ? Math.min(100, Math.round((overallPublished / totalTarget) * 100)) : 0;
+
+  const { daysToDeadline } = computeProjectPacing(publishedPct, new Date(), plan.startDate, plan.deadline);
   const daysAbs = Math.abs(daysToDeadline);
   const deadlineText =
     daysToDeadline >= 0
       ? `${daysAbs} day${daysAbs === 1 ? "" : "s"} to delivery`
       : `Overdue by ${daysAbs} day${daysAbs === 1 ? "" : "s"}`;
 
-  const stageRows = STATUS_ORDER.map((status) => ({
-    status,
-    target: plan.stageTargets[status] ?? 0,
-    actual: todayStats.byStage[status] ?? 0,
-  })).filter((row) => row.target > 0);
+  const categoryRows = Object.keys(CATEGORY_TREE)
+    .map((category) => ({
+      category,
+      target: plan.categoryTargets[category] ?? 0,
+      actual: todayStats.publishedByCategory[category] ?? 0,
+    }))
+    .filter((row) => row.target > 0);
 
   return (
     <Tilt maxTilt={6} className="w-full h-full flex">
@@ -84,18 +97,18 @@ export function ProductionOutputWidget() {
         <div className="stat-progress-track">
           <div className="stat-progress-fill" style={{ width: `${dailyPct}%` }} />
         </div>
-        <div className="output-progress-caption">{dailyPct}% of today&apos;s goal</div>
-
-        <div className="content-angle-label" style={{ marginTop: "16px" }}>
-          Target per stage
+        <div className="output-progress-caption" style={{ marginBottom: "16px" }}>
+          {dailyPct}% of today&apos;s goal
         </div>
+
+        <div className="content-angle-label">Target per Category</div>
         <div className="output-stage-list">
-          {stageRows.length > 0 ? (
-            stageRows.map((row) => {
+          {categoryRows.length > 0 ? (
+            categoryRows.map((row) => {
               const pct = row.target > 0 ? Math.min(100, Math.round((row.actual / row.target) * 100)) : 0;
               return (
-                <div key={row.status} className="snapshot-row">
-                  <div className="snapshot-label">{row.status}</div>
+                <div key={row.category} className="snapshot-row">
+                  <div className="snapshot-label">{row.category}</div>
                   <div className="snapshot-track">
                     <div className="snapshot-fill" style={{ width: `${pct}%` }} />
                   </div>
@@ -106,11 +119,22 @@ export function ProductionOutputWidget() {
               );
             })
           ) : (
-            <div className="stat-card-empty">No per-stage targets set.</div>
+            <div className="stat-card-empty">No category targets set.</div>
           )}
         </div>
 
-        <div className="output-deadline-row">
+        <div className="content-angle-label" style={{ marginTop: "16px" }}>
+          Overall progress
+        </div>
+        <div style={{ fontSize: "12px", color: "var(--ink-soft)", display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+          <span>Staged: {overallStaged} / {totalTarget}</span>
+          <span>{remainingToStage} remaining to stage</span>
+        </div>
+        <div className="stat-progress-track" style={{ height: "6px" }}>
+          <div className="stat-progress-fill" style={{ width: `${stagingPct}%` }} />
+        </div>
+
+        <div className="output-deadline-row" style={{ marginTop: "auto" }}>
           <div className="output-deadline-info">
             <Calendar size={14} color="var(--ink-soft)" />
             <span>{deadlineText}</span>
