@@ -23,7 +23,7 @@ import { StageHistoryLog } from "./StageHistoryLog";
 type LibraryLayout = "table" | "board";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All statuses" },
+  { value: "all", label: "All Stages" },
   { value: "not-started", label: "Not started" },
   { value: "in-progress", label: "In progress" },
   { value: "published", label: "Published" },
@@ -614,9 +614,8 @@ function RowDetail({
             {issues.map((issue) => (
               <li
                 key={issue.id}
-                className={`issue-item issue-${issue.severity}${
-                  issue.status === "resolved" ? " resolved" : ""
-                }`}
+                className={`issue-item issue-${issue.severity}${issue.status === "resolved" ? " resolved" : ""
+                  }`}
               >
                 <span className="issue-severity">{issue.severity}</span>
                 <span className="issue-desc">{issue.description}</span>

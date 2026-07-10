@@ -6,7 +6,6 @@ import type { Product } from "@/lib/types";
 
 interface StatusChartProps {
   products: Product[];
-  stageTargets?: Record<string, number>;
 }
 
 const COLUMN_HEIGHT = 220;
@@ -14,7 +13,7 @@ const MIN_LABEL_HEIGHT = 22;
 // STATUS_HEX's lightest two steps read poorly with white text.
 const LIGHT_STAGES = new Set(["Not Started", "Scripting"]);
 
-export function StatusChart({ products, stageTargets }: StatusChartProps) {
+export function StatusChart({ products }: StatusChartProps) {
   const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", borderColor: "", visible: false });
 
   const showTip = (e: React.MouseEvent, content: string, borderColor: string = "") =>

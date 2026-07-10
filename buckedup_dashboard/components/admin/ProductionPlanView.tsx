@@ -1,31 +1,25 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Film, Layers, Grid3x3, Globe } from "lucide-react";
-import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
+import { Film, Grid3x3, Globe } from "lucide-react";
+import { CATEGORY_TREE } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useTodayStats } from "@/lib/useTodayStats";
+import { useVideoRequests } from "@/lib/useVideoRequests";
 import type { ProductionPlan } from "@/lib/types";
 
 interface FormState {
   name: string;
   totalVideoTarget: string;
-  dailyVideoTarget: string;
   startDate: string;
   deadline: string;
   notes: string;
-  stageTargets: Record<string, string>;
   languageTargets: { language: string; target: string }[];
   categoryTargets: Record<string, string>;
 }
 
 function toFormState(plan: ProductionPlan | null): FormState {
-  const stageTargets: Record<string, string> = {};
-  STATUS_ORDER.forEach((status) => {
-    stageTargets[status] = String(plan?.stageTargets[status] ?? "");
-  });
-
   const categoryTargets: Record<string, string> = {};
   Object.keys(CATEGORY_TREE).forEach((category) => {
     categoryTargets[category] = String(plan?.categoryTargets[category] ?? "");
@@ -44,11 +38,9 @@ function toFormState(plan: ProductionPlan | null): FormState {
   return {
     name: plan?.name ?? "",
     totalVideoTarget: String(plan?.totalVideoTarget ?? ""),
-    dailyVideoTarget: String(plan?.dailyVideoTarget ?? ""),
     startDate: plan?.startDate ?? "",
     deadline: plan?.deadline ?? "",
     notes: plan?.notes ?? "",
-    stageTargets,
     languageTargets,
     categoryTargets,
   };
@@ -64,6 +56,7 @@ const NEW_LANGUAGE = "__new__";
 export function ProductionPlanView() {
   const { plan, loading } = useProductionPlan();
   const todayStats = useTodayStats();
+  const { products, loading: productsLoading } = useVideoRequests();
   const [form, setForm] = useState<FormState>(() => toFormState(null));
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -80,9 +73,8 @@ export function ProductionPlanView() {
     setForm(toFormState(plan));
   }
 
-  // Which stage/category/language each dropdown card is currently focused
+  // Which category/language each dropdown card is currently focused
   // on — one at a time, rather than showing every key's input at once.
-  const [selectedStage, setSelectedStage] = useState<string>(STATUS_ORDER[0]);
   const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(CATEGORY_TREE)[0]);
   const [selectedLanguageIndex, setSelectedLanguageIndex] = useState(0);
   const [newLanguageName, setNewLanguageName] = useState("");
@@ -91,10 +83,6 @@ export function ProductionPlanView() {
   const selectedLanguageRow = form.languageTargets[selectedLanguageIndex] as
     | { language: string; target: string }
     | undefined;
-
-  const setStageTarget = (status: string, value: string) => {
-    setForm((prev) => ({ ...prev, stageTargets: { ...prev.stageTargets, [status]: value } }));
-  };
 
   const setCategoryTarget = (category: string, value: string) => {
     setForm((prev) => ({ ...prev, categoryTargets: { ...prev.categoryTargets, [category]: value } }));
@@ -138,12 +126,6 @@ export function ProductionPlanView() {
     setError(null);
     setSaved(false);
 
-    const stageTargets: Record<string, number> = {};
-    STATUS_ORDER.forEach((status) => {
-      const value = toInt(form.stageTargets[status]);
-      if (value > 0) stageTargets[status] = value;
-    });
-
     const categoryTargets: Record<string, number> = {};
     Object.keys(CATEGORY_TREE).forEach((category) => {
       const value = toInt(form.categoryTargets[category]);
@@ -159,11 +141,9 @@ export function ProductionPlanView() {
     const payload = {
       name: form.name.trim(),
       total_video_target: toInt(form.totalVideoTarget),
-      daily_video_target: toInt(form.dailyVideoTarget),
       start_date: form.startDate,
       deadline: form.deadline,
       notes: form.notes.trim() || null,
-      stage_targets: stageTargets,
       language_targets: languageTargets,
       category_targets: categoryTargets,
     };
@@ -186,23 +166,32 @@ export function ProductionPlanView() {
     return <div className="empty-state">Loading plan…</div>;
   }
 
-  const dailyGoal = toInt(form.dailyVideoTarget);
+  const dailyGoal = Object.values(form.categoryTargets).reduce((acc, val) => acc + toInt(val), 0);
   const dailyPct = dailyGoal > 0 ? Math.min(100, Math.round((todayStats.publishedToday / dailyGoal) * 100)) : 0;
-
-  const stageGoal = toInt(form.stageTargets[selectedStage]);
-  const stageActual = todayStats.byStage[selectedStage] ?? 0;
-  const stagePct = stageGoal > 0 ? Math.min(100, Math.round((stageActual / stageGoal) * 100)) : 0;
 
   const categoryGoal = toInt(form.categoryTargets[selectedCategory]);
   const categoryActual = todayStats.publishedByCategory[selectedCategory] ?? 0;
   const categoryPct = categoryGoal > 0 ? Math.min(100, Math.round((categoryActual / categoryGoal) * 100)) : 0;
 
   const languageGoal = toInt(selectedLanguageRow?.target ?? "");
-  const languageActual = selectedLanguageRow ? todayStats.publishedByLanguage[selectedLanguageRow.language] ?? 0 : 0;
+  const languageActual = selectedLanguageRow
+    ? products.filter((p) => p.language === selectedLanguageRow.language && p.items[0]?.status === "Published").length
+    : 0;
   const languagePct = languageGoal > 0 ? Math.min(100, Math.round((languageActual / languageGoal) * 100)) : 0;
+
+  // Staged progress analysis
+  const totalVideoTarget = toInt(form.totalVideoTarget);
+  const stagedCount = products.filter((p) => p.items[0]?.status !== "Not Started").length;
+  const remainingToStage = Math.max(0, totalVideoTarget - stagedCount);
 
   return (
     <div>
+      <div className="section-heading">Production plan</div>
+      <div className="section-sub">
+        The corporate targets the dashboard measures itself against —
+        today&apos;s throughput, deadline pacing, and per-language/category
+        breakdowns. Public read, admin-only edit.
+      </div>
 
       <form className="form-grid plan-form" onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
         {error ? <div className="callout form-error">{error}</div> : null}
@@ -231,6 +220,11 @@ export function ProductionPlanView() {
             value={form.totalVideoTarget}
             onChange={(event) => setForm((prev) => ({ ...prev, totalVideoTarget: event.target.value }))}
           />
+          {totalVideoTarget > 0 && (
+            <span className="form-hint" style={{ color: "var(--accent)", marginTop: "4px" }}>
+              {stagedCount} staged so far, {remainingToStage} remaining to stage.
+            </span>
+          )}
         </label>
 
         <label className="form-field">
@@ -262,13 +256,11 @@ export function ProductionPlanView() {
           />
         </label>
 
-        {/* Dropdown-driven output cards — one dimension configured at a
-            time, each showing today's actual against the goal being set,
-            rather than a flat grid of every key's input simultaneously. */}
+        {/* Dropdown-driven output cards — configured targets */}
         <div className="form-field-wide">
           <div className="content-angle-label">Today&apos;s targets</div>
           <div className="stat-card-grid">
-            {/* Video output — overall daily target, no dropdown needed. */}
+            {/* Video output — overall daily target (derived from category targets) */}
             <div className="stat-card">
               <div className="stat-card-header">
                 <div className="stat-card-title">
@@ -282,15 +274,8 @@ export function ProductionPlanView() {
                   <div className="stat-tile-label">Today&apos;s videos</div>
                 </div>
                 <div className="stat-tile">
-                  <div className="stat-tile-value">
-                    <input
-                      type="number"
-                      min={0}
-                      value={form.dailyVideoTarget}
-                      onChange={(event) => setForm((prev) => ({ ...prev, dailyVideoTarget: event.target.value }))}
-                    />
-                  </div>
-                  <div className="stat-tile-label">Today&apos;s target</div>
+                  <div className="stat-tile-value">{dailyGoal}</div>
+                  <div className="stat-tile-label">Today&apos;s target (derived)</div>
                 </div>
                 <div className="stat-tile">
                   <div className="stat-tile-value">{dailyPct}%</div>
@@ -301,53 +286,6 @@ export function ProductionPlanView() {
               </div>
               <div className="stat-progress-track">
                 <div className="stat-progress-fill" style={{ width: `${dailyPct}%` }} />
-              </div>
-            </div>
-
-            {/* Stage output — pick one stage, set its daily goal. */}
-            <div className="stat-card">
-              <div className="stat-card-header">
-                <div className="stat-card-title">
-                  <Layers size={14} />
-                  Stage output
-                </div>
-                <select
-                  className="stat-card-select"
-                  value={selectedStage}
-                  onChange={(event) => setSelectedStage(event.target.value)}
-                >
-                  {STATUS_ORDER.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="stat-tile-row">
-                <div className="stat-tile">
-                  <div className="stat-tile-value">{stageActual}</div>
-                  <div className="stat-tile-label">Entered today</div>
-                </div>
-                <div className="stat-tile">
-                  <div className="stat-tile-value">
-                    <input
-                      type="number"
-                      min={0}
-                      value={form.stageTargets[selectedStage]}
-                      onChange={(event) => setStageTarget(selectedStage, event.target.value)}
-                    />
-                  </div>
-                  <div className="stat-tile-label">Daily goal</div>
-                </div>
-                <div className="stat-tile">
-                  <div className="stat-tile-value">{stagePct}%</div>
-                  <div className="stat-tile-label">
-                    {stageGoal > 0 ? `${Math.max(0, stageGoal - stageActual)} to go` : "Goal progress"}
-                  </div>
-                </div>
-              </div>
-              <div className="stat-progress-track">
-                <div className="stat-progress-fill" style={{ width: `${stagePct}%` }} />
               </div>
             </div>
 
@@ -398,9 +336,7 @@ export function ProductionPlanView() {
               </div>
             </div>
 
-            {/* Language output — pick one language, set its daily goal;
-                languages are freeform, so the dropdown includes an
-                "add new language" escape hatch. */}
+            {/* Language output — pick one language, set its overall total goal */}
             <div className="stat-card">
               <div className="stat-card-header">
                 <div className="stat-card-title">
@@ -409,23 +345,23 @@ export function ProductionPlanView() {
                 </div>
                 {!addingLanguage ? (
                   <select
-                    className="stat-card-select"
-                    value={selectedLanguageIndex}
-                    onChange={(event) => {
-                      if (event.target.value === NEW_LANGUAGE) {
-                        setAddingLanguage(true);
-                        return;
-                      }
-                      setSelectedLanguageIndex(Number(event.target.value));
-                    }}
-                  >
-                    {form.languageTargets.map((row, index) => (
-                      <option key={index} value={index}>
-                        {row.language || "(unnamed)"}
-                      </option>
-                    ))}
-                    <option value={NEW_LANGUAGE}>+ Add language…</option>
-                  </select>
+                     className="stat-card-select"
+                     value={selectedLanguageIndex}
+                     onChange={(event) => {
+                       if (event.target.value === NEW_LANGUAGE) {
+                         setAddingLanguage(true);
+                         return;
+                       }
+                       setSelectedLanguageIndex(Number(event.target.value));
+                     }}
+                   >
+                     {form.languageTargets.map((row, index) => (
+                       <option key={index} value={index}>
+                         {row.language || "(unnamed)"}
+                       </option>
+                     ))}
+                     <option value={NEW_LANGUAGE}>+ Add language…</option>
+                   </select>
                 ) : null}
               </div>
 
@@ -457,7 +393,7 @@ export function ProductionPlanView() {
                   <div className="stat-tile-row">
                     <div className="stat-tile">
                       <div className="stat-tile-value">{languageActual}</div>
-                      <div className="stat-tile-label">Published today</div>
+                      <div className="stat-tile-label">Overall published</div>
                     </div>
                     <div className="stat-tile">
                       <div className="stat-tile-value">
@@ -468,7 +404,7 @@ export function ProductionPlanView() {
                           onChange={(event) => setLanguageTargetAt(selectedLanguageIndex, event.target.value)}
                         />
                       </div>
-                      <div className="stat-tile-label">Daily goal</div>
+                      <div className="stat-tile-label">Overall target</div>
                     </div>
                     <div className="stat-tile">
                       <div className="stat-tile-value">{languagePct}%</div>

@@ -9,10 +9,8 @@ interface PlanRow {
   name: string;
   is_active: boolean;
   total_video_target: number;
-  daily_video_target: number;
   start_date: string;
   deadline: string;
-  stage_targets: Record<string, number>;
   language_targets: Record<string, number>;
   category_targets: Record<string, number>;
   notes: string | null;
@@ -24,10 +22,8 @@ function toPlan(row: PlanRow): ProductionPlan {
     name: row.name,
     isActive: row.is_active,
     totalVideoTarget: row.total_video_target,
-    dailyVideoTarget: row.daily_video_target,
     startDate: row.start_date,
     deadline: row.deadline,
-    stageTargets: row.stage_targets ?? {},
     languageTargets: row.language_targets ?? {},
     categoryTargets: row.category_targets ?? {},
     notes: row.notes,
