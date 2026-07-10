@@ -13,6 +13,21 @@ export function AdminView() {
 
   return (
     <div>
+      <div 
+        className="section-heading font-extrabold tracking-tight"
+        style={{ 
+          fontSize: "32px", 
+          borderLeftWidth: "6px",
+          marginBottom: "12px",
+          lineHeight: "1.2"
+        }}
+      >
+        Admin
+      </div>
+      <div className="section-sub" style={{ marginBottom: "24px" }}>
+        Configure production plan targets, pacing metrics, and dashboard user roles.
+      </div>
+
       <div className="filter-pills" style={{ marginBottom: "20px" }}>
         <button
           type="button"

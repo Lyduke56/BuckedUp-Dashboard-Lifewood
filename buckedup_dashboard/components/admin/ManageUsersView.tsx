@@ -26,23 +26,11 @@ export function ManageUsersView() {
   };
 
   if (loading && profiles.length === 0) {
-    return (
-      <div>
-        <div className="section-heading">Manage users</div>
-        <div className="empty-state">Loading accounts…</div>
-      </div>
-    );
+    return <div className="empty-state">Loading accounts…</div>;
   }
 
   return (
     <div>
-      <div className="section-heading">Manage users</div>
-      <div className="section-sub">
-        Editors update stage and upload video cuts — nothing else. Approvers
-        set review status and rejection reasons — nothing else. Admins
-        handle everything about the catalog itself: product details,
-        ownership, adding/deleting products, and roles here.
-      </div>
       {error ? (
         <div
           className="callout"

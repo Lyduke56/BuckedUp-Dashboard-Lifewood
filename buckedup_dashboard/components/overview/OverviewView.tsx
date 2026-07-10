@@ -5,6 +5,7 @@ import { ProjectProgressCard } from "./ProjectProgressCard";
 import { ProductionOutputWidget } from "./ProductionOutputWidget";
 import { RecentActivityWidget } from "./RecentActivityWidget";
 import { Tilt } from "@/components/shared/Tilt";
+import { useProductionPlan } from "@/lib/useProductionPlan";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
@@ -19,8 +20,22 @@ export function OverviewView({
   isLoading,
   hasError,
 }: OverviewViewProps) {
+  const { plan } = useProductionPlan();
+  const projectName = plan?.name || "Active Production Pipeline";
+
   return (
     <div className="flex flex-col gap-6">
+      <div 
+        className="section-heading font-extrabold tracking-tight" 
+        style={{ 
+          fontSize: "32px", 
+          borderLeftWidth: "6px",
+          marginBottom: "12px",
+          lineHeight: "1.2"
+        }}
+      >
+        {projectName}
+      </div>
       <ProjectProgressCard products={products} />
       <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
 
