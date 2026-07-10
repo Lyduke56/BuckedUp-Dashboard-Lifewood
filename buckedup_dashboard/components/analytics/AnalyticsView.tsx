@@ -43,7 +43,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           <div className="chart-mt">
             <DailyProgressChart
               points={MOCK_DAILY_PROGRESS}
-              dailyTarget={plan?.dailyVideoTarget}
+              dailyTarget={plan?.categoryTargets ? Object.values(plan.categoryTargets).reduce((sum, val) => sum + Number(val), 0) : undefined}
             />
           </div>
         </div>
@@ -183,27 +183,6 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           <div className="callout callout-inline mt-6">
             Pipeline states are monitored continuously to maintain optimal video queue health and resource distribution.
           </div>
-
-          {/* Delivery progress by language */}
-          <div className="panel flex flex-col">
-            <div className="section-heading section-heading-sm">
-              Delivery progress by language
-            </div>
-            <div className="chart-mt flex flex-col gap-4">
-              <LanguageProgressChart products={products} languageTargets={plan?.languageTargets} />
-            </div>
-          </div>
-
-          {/* Production stage distribution */}
-          <div className="panel flex flex-col">
-            <div className="section-heading section-heading-sm">
-              Production stage distribution
-            </div>
-            <div className="chart-mt">
-              <StatusChart products={products} />
-            </div>
-          </div>
-
         </div>
 
       </div>
