@@ -355,7 +355,11 @@ begin
   insert into video_versions (product_id, video_url, note, is_current, created_by)
   values (p_product_id, p_video_url, p_note, true, auth.uid());
 
-  update products set video_url = p_video_url where id = p_product_id;
+  update products 
+  set 
+    video_url = p_video_url,
+    owner_id = coalesce(owner_id, auth.uid())
+  where id = p_product_id;
 end;
 $$ language plpgsql;
 
