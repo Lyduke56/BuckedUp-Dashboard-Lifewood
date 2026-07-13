@@ -36,6 +36,7 @@ interface ProductRow {
   status: string;
   delivery_type: string | null;
   video_url: string | null;
+  thumbnail_url: string | null;
 }
 
 function toProduct(row: ProductRow): Product {
@@ -58,6 +59,7 @@ function toProduct(row: ProductRow): Product {
     reviewStatus: row.review_status,
     rejectionReason: row.rejection_reason,
     deliveryType: row.delivery_type === "link" ? "link" : "pipeline",
+    thumbnailUrl: row.thumbnail_url,
     items: [
       {
         name: type ? `${row.name} — ${type}` : row.name,

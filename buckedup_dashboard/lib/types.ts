@@ -76,6 +76,7 @@ export interface Product {
   reviewStatus: ReviewStatus | null;
   rejectionReason: string | null;
   deliveryType: DeliveryType;
+  thumbnailUrl: string | null;
   items: VideoItem[];
 }
 

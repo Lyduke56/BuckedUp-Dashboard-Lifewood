@@ -104,6 +104,7 @@ create table products (
   delivery_type text not null default 'pipeline'
     check (delivery_type in ('pipeline', 'link')),
   video_url text,
+  thumbnail_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -557,6 +558,28 @@ create policy "Operator and lead upload stage docs" on storage.objects for inser
   with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'lead'));
 create policy "Lead delete stage docs" on storage.objects for delete
   using (bucket_id = 'stage-documents' and get_my_role() = 'lead');
+
+-- Product thumbnails — small images shown in the List/Grid views. Set at
+-- listing creation/edit time, a Lead-exclusive action, so writes are
+-- lead-only. Stored in products.thumbnail_url.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'thumbnails',
+  'thumbnails',
+  true,
+  5242880,
+  array['image/png', 'image/jpeg', 'image/webp']
+)
+on conflict (id) do nothing;
+
+create policy "Public read thumbnails" on storage.objects for select
+  using (bucket_id = 'thumbnails');
+create policy "Lead upload thumbnails" on storage.objects for insert
+  with check (bucket_id = 'thumbnails' and get_my_role() = 'lead');
+create policy "Lead update thumbnails" on storage.objects for update
+  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
+create policy "Lead delete thumbnails" on storage.objects for delete
+  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
 
 -- Production plan: the corporate-level targets the pipeline is measured
 -- against — daily throughput, per-stage/language/category breakdowns, and

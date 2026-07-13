@@ -90,9 +90,12 @@ export function ProductFormModal({
   const [deleting, setDeleting] = useState(false);
   const { profiles } = useProfiles();
 
-  // Local state for the thumbnail portal
+  // Local state for the thumbnail portal — seeded from the existing
+  // thumbnail in edit mode so it shows until a new one is chosen.
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+    mode === "edit" ? (product?.thumbnailUrl ?? null) : null,
+  );
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   // Version upload state (lifted from VideoVersionsPanel)
@@ -165,16 +168,67 @@ export function ProductFormModal({
       video_url: form.videoUrl.trim() || null,
     };
 
-    const { error: saveError } =
-      mode === "edit" && product
-        ? await supabase.from("products").update(payload).eq("id", product.id)
-        : await supabase.from("products").insert(payload);
+    // Upload the thumbnail. On edit the product id is known up front; on
+    // add we don't have an id until after the insert, so we upload+patch
+    // afterwards (avoids client-side id generation, which this codebase
+    // doesn't do anywhere else).
+    const uploadThumbnail = async (targetId: string): Promise<string | null> => {
+      if (!thumbnailFile) return null;
+      const path = `${targetId}/${Date.now()}-${thumbnailFile.name}`;
+      const { error: upErr } = await supabase.storage
+        .from("thumbnails")
+        .upload(path, thumbnailFile, { contentType: thumbnailFile.type, upsert: true });
+      if (upErr) {
+        setError(upErr.message);
+        return null;
+      }
+      return supabase.storage.from("thumbnails").getPublicUrl(path).data.publicUrl;
+    };
 
-    setSubmitting(false);
-    if (saveError) {
-      setError(saveError.message);
+    if (mode === "edit" && product) {
+      let thumbnailUrl = product.thumbnailUrl ?? null;
+      if (thumbnailFile) {
+        const uploaded = await uploadThumbnail(product.id);
+        if (!uploaded) {
+          setSubmitting(false);
+          return;
+        }
+        thumbnailUrl = uploaded;
+      }
+      const { error: saveError } = await supabase
+        .from("products")
+        .update({ ...payload, thumbnail_url: thumbnailUrl })
+        .eq("id", product.id);
+      setSubmitting(false);
+      if (saveError) {
+        setError(saveError.message);
+        return;
+      }
+      onClose();
       return;
     }
+
+    // Add mode: insert, then upload+patch the thumbnail if one was chosen.
+    const { data: inserted, error: insertError } = await supabase
+      .from("products")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (insertError) {
+      setSubmitting(false);
+      setError(insertError.message);
+      return;
+    }
+    if (thumbnailFile && inserted) {
+      const uploaded = await uploadThumbnail((inserted as { id: string }).id);
+      if (uploaded) {
+        await supabase
+          .from("products")
+          .update({ thumbnail_url: uploaded })
+          .eq("id", (inserted as { id: string }).id);
+      }
+    }
+    setSubmitting(false);
     onClose();
   };
 
