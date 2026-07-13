@@ -534,7 +534,7 @@ export function VideoLibraryView({
                       )}
 
                       <div className="row-actions">
-                        {canManageCatalog ? (
+                        {canManageCatalog || role === "operator" ? (
                           <button
                             type="button"
                             className="row-action-btn row-action-edit"
