@@ -24,6 +24,8 @@ import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { KanbanBoard } from "./KanbanBoard";
+import { CategoryFolderGrid } from "./CategoryFolderGrid";
+import { ProductThumbnailGrid } from "./ProductThumbnailGrid";
 import { ProductFormModal } from "./ProductFormModal";
 import { ProductionModal } from "./ProductionModal";
 import { ProductReviewModal } from "./ProductReviewModal";
@@ -34,7 +36,7 @@ import { StageHistoryLog } from "./StageHistoryLog";
 const OPERATOR_SUBMIT_STAGES = [...DELIVERABLE_STAGES, "Editing"] as string[];
 const LEAD_REVIEW_STAGES = [...DELIVERABLE_STAGES, "Editing", "In Review"] as string[];
 
-type LibraryLayout = "table" | "board";
+type LibraryLayout = "table" | "board" | "grid";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All Stages" },
@@ -79,6 +81,8 @@ export function VideoLibraryView({
   const [rejectedOnly, setRejectedOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [layout, setLayout] = useState<LibraryLayout>("table");
+  // Which category folder is open in Grid view (null = show the folders).
+  const [gridFolder, setGridFolder] = useState<string | null>(null);
 
   // Adjusted during render (React's sanctioned pattern for syncing local
   // state from a prop) rather than an effect, since this is the component's
@@ -313,7 +317,14 @@ export function VideoLibraryView({
                 className={`pill${layout === "table" ? " active" : ""}`}
                 onClick={() => setLayout("table")}
               >
-                Table
+                List
+              </button>
+              <button
+                type="button"
+                className={`pill${layout === "grid" ? " active" : ""}`}
+                onClick={() => setLayout("grid")}
+              >
+                Grid
               </button>
               <button
                 type="button"
@@ -366,7 +377,31 @@ export function VideoLibraryView({
         </div>
       </div>
 
-      {filteredProducts.length === 0 ? (
+      {layout === "grid" ? (
+        gridFolder === null ? (
+          <CategoryFolderGrid
+            products={filteredProducts}
+            onOpenFolder={(category) => setGridFolder(category)}
+          />
+        ) : (
+          <div>
+            <button
+              type="button"
+              className="folder-back"
+              onClick={() => setGridFolder(null)}
+            >
+              ← All categories
+            </button>
+            <div className="section-heading section-heading-sm" style={{ margin: "8px 0 16px" }}>
+              {gridFolder}
+            </div>
+            <ProductThumbnailGrid
+              products={filteredProducts.filter((p) => p.category === gridFolder)}
+              onOpenModal={onOpenModal}
+            />
+          </div>
+        )
+      ) : filteredProducts.length === 0 ? (
         <div className="empty-state">
           No products currently requested in this category yet — it will
           appear here automatically once BuckedUp adds one.

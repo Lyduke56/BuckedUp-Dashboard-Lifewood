@@ -1311,6 +1311,138 @@ a {
   }
 }
 
+/* ================= VIDEO LIBRARY — GRID VIEW (Drive-style) =========== */
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.folder-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  background: var(--panel-bg);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.folder-tile:hover {
+  border-color: var(--folder-accent, var(--castleton));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.folder-tile-icon {
+  color: var(--folder-accent, var(--castleton));
+}
+
+.folder-tile-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-tile-count {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.folder-back {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.folder-back:hover {
+  color: var(--text-main);
+}
+
+.thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.thumb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.thumb-card-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.thumb-card:hover .thumb-card-img {
+  border-color: var(--glass-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.thumb-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-card-placeholder {
+  color: var(--ink-soft);
+  opacity: 0.5;
+}
+
+.thumb-card-stage {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 9.5px !important;
+  padding: 2px 8px !important;
+}
+
+.thumb-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thumb-card-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 /* Issue Flag Buttons */
 .issue-btn {
   background: rgba(255, 255, 255, 0.03);
