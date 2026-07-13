@@ -52,6 +52,14 @@ export interface VideoItem {
   variant?: string;
 }
 
+/**
+ * pipeline = normal content, moves through all 7 pipeline stages.
+ * link = an external URL/asset submitted directly, counted as Published
+ * on creation and never entering the stage pipeline (see
+ * products.delivery_type in supabase/schema.sql).
+ */
+export type DeliveryType = "pipeline" | "link";
+
 export interface Product {
   id: string;
   rank: number;
@@ -67,6 +75,7 @@ export interface Product {
   publishDate: string | null;
   reviewStatus: ReviewStatus | null;
   rejectionReason: string | null;
+  deliveryType: DeliveryType;
   items: VideoItem[];
 }
 

@@ -96,6 +96,13 @@ create table products (
   review_status text,
   rejection_reason text,
   status text not null default 'Not Started',
+  -- 'pipeline' = normal content, goes through all 7 stages. 'link' = an
+  -- external URL/asset counted as Published the moment it's created,
+  -- bypassing the pipeline entirely (a Lead sets status='Published' +
+  -- video_url at insert time; no trigger special-case is needed since
+  -- enforce_product_update_permissions() governs UPDATEs, not INSERTs).
+  delivery_type text not null default 'pipeline'
+    check (delivery_type in ('pipeline', 'link')),
   video_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

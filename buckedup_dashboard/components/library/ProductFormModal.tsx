@@ -6,7 +6,7 @@ import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useProfiles } from "@/lib/useProfiles";
 import { useMounted } from "@/lib/useMounted";
-import type { PipelineStatus, Product } from "@/lib/types";
+import type { DeliveryType, PipelineStatus, Product } from "@/lib/types";
 import { VideoVersionsPanel } from "./VideoVersionsPanel";
 
 interface ProductFormModalProps {
@@ -28,6 +28,7 @@ interface FormState {
   ownerId: string;
   publishDate: string;
   status: PipelineStatus;
+  deliveryType: DeliveryType;
   videoUrl: string;
 }
 
@@ -50,6 +51,7 @@ function initialState(
       ownerId: product.ownerId ?? "",
       publishDate: product.publishDate ?? "",
       status: item.status,
+      deliveryType: product.deliveryType,
       videoUrl: item.videoUrl ?? "",
     };
   }
@@ -67,6 +69,7 @@ function initialState(
     ownerId: "",
     publishDate: "",
     status: "Not Started",
+    deliveryType: "pipeline",
     videoUrl: "",
   };
 }
@@ -123,11 +126,20 @@ export function ProductFormModal({
     });
   };
 
+  // Link-only content is submitted straight to Published with its URL —
+  // it never enters the pipeline. Only relevant in add mode (delivery
+  // type is display-only when editing).
+  const isLinkOnly = mode === "add" && form.deliveryType === "link";
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const rank = Number(form.rank);
     if (!form.name.trim() || !Number.isFinite(rank)) {
       setError("Name and a valid rank are required.");
+      return;
+    }
+    if (isLinkOnly && !form.videoUrl.trim()) {
+      setError("A content URL is required for link-only content.");
       return;
     }
 
@@ -146,7 +158,10 @@ export function ProductFormModal({
       content_angle: form.contentAngle.trim() || null,
       owner_id: form.ownerId || null,
       publish_date: form.publishDate || null,
-      status: form.status,
+      status: isLinkOnly ? "Published" : form.status,
+      // form.deliveryType is the toggle in add mode and the preserved
+      // existing value in edit mode (display-only there).
+      delivery_type: form.deliveryType,
       video_url: form.videoUrl.trim() || null,
     };
 
@@ -209,6 +224,27 @@ export function ProductFormModal({
           <form className="modal-left-column" onSubmit={handleSubmit}>
             {error ? <div className="callout form-error">{error}</div> : null}
 
+            {mode === "add" ? (
+              <label className="form-field">
+                <span>Delivery type</span>
+                <select
+                  value={form.deliveryType}
+                  onChange={(event) =>
+                    update("deliveryType", event.target.value as DeliveryType)
+                  }
+                >
+                  <option value="pipeline">Pipeline content (goes through stages)</option>
+                  <option value="link">Link-only (published immediately)</option>
+                </select>
+                {isLinkOnly ? (
+                  <span className="form-hint">
+                    Skips the pipeline — submit a URL and it&apos;s counted as
+                    Published right away.
+                  </span>
+                ) : null}
+              </label>
+            ) : null}
+
             <label className="form-field">
               <span>Rank</span>
               <input
@@ -253,21 +289,23 @@ export function ProductFormModal({
                 ))}
               </select>
             </label>
-            <label className="form-field">
-              <span>Stage</span>
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  update("status", event.target.value as PipelineStatus)
-                }
-              >
-                {STATUS_ORDER.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {isLinkOnly ? null : (
+              <label className="form-field">
+                <span>Stage</span>
+                <select
+                  value={form.status}
+                  onChange={(event) =>
+                    update("status", event.target.value as PipelineStatus)
+                  }
+                >
+                  {STATUS_ORDER.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="form-field">
               <span>Content type</span>
               <input
@@ -318,12 +356,19 @@ export function ProductFormModal({
               />
             </label>
             <label className="form-field">
-              <span>{mode === "edit" ? "Video URL (current)" : "Video URL"}</span>
+              <span>
+                {isLinkOnly
+                  ? "Content URL"
+                  : mode === "edit"
+                    ? "Video URL (current)"
+                    : "Video URL"}
+              </span>
               <input
                 type="url"
                 value={form.videoUrl}
                 readOnly={mode === "edit"}
                 disabled={mode === "edit"}
+                required={isLinkOnly}
                 onChange={(event) => update("videoUrl", event.target.value)}
               />
               {mode === "edit" ? (
