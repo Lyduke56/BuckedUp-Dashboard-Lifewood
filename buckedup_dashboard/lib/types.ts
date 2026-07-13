@@ -1,14 +1,20 @@
 export type ViewId = "overview" | "library" | "analytics" | "admin";
 
 /**
- * editor = production staff, moves the pipeline stage (`products.status`).
- * approver = Lifewood leadership, sets review_status/rejection_reason only.
- * admin = unrestricted, plus manages other users' roles. Enforced by
- * supabase/schema.sql's RLS policies and enforce_product_update_permissions
- * trigger — the UI hides controls a role can't use, but the database is
- * what actually blocks it.
+ * operator = production staff, execution-only: uploads deliverables per
+ * stage (video_url) and can claim ownership on upload, reports/resolves
+ * issues — never creates a listing and never moves `products.status`.
+ * lead = the operational owner: fusion of the old approver + old admin's
+ * catalog powers — creates listings/products, configures the production
+ * plan, reviews Operator-submitted deliverables, and is the only role
+ * that actually moves a product's stage.
+ * admin = governance only — manages Lead/Operator user accounts, no
+ * product-catalog write access at all. Enforced by supabase/schema.sql's
+ * RLS policies and enforce_product_update_permissions trigger — the UI
+ * hides controls a role can't use, but the database is what actually
+ * blocks it.
  */
-export type UserRole = "editor" | "approver" | "admin";
+export type UserRole = "operator" | "lead" | "admin";
 
 export interface Profile {
   id: string;
@@ -22,11 +28,11 @@ export type ProductBucket = "not-started" | "in-progress" | "published";
 
 export type PipelineStatus =
   | "Not Started"
+  | "Storyboarding"
   | "Scripting"
-  | "Filming"
+  | "Prompting"
   | "Editing"
   | "In Review"
-  | "Scheduled"
   | "Published";
 
 /**

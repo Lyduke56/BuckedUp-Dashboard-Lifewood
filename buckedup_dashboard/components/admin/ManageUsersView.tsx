@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
 
-const ROLE_OPTIONS: UserRole[] = ["editor", "approver", "admin"];
+const ROLE_OPTIONS: UserRole[] = ["operator", "lead", "admin"];
 
 export function ManageUsersView() {
   const { profiles, loading } = useProfiles();

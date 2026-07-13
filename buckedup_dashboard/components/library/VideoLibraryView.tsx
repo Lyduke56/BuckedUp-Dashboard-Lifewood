@@ -16,8 +16,6 @@ import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { KanbanBoard } from "./KanbanBoard";
 import { ProductFormModal } from "./ProductFormModal";
-import { ProductionModal } from "./ProductionModal";
-import { ProductReviewModal } from "./ProductReviewModal";
 import { StageHistoryLog } from "./StageHistoryLog";
 
 type LibraryLayout = "table" | "board";
@@ -45,6 +43,7 @@ interface VideoLibraryViewProps {
   error: string | null;
   externalSearch?: string | null;
   onExternalSearchApplied?: () => void;
+  theme: "dark" | "light";
 }
 
 export function VideoLibraryView({
@@ -54,6 +53,7 @@ export function VideoLibraryView({
   error,
   externalSearch,
   onExternalSearchApplied,
+  theme,
 }: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
@@ -91,20 +91,18 @@ export function VideoLibraryView({
     mode: "add" | "edit";
     product: Product | null;
   } | null>(null);
-  const [reviewModal, setReviewModal] = useState<Product | null>(null);
-  const [productionModal, setProductionModal] = useState<Product | null>(null);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
   const isAuthenticated = !!user;
-  // Editor: stage + video only. Admin: full catalog (add/edit/delete).
-  // Approver: review only. See supabase/schema.sql's
+  // Lead: full catalog access (add/edit/delete products, move stage via
+  // ProductFormModal's Stage field). Operator: execution-only — no
+  // catalog icon at all until Phase D adds a deliverable-submit action.
+  // Admin: governance-only, no catalog access. See supabase/schema.sql's
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
-  const canManageCatalog = role === "admin";
-  const canMoveStage = role === "editor" || role === "admin";
-  const canReview = role === "approver" || role === "admin";
+  const canManageCatalog = role === "lead";
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
   const profileEmailById = useMemo(
@@ -247,7 +245,7 @@ export function VideoLibraryView({
                 {filter.label}
               </button>
             ))}
-            {role === "editor" ? (
+            {role === "operator" ? (
               <button
                 type="button"
                 className={`pill${mineOnly ? " active" : ""}`}
@@ -333,9 +331,10 @@ export function VideoLibraryView({
         <KanbanBoard
           products={filteredProducts}
           issues={issues}
-          canMoveStage={canMoveStage}
+          canMoveStage={canManageCatalog}
           profileEmailById={profileEmailById}
           onOpenModal={onOpenModal}
+          theme={theme}
         />
       ) : (
         <div className="table-scroll">
@@ -428,38 +427,19 @@ export function VideoLibraryView({
                       </td>
                       <td>
                         <div className="row-actions">
-                          {canMoveStage ? (
+                          {canManageCatalog ? (
                             <button
                               type="button"
                               className="row-action-btn row-action-edit"
-                              title={role === "admin" ? "Edit product" : "Update stage / video"}
+                              title="Edit product"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                if (role === "admin") {
-                                  setFormModal({ mode: "edit", product });
-                                } else {
-                                  setProductionModal(product);
-                                }
+                                setFormModal({ mode: "edit", product });
                               }}
                             >
                               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            </button>
-                          ) : null}
-                          {canReview ? (
-                            <button
-                              type="button"
-                              className="row-action-btn row-action-review"
-                              title="Review"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setReviewModal(product);
-                              }}
-                            >
-                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
                               </svg>
                             </button>
                           ) : null}
@@ -520,20 +500,6 @@ export function VideoLibraryView({
           product={formModal.product}
           nextRank={nextRank}
           onClose={() => setFormModal(null)}
-        />
-      ) : null}
-
-      {reviewModal ? (
-        <ProductReviewModal
-          product={reviewModal}
-          onClose={() => setReviewModal(null)}
-        />
-      ) : null}
-
-      {productionModal ? (
-        <ProductionModal
-          product={productionModal}
-          onClose={() => setProductionModal(null)}
         />
       ) : null}
     </div>

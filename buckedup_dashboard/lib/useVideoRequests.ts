@@ -6,11 +6,11 @@ import type { PipelineStatus, Product } from "./types";
 
 const KNOWN_STATUSES: PipelineStatus[] = [
   "Not Started",
+  "Storyboarding",
   "Scripting",
-  "Filming",
+  "Prompting",
   "Editing",
   "In Review",
-  "Scheduled",
   "Published",
 ];
 

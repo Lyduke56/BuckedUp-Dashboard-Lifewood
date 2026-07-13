@@ -44,31 +44,48 @@ export const CATEGORY_TREE: Record<string, string[]> = {
 
 export const STATUS_ORDER: PipelineStatus[] = [
   "Not Started",
+  "Storyboarding",
   "Scripting",
-  "Filming",
+  "Prompting",
   "Editing",
   "In Review",
-  "Scheduled",
   "Published",
 ];
 
 export const STATUS_CLASS: Record<PipelineStatus, string> = {
   "Not Started": "st-not-started",
+  Storyboarding: "st-storyboarding",
   Scripting: "st-scripting",
-  Filming: "st-filming",
+  Prompting: "st-prompting",
   Editing: "st-editing",
   "In Review": "st-in-review",
-  Scheduled: "st-scheduled",
   Published: "st-published",
 };
 
 export const STATUS_HEX: Record<PipelineStatus, string> = {
   "Not Started": "#E5E5E5",
+  Storyboarding: "#FFDCA8",
   Scripting: "#FFC370",
-  Filming: "#FFB347",
+  Prompting: "#FFB347",
   Editing: "#8CA496",
   "In Review": "#417256",
-  Scheduled: "#133020",
+  Published: "#046241",
+};
+
+// Light-theme variant of STATUS_HEX — KanbanBoard.tsx's inline styles
+// (column header dot/border, floating tooltip) read these directly since
+// they can't be expressed as CSS custom properties the way the board's
+// structural chrome (backgrounds/borders/text) already is. Dark-mode's
+// paler tones (e.g. "Not Started"'s near-white gray) would nearly vanish
+// against a white card, so this darkens/deepens each stage's hue rather
+// than reusing STATUS_HEX verbatim.
+export const STATUS_HEX_LIGHT: Record<PipelineStatus, string> = {
+  "Not Started": "#B8B8B8",
+  Storyboarding: "#E8A94F",
+  Scripting: "#E0954A",
+  Prompting: "#D9822E",
+  Editing: "#5C8A72",
+  "In Review": "#2F5940",
   Published: "#046241",
 };
 

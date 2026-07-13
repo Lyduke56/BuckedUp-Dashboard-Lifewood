@@ -20,7 +20,10 @@ export function ProductionOutputWidget() {
   const [saving, setSaving] = useState(false);
 
 
-  const isAdmin = role === "admin";
+  // production_plans is lead-only to write (see supabase/schema.sql) —
+  // deadline/target configuration moved from admin to lead along with the
+  // rest of the operational catalog power.
+  const canEditDeadline = role === "lead";
 
   const startEdit = () => {
     setDeadlineDraft(plan?.deadline ?? "");
@@ -139,7 +142,7 @@ export function ProductionOutputWidget() {
             <Calendar size={14} color="var(--ink-soft)" />
             <span>{deadlineText}</span>
           </div>
-          {isAdmin ? (
+          {canEditDeadline ? (
             editingDeadline ? (
               <div className="output-deadline-edit">
                 <input

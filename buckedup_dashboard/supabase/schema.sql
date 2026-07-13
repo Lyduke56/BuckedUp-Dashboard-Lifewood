@@ -8,19 +8,24 @@
 -- and `issues` replaces the local data/issues.json file the dashboard
 -- used before this migration.
 --
--- This is an internal Lifewood tool: `editor` = production staff (moves
--- the pipeline stage), `approver` = Lifewood leadership (sets
--- review_status/rejection_reason only), `admin` = full access + manages
--- roles. The first person ever to sign in becomes admin automatically.
+-- This is an internal Lifewood tool: `operator` = production staff (does
+-- the grunt work — uploads deliverables per stage, reports/resolves
+-- issues, never creates listings and never moves the pipeline stage
+-- directly), `lead` = the operational owner (fusion of the old approver +
+-- old admin's catalog powers — creates listings/products, configures the
+-- production plan, reviews Operator-submitted deliverables, and is the
+-- only role that actually moves a product's stage), `admin` = governance
+-- only (manages Lead/Operator user accounts, no product-catalog access at
+-- all). The first person ever to sign in becomes admin automatically.
 
 create extension if not exists "pgcrypto";
 
-create type user_role as enum ('editor', 'approver', 'admin');
+create type user_role as enum ('operator', 'lead', 'admin');
 
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
-  role user_role not null default 'editor',
+  role user_role not null default 'operator',
   created_at timestamptz not null default now()
 );
 
@@ -33,7 +38,8 @@ $$ language sql security definer stable;
 
 -- Auto-provision a profile on signup. First-ever signup becomes admin
 -- (there's no other way to get an admin account before one exists);
--- everyone after defaults to editor and gets promoted by an admin later.
+-- everyone after defaults to operator and gets promoted to lead/admin by
+-- an admin later.
 create or replace function handle_new_user()
 returns trigger as $$
 declare
@@ -41,7 +47,7 @@ declare
 begin
   select not exists(select 1 from public.profiles) into is_first;
   insert into public.profiles (id, email, role)
-  values (new.id, new.email, (case when is_first then 'admin' else 'editor' end)::user_role);
+  values (new.id, new.email, (case when is_first then 'admin' else 'operator' end)::user_role);
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;
@@ -119,27 +125,30 @@ create trigger products_set_updated_at
   for each row
   execute function set_updated_at();
 
--- Column-level permission split: editors are production-only (stage +
--- video URL, nothing else — catalog metadata is an admin job), approvers
--- only ever touch the review columns, admins are unrestricted. RLS alone
--- can't express "this role may update this row but only these columns,"
--- so this is a trigger.
+-- Column-level permission split: operators are execution-only (video URL
+-- + claiming ownership on upload, nothing else — they never move the
+-- pipeline stage or touch catalog metadata), leads are unrestricted
+-- (catalog metadata, stage moves, review columns — leads absorb both the
+-- old approver's review power and the old admin's catalog power), admins
+-- get no product-column access at all (governance/user-management only).
+-- RLS alone can't express "this role may update this row but only these
+-- columns," so this is a trigger.
 --
--- Stage progression is further gated by *value*, not just column: an
--- editor can drive a product from Not Started up through In Review, but
--- can't push it past that — Scheduled only happens as a side effect of
--- an approver accepting it (see ProductReviewModal), and Published is
--- admin-only. This mirrors the real approval gate: nothing skips review.
+-- Stage advancement itself is Lead-driven: a Lead moves `status` directly
+-- (ProductFormModal) or via accepting a submitted deliverable (see
+-- review_stage_deliverable() once Phase D adds it) — Operators never set
+-- `status` themselves, they only ever submit the deliverable a Lead
+-- reviews.
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
   my_role user_role := get_my_role();
 begin
-  if my_role = 'admin' then
+  if my_role = 'lead' then
     return new;
   end if;
 
-  if my_role = 'approver' then
+  if my_role = 'operator' then
     if new.rank is distinct from old.rank
       or new.name is distinct from old.name
       or new.category is distinct from old.category
@@ -149,42 +158,18 @@ begin
       or new.product_url is distinct from old.product_url
       or new.content_angle is distinct from old.content_angle
       or new.owner is distinct from old.owner
-      or new.owner_id is distinct from old.owner_id
-      or new.publish_date is distinct from old.publish_date
-      or new.video_url is distinct from old.video_url then
-      raise exception 'Approvers may only change review_status, rejection_reason, and advance stage to Scheduled';
-    end if;
-    if new.status is distinct from old.status and new.status <> 'Scheduled' then
-      raise exception 'Approvers may only move the stage to Scheduled';
-    end if;
-    return new;
-  end if;
-
-  if my_role = 'editor' then
-    if new.rank is distinct from old.rank
-      or new.name is distinct from old.name
-      or new.category is distinct from old.category
-      or new.subcategory is distinct from old.subcategory
-      or new.content_type is distinct from old.content_type
-      or new.language is distinct from old.language
-      or new.product_url is distinct from old.product_url
-      or new.content_angle is distinct from old.content_angle
-      or new.owner is distinct from old.owner
-      or new.owner_id is distinct from old.owner_id
       or new.publish_date is distinct from old.publish_date
       or new.review_status is distinct from old.review_status
-      or new.rejection_reason is distinct from old.rejection_reason then
-      raise exception 'Editors may only change stage (up to In Review) and video URL';
-    end if;
-    if new.status is distinct from old.status
-      and new.status not in ('Not Started', 'Scripting', 'Filming', 'Editing', 'In Review') then
-      raise exception 'Editors may only move the stage up to In Review';
+      or new.rejection_reason is distinct from old.rejection_reason
+      or new.status is distinct from old.status then
+      raise exception 'Operators may only change the video URL (and claim ownership on upload)';
     end if;
     return new;
   end if;
 
-  -- No recognized role (shouldn't happen — profiles.role is a constrained
-  -- enum populated on signup): deny everything, fail closed.
+  -- admin: governance-only — no product column is writable, regardless of
+  -- value. Any other/unrecognized role also falls through here and is
+  -- denied — fail closed.
   raise exception 'You do not have permission to edit this product';
 end;
 $$ language plpgsql;
@@ -197,21 +182,21 @@ create trigger products_enforce_update_permissions
 -- Row Level Security: reads stay public (the dashboard is open-viewing,
 -- same as it's always been); writes require an authenticated session,
 -- with the role-based split above enforced by the trigger. Insert and
--- delete are admin-only — creating a product requires the full catalog
--- fields an editor can't touch, and delete is the one genuinely
--- irreversible action.
+-- delete are lead-only — creating a product requires the full catalog
+-- fields an operator can't touch, and delete is the one genuinely
+-- irreversible action (admins are governance-only and never write here).
 alter table products enable row level security;
 alter table issues enable row level security;
 
 create policy "Public read" on products for select using (true);
 create policy "Public read" on issues for select using (true);
 
-create policy "Admin insert" on products for insert
-  with check (get_my_role() = 'admin');
+create policy "Lead insert" on products for insert
+  with check (get_my_role() = 'lead');
 create policy "Authenticated update" on products for update
   using (auth.role() = 'authenticated');
-create policy "Admin delete" on products for delete
-  using (get_my_role() = 'admin');
+create policy "Lead delete" on products for delete
+  using (get_my_role() = 'lead');
 
 create policy "Authenticated insert" on issues for insert
   with check (auth.role() = 'authenticated');
@@ -334,14 +319,15 @@ create table video_versions (
 alter table video_versions enable row level security;
 
 create policy "Public read" on video_versions for select using (true);
-create policy "Editor and admin insert" on video_versions for insert
-  with check (get_my_role() in ('editor', 'admin'));
-create policy "Editor and admin update" on video_versions for update
-  using (get_my_role() in ('editor', 'admin'));
+create policy "Operator and lead insert" on video_versions for insert
+  with check (get_my_role() in ('operator', 'lead'));
+create policy "Operator and lead update" on video_versions for update
+  using (get_my_role() in ('operator', 'lead'));
 
 -- security invoker (the default) so this runs under the caller's own RLS —
--- an approver calling this gets rejected by video_versions' insert policy,
--- same as if they'd tried it directly.
+-- an admin (governance-only, no operator/lead grant) calling this gets
+-- rejected by video_versions' insert policy, same as if they'd tried it
+-- directly.
 create or replace function set_current_video_version(
   p_product_id uuid,
   p_video_url text,
@@ -379,12 +365,12 @@ on conflict (id) do nothing;
 
 create policy "Public read videos" on storage.objects for select
   using (bucket_id = 'videos');
-create policy "Editor and admin upload videos" on storage.objects for insert
-  with check (bucket_id = 'videos' and get_my_role() in ('editor', 'admin'));
-create policy "Editor and admin update videos" on storage.objects for update
-  using (bucket_id = 'videos' and get_my_role() in ('editor', 'admin'));
-create policy "Admin delete videos" on storage.objects for delete
-  using (bucket_id = 'videos' and get_my_role() = 'admin');
+create policy "Operator and lead upload videos" on storage.objects for insert
+  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
+create policy "Operator and lead update videos" on storage.objects for update
+  using (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
+create policy "Lead delete videos" on storage.objects for delete
+  using (bucket_id = 'videos' and get_my_role() = 'lead');
 
 -- Production plan: the corporate-level targets the pipeline is measured
 -- against — daily throughput, per-stage/language/category breakdowns, and
@@ -392,7 +378,7 @@ create policy "Admin delete videos" on storage.objects for delete
 -- lib/data.ts carried since before this was a real database (their own
 -- comments anticipated exactly this: "should become a real setting ...
 -- once one exists"). Per-stage/language/category targets are jsonb
--- rather than child tables — they're small admin-edited config maps with
+-- rather than child tables — they're small lead-edited config maps with
 -- open-ended keys (language especially isn't a fixed enum), not
 -- high-volume relational data.
 create table production_plans (
@@ -424,12 +410,12 @@ create trigger production_plans_set_updated_at
 alter table production_plans enable row level security;
 
 create policy "Public read" on production_plans for select using (true);
-create policy "Admin insert" on production_plans for insert
-  with check (get_my_role() = 'admin');
-create policy "Admin update" on production_plans for update
-  using (get_my_role() = 'admin');
-create policy "Admin delete" on production_plans for delete
-  using (get_my_role() = 'admin');
+create policy "Lead insert" on production_plans for insert
+  with check (get_my_role() = 'lead');
+create policy "Lead update" on production_plans for update
+  using (get_my_role() = 'lead');
+create policy "Lead delete" on production_plans for delete
+  using (get_my_role() = 'lead');
 
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.

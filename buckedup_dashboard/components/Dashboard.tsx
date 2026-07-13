@@ -87,6 +87,7 @@ export function Dashboard() {
             onOpenModal={setModalKey}
             externalSearch={librarySearch}
             onExternalSearchApplied={() => setLibrarySearch(null)}
+            theme={theme}
           />
         </div>
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>

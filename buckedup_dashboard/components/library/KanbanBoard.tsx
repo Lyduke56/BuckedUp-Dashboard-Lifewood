@@ -1,5 +1,5 @@
 import { useState, type DragEvent } from "react";
-import { STATUS_HEX, STATUS_ORDER } from "@/lib/data";
+import { STATUS_HEX, STATUS_HEX_LIGHT, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import type { Issue, PipelineStatus, Product } from "@/lib/types";
 import { getModalKey } from "@/lib/utils";
@@ -10,6 +10,7 @@ interface KanbanBoardProps {
   canMoveStage: boolean;
   profileEmailById: Map<string, string>;
   onOpenModal: (key: string) => void;
+  theme: "dark" | "light";
 }
 
 interface KanbanTooltipState {
@@ -27,7 +28,13 @@ export function KanbanBoard({
   canMoveStage,
   profileEmailById,
   onOpenModal,
+  theme,
 }: KanbanBoardProps) {
+  // The board's structural chrome (backgrounds/borders/text) already
+  // re-themes via CSS custom properties, but these inline per-status
+  // accent colors can't be — pick the light-safe map in light mode so the
+  // column dot/border and tooltip stay readable against a white card.
+  const statusHex = theme === "light" ? STATUS_HEX_LIGHT : STATUS_HEX;
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<PipelineStatus | null>(null);
   const [tooltip, setTooltip] = useState<KanbanTooltipState>({
@@ -75,7 +82,7 @@ export function KanbanBoard({
             key={status}
             className={`kanban-column${dragOverStatus === status ? " drag-over" : ""}`}
             style={{
-              "--stage-color": STATUS_HEX[status],
+              "--stage-color": statusHex[status],
             } as React.CSSProperties}
             onDragOver={(event) => {
               if (!canMoveStage || !draggingId) return;
@@ -95,7 +102,7 @@ export function KanbanBoard({
           >
             <div
               className="kanban-column-header"
-              style={{ borderLeft: `3px solid ${STATUS_HEX[status]}` }}
+              style={{ borderLeft: `3px solid ${statusHex[status]}` }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
                 <span
@@ -104,7 +111,7 @@ export function KanbanBoard({
                     width: "8px",
                     height: "8px",
                     borderRadius: "50%",
-                    background: STATUS_HEX[status],
+                    background: statusHex[status],
                     flexShrink: 0,
                   }}
                 />
@@ -178,7 +185,7 @@ export function KanbanBoard({
             top: tooltip.y - 8,
             zIndex: 10000,
             pointerEvents: "none",
-            borderColor: STATUS_HEX[tooltip.product.items[0].status as PipelineStatus],
+            borderColor: statusHex[tooltip.product.items[0].status as PipelineStatus],
           }}
         >
           <div style={{ fontWeight: 800, fontSize: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "4px", marginBottom: "4px" }}>
@@ -188,7 +195,7 @@ export function KanbanBoard({
           <div><strong>Subcategory:</strong> {tooltip.product.subcategory}</div>
           <div><strong>Language:</strong> {tooltip.product.language}</div>
           <div><strong>Owner:</strong> {tooltip.ownerLabel}</div>
-          <div><strong>Stage:</strong> <span style={{ color: STATUS_HEX[tooltip.product.items[0].status as PipelineStatus], fontWeight: 700 }}>{tooltip.product.items[0].status}</span></div>
+          <div><strong>Stage:</strong> <span style={{ color: statusHex[tooltip.product.items[0].status as PipelineStatus], fontWeight: 700 }}>{tooltip.product.items[0].status}</span></div>
           {tooltip.openCount > 0 && (
             <div style={{ color: "#ef4444", fontWeight: 700 }}>
               ⚠️ {tooltip.openCount} open issue{tooltip.openCount === 1 ? "" : "s"}

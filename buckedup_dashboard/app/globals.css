@@ -3220,9 +3220,17 @@ a {
 }
 
 /* ── Custom Kanban card color coding ────────────────────────── */
+/* Stage list: Not Started -> Storyboarding -> Scripting -> Prompting ->
+   Editing -> In Review -> Published (see lib/data.ts STATUS_HEX /
+   STATUS_HEX_LIGHT, the source these values are kept in sync with). */
 .kanban-card[data-status="Not Started"] {
-  border-left: 4px solid #cbd5e1 !important;
-  background: rgba(203, 213, 225, 0.04) !important;
+  border-left: 4px solid #E5E5E5 !important;
+  background: rgba(229, 229, 229, 0.04) !important;
+}
+
+.kanban-card[data-status="Storyboarding"] {
+  border-left: 4px solid #FFDCA8 !important;
+  background: rgba(255, 220, 168, 0.04) !important;
 }
 
 .kanban-card[data-status="Scripting"] {
@@ -3230,7 +3238,7 @@ a {
   background: rgba(255, 195, 112, 0.04) !important;
 }
 
-.kanban-card[data-status="Filming"] {
+.kanban-card[data-status="Prompting"] {
   border-left: 4px solid #FFB347 !important;
   background: rgba(255, 179, 71, 0.04) !important;
 }
@@ -3245,11 +3253,6 @@ a {
   background: rgba(65, 114, 86, 0.04) !important;
 }
 
-.kanban-card[data-status="Scheduled"] {
-  border-left: 4px solid #133020 !important;
-  background: rgba(19, 48, 32, 0.04) !important;
-}
-
 .kanban-card[data-status="Published"] {
   border-left: 4px solid #046241 !important;
   background: rgba(4, 98, 65, 0.04) !important;
@@ -3258,32 +3261,32 @@ a {
 /* Light Mode specific Kanban card backgrounds */
 [data-theme='light'] .kanban-card[data-status="Not Started"] {
   background: #ffffff !important;
-  border-left-color: #cbd5e1 !important;
+  border-left-color: #B8B8B8 !important;
+}
+
+[data-theme='light'] .kanban-card[data-status="Storyboarding"] {
+  background: #fffdf7 !important;
+  border-left-color: #E8A94F !important;
 }
 
 [data-theme='light'] .kanban-card[data-status="Scripting"] {
   background: #fffef8 !important;
-  border-left-color: #f7a83b !important;
+  border-left-color: #E0954A !important;
 }
 
-[data-theme='light'] .kanban-card[data-status="Filming"] {
+[data-theme='light'] .kanban-card[data-status="Prompting"] {
   background: #fffaf2 !important;
-  border-left-color: #FFB347 !important;
+  border-left-color: #D9822E !important;
 }
 
 [data-theme='light'] .kanban-card[data-status="Editing"] {
   background: #f9fbf9 !important;
-  border-left-color: #8CA496 !important;
+  border-left-color: #5C8A72 !important;
 }
 
 [data-theme='light'] .kanban-card[data-status="In Review"] {
   background: #f4faf6 !important;
-  border-left-color: #417256 !important;
-}
-
-[data-theme='light'] .kanban-card[data-status="Scheduled"] {
-  background: #f1f8f3 !important;
-  border-left-color: #133020 !important;
+  border-left-color: #2F5940 !important;
 }
 
 [data-theme='light'] .kanban-card[data-status="Published"] {
