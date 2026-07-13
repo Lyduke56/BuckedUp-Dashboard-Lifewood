@@ -97,6 +97,42 @@ export interface Issue {
 }
 
 /**
+ * A per-stage QA/QC deliverable an Operator submits for one of the three
+ * document/text stages (Storyboarding/Scripting/Prompting) and a Lead
+ * reviews. The Editing->Published video leg uses video_versions instead.
+ * See supabase/schema.sql's stage_deliverables table.
+ */
+export type DeliverableStage = "Storyboarding" | "Scripting" | "Prompting";
+export type DeliverableKind = "file" | "text";
+export type DeliverableDecision = "pending" | "accepted" | "rejected";
+
+export interface StageDeliverable {
+  id: string;
+  productId: string;
+  stage: DeliverableStage;
+  kind: DeliverableKind;
+  fileUrl: string | null;
+  textContent: string | null;
+  isCurrent: boolean;
+  submittedBy: string | null;
+  submittedAt: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  decision: DeliverableDecision;
+  decisionNote: string | null;
+}
+
+/**
+ * The stages whose deliverable is a document/text row in stage_deliverables
+ * (as opposed to Editing, whose deliverable is a video in video_versions).
+ */
+export const DELIVERABLE_STAGES: DeliverableStage[] = [
+  "Storyboarding",
+  "Scripting",
+  "Prompting",
+];
+
+/**
  * The shape a real "daily completions vs target" chart will consume once
  * a snapshot job exists. Supabase only holds current state, not a change
  * log, so this can't be populated today — DailyProgressChart renders an

@@ -151,6 +151,15 @@ returns trigger as $$
 declare
   my_role user_role := get_my_role();
 begin
+  -- Controlled stage-advance made by a trusted server function
+  -- (submit_video_for_review sets this transaction-local flag). This is a
+  -- BEFORE trigger, so it fires even inside a security-definer function —
+  -- security definer changes table privileges, not auth.uid()/get_my_role()
+  -- — hence the explicit escape hatch.
+  if current_setting('app.allow_stage_advance', true) = 'on' then
+    return new;
+  end if;
+
   if my_role = 'lead' then
     return new;
   end if;
@@ -379,6 +388,176 @@ create policy "Operator and lead update videos" on storage.objects for update
 create policy "Lead delete videos" on storage.objects for delete
   using (bucket_id = 'videos' and get_my_role() = 'lead');
 
+-- Per-stage deliverables (QA/QC): the document/text artifacts an Operator
+-- submits for the three pre-video stages (Storyboarding/Scripting/
+-- Prompting), which a Lead reviews. Append-only with is_current, mirroring
+-- video_versions, so resubmissions keep a history. The Editing->Published
+-- leg deliberately reuses video_versions instead of this table — that's
+-- the one stage whose deliverable is a video.
+create table stage_deliverables (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references products(id) on delete cascade,
+  stage text not null check (stage in ('Storyboarding', 'Scripting', 'Prompting')),
+  kind text not null check (kind in ('file', 'text')),
+  file_url text,
+  text_content text,
+  is_current boolean not null default true,
+  submitted_by uuid references profiles(id) on delete set null,
+  submitted_at timestamptz not null default now(),
+  reviewed_by uuid references profiles(id) on delete set null,
+  reviewed_at timestamptz,
+  decision text not null default 'pending' check (decision in ('pending', 'accepted', 'rejected')),
+  decision_note text
+);
+
+create index stage_deliverables_product_idx
+  on stage_deliverables (product_id, stage);
+
+alter table stage_deliverables enable row level security;
+
+create policy "Public read" on stage_deliverables for select using (true);
+
+-- Operator may only submit for a product they own, and only for the stage
+-- the product is currently in. A Lead may submit on any product's behalf.
+-- Operator and Lead never touch the same row via the same verb (Operator
+-- only inserts, Lead only updates), so plain RLS is enough — no
+-- column-level trigger like products needs.
+create policy "Operator submit own current stage" on stage_deliverables for insert
+  with check (
+    get_my_role() = 'operator'
+    and submitted_by = auth.uid()
+    and exists (
+      select 1 from products p
+      where p.id = product_id
+        and p.owner_id = auth.uid()
+        and p.status = stage
+    )
+  );
+create policy "Lead submit any" on stage_deliverables for insert
+  with check (get_my_role() = 'lead' and submitted_by = auth.uid());
+create policy "Lead review" on stage_deliverables for update
+  using (get_my_role() = 'lead');
+
+-- Keep a single is_current row per (product, stage) on resubmission.
+-- security definer because the operator who inserts a new row has no
+-- update grant to un-flag their own prior rows.
+create or replace function stage_deliverables_set_current()
+returns trigger as $$
+begin
+  update stage_deliverables set is_current = false
+    where product_id = new.product_id
+      and stage = new.stage
+      and id <> new.id
+      and is_current;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger stage_deliverables_maintain_current
+  after insert on stage_deliverables
+  for each row execute function stage_deliverables_set_current();
+
+-- review_stage_deliverable(): security invoker (matches
+-- set_current_video_version()). Sets the decision, and on 'accepted'
+-- advances products.status to the next stage via a hardcoded server-side
+-- mapping — this is the real gate on stage advancement for these three
+-- stages (the client can't push an arbitrary stage). Rejecting only
+-- updates the deliverable row; the product stays where it is.
+create or replace function review_stage_deliverable(
+  p_deliverable_id uuid,
+  p_decision text,
+  p_note text
+)
+returns void as $$
+declare
+  v_product_id uuid;
+  v_stage text;
+  v_next text;
+begin
+  if p_decision not in ('accepted', 'rejected') then
+    raise exception 'decision must be accepted or rejected';
+  end if;
+
+  select product_id, stage into v_product_id, v_stage
+  from stage_deliverables where id = p_deliverable_id;
+  if v_product_id is null then
+    raise exception 'deliverable not found';
+  end if;
+
+  update stage_deliverables
+  set decision = p_decision,
+      decision_note = p_note,
+      reviewed_by = auth.uid(),
+      reviewed_at = now()
+  where id = p_deliverable_id;
+
+  if p_decision = 'accepted' then
+    v_next := case v_stage
+      when 'Storyboarding' then 'Scripting'
+      when 'Scripting' then 'Prompting'
+      when 'Prompting' then 'Editing'
+      else null
+    end;
+    if v_next is not null then
+      update products set status = v_next where id = v_product_id;
+    end if;
+  end if;
+end;
+$$ language plpgsql;
+
+-- submit_video_for_review(): the Editing-leg equivalent of an Operator
+-- "submitting" — moves the product Editing -> In Review. security definer
+-- plus the app.allow_stage_advance flag (honored by
+-- enforce_product_update_permissions above) so it can advance the stage,
+-- but validates the caller owns the product (or is a Lead) and it's
+-- actually in Editing. This is the only way an Operator advances a stage,
+-- and it's a single fixed transition, not an arbitrary one.
+create or replace function submit_video_for_review(p_product_id uuid)
+returns void as $$
+declare
+  v_status text;
+  v_owner uuid;
+  v_role user_role := get_my_role();
+begin
+  select status, owner_id into v_status, v_owner
+  from products where id = p_product_id;
+  if v_status is null then
+    raise exception 'product not found';
+  end if;
+  if v_role not in ('operator', 'lead') then
+    raise exception 'not permitted';
+  end if;
+  if v_role = 'operator' and v_owner is distinct from auth.uid() then
+    raise exception 'not your product';
+  end if;
+  if v_status <> 'Editing' then
+    raise exception 'product is not in Editing';
+  end if;
+  perform set_config('app.allow_stage_advance', 'on', true);
+  update products set status = 'In Review' where id = p_product_id;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+-- Storage for the document/text deliverables above — docx/pdf only, 25MB
+-- cap (documents, not raw footage). Prompting is text-only and stored in
+-- stage_deliverables.text_content, so it never touches storage.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'stage-documents',
+  'stage-documents',
+  true,
+  26214400,
+  array['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+)
+on conflict (id) do nothing;
+
+create policy "Public read stage docs" on storage.objects for select
+  using (bucket_id = 'stage-documents');
+create policy "Operator and lead upload stage docs" on storage.objects for insert
+  with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'lead'));
+create policy "Lead delete stage docs" on storage.objects for delete
+  using (bucket_id = 'stage-documents' and get_my_role() = 'lead');
+
 -- Production plan: the corporate-level targets the pipeline is measured
 -- against — daily throughput, per-stage/language/category breakdowns, and
 -- the delivery deadline. Replaces the hardcoded placeholder constants
@@ -432,3 +611,4 @@ alter publication supabase_realtime add table profiles;
 alter publication supabase_realtime add table product_status_history;
 alter publication supabase_realtime add table notifications;
 alter publication supabase_realtime add table production_plans;
+alter publication supabase_realtime add table stage_deliverables;

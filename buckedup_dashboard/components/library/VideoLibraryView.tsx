@@ -3,7 +3,13 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CATEGORY_TREE, STATUS_CLASS, reviewStatusClass } from "@/lib/data";
-import type { Issue, IssueSeverity, Product, StatusFilter } from "@/lib/types";
+import {
+  DELIVERABLE_STAGES,
+  type Issue,
+  type IssueSeverity,
+  type Product,
+  type StatusFilter,
+} from "@/lib/types";
 import {
   categoryCountProducts,
   getModalKey,
@@ -14,9 +20,17 @@ import {
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
+import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { KanbanBoard } from "./KanbanBoard";
 import { ProductFormModal } from "./ProductFormModal";
+import { ProductionModal } from "./ProductionModal";
+import { ProductReviewModal } from "./ProductReviewModal";
 import { StageHistoryLog } from "./StageHistoryLog";
+
+// Stages an Operator can submit a deliverable for (the 3 doc/text stages
+// plus Editing's video). A Lead reviews the same set plus In Review.
+const OPERATOR_SUBMIT_STAGES = [...DELIVERABLE_STAGES, "Editing"] as string[];
+const LEAD_REVIEW_STAGES = [...DELIVERABLE_STAGES, "Editing", "In Review"] as string[];
 
 type LibraryLayout = "table" | "board";
 
@@ -91,15 +105,19 @@ export function VideoLibraryView({
     mode: "add" | "edit";
     product: Product | null;
   } | null>(null);
+  const [productionModal, setProductionModal] = useState<Product | null>(null);
+  const [reviewModal, setReviewModal] = useState<Product | null>(null);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
+  const { currentByKey } = useStageDeliverables();
   const isAuthenticated = !!user;
   // Lead: full catalog access (add/edit/delete products, move stage via
-  // ProductFormModal's Stage field). Operator: execution-only — no
-  // catalog icon at all until Phase D adds a deliverable-submit action.
-  // Admin: governance-only, no catalog access. See supabase/schema.sql's
+  // ProductFormModal's Stage field) plus reviewing submitted deliverables.
+  // Operator: execution-only — submits the deliverable for the current
+  // stage, never moves the stage itself. Admin: governance-only, no
+  // catalog access. See supabase/schema.sql's
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
   const canManageCatalog = role === "lead";
@@ -387,6 +405,27 @@ export function VideoLibraryView({
                   (issue) => issue.status === "open",
                 ).length;
 
+                // Deliverable-flow flags for this row (Phase D).
+                const currentDeliverable =
+                  currentByKey.get(`${product.id}:${item.status}`) ?? null;
+                // Operators may only submit for products they own (the
+                // stage_deliverables insert RLS requires owner_id = auth.uid),
+                // so don't show a doomed button for others' items.
+                const canSubmit =
+                  role === "operator" &&
+                  product.ownerId === user?.id &&
+                  product.deliveryType === "pipeline" &&
+                  OPERATOR_SUBMIT_STAGES.includes(item.status);
+                const canReview =
+                  role === "lead" &&
+                  product.deliveryType === "pipeline" &&
+                  LEAD_REVIEW_STAGES.includes(item.status);
+                // A Lead's "needs attention": a pending doc deliverable, or a
+                // video parked in In Review.
+                const awaitingReview =
+                  (currentDeliverable?.decision === "pending") ||
+                  item.status === "In Review";
+
                 return (
                   <Fragment key={product.rank}>
                     <tr
@@ -457,6 +496,39 @@ export function VideoLibraryView({
                               </svg>
                             </button>
                           ) : null}
+                          {canSubmit ? (
+                            <button
+                              type="button"
+                              className="row-action-btn row-action-edit"
+                              title="Submit deliverable"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setProductionModal(product);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                              </svg>
+                            </button>
+                          ) : null}
+                          {canReview ? (
+                            <button
+                              type="button"
+                              className={`row-action-btn row-action-review${awaitingReview ? " has-issues" : ""}`}
+                              title={awaitingReview ? "Review — awaiting your decision" : "Review"}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setReviewModal(product);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              {awaitingReview ? <span className="row-action-badge">!</span> : null}
+                            </button>
+                          ) : null}
                           <button
                             type="button"
                             className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
@@ -514,6 +586,30 @@ export function VideoLibraryView({
           product={formModal.product}
           nextRank={nextRank}
           onClose={() => setFormModal(null)}
+        />
+      ) : null}
+
+      {productionModal ? (
+        <ProductionModal
+          product={productionModal}
+          currentDeliverable={
+            currentByKey.get(
+              `${productionModal.id}:${productionModal.items[0].status}`,
+            ) ?? null
+          }
+          onClose={() => setProductionModal(null)}
+        />
+      ) : null}
+
+      {reviewModal ? (
+        <ProductReviewModal
+          product={reviewModal}
+          currentDeliverable={
+            currentByKey.get(
+              `${reviewModal.id}:${reviewModal.items[0].status}`,
+            ) ?? null
+          }
+          onClose={() => setReviewModal(null)}
         />
       ) : null}
     </div>
