@@ -61,14 +61,23 @@ export function VideoVersionsPanel({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // "file" uploads to Supabase Storage; "url" submits an external link
+  // (e.g. an unlisted YouTube URL) straight into set_current_video_version,
+  // skipping storage entirely — VideoModal already embeds YouTube/Drive/
+  // direct URLs, so no playback-side change is needed.
+  const [inputMode, setInputMode] = useState<"file" | "url">("file");
+  const [urlValue, setUrlValue] = useState("");
+  // A ref mirror so the (stable) external upload handler can read the
+  // latest mode/url without being re-registered on every keystroke.
+  const inputStateRef = useRef({ inputMode, urlValue });
+  useEffect(() => {
+    inputStateRef.current = { inputMode, urlValue };
+  }, [inputMode, urlValue]);
+
   // Local state used ONLY if externalControls is false
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localNote, setLocalNote] = useState("");
   const [localUploading, setLocalUploading] = useState(false);
-
-  const isUploading = externalControls ? uploading : localUploading;
-  const currentNote = externalControls ? noteValue : localNote;
-  const currentFile = externalControls ? null : localFile; // Only used internally if not external
 
   useEffect(() => {
     fetchVersions(productId).then(setVersions);
@@ -122,14 +131,49 @@ export function VideoVersionsPanel({
     }
   };
 
+  // Submit an external URL (unlisted YouTube etc.) as the current version —
+  // no storage upload, just the RPC that also syncs products.video_url.
+  const submitUrl = async (url: string, noteText: string, setUploadState: (val: boolean) => void) => {
+    setUploadState(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: rpcError } = await supabase.rpc("set_current_video_version", {
+      p_product_id: productId,
+      p_video_url: url.trim(),
+      p_note: noteText.trim() || null,
+    });
+
+    setUploadState(false);
+    if (rpcError) {
+      setError(rpcError.message);
+      return;
+    }
+
+    setVersions(await fetchVersions(productId));
+    onVersionAdded(url.trim());
+    setUrlValue("");
+    if (externalControls) {
+      onNoteChange?.("");
+    } else {
+      setLocalNote("");
+    }
+  };
+
   // Register external upload handler if externalControls is true
   useEffect(() => {
     if (externalControls && onUploadReady && onFileChange) {
       const handler = async () => {
-        // Find if parent file state exists via fileInputRef
-        const selectedParentFile = fileInputRef.current?.files?.[0];
-        if (selectedParentFile) {
-          await executeUpload(selectedParentFile, noteValue, setUploading || (() => {}));
+        const { inputMode: mode, urlValue: url } = inputStateRef.current;
+        if (mode === "url") {
+          if (url.trim()) {
+            await submitUrl(url, noteValue, setUploading || (() => {}));
+          }
+        } else {
+          const selectedParentFile = fileInputRef.current?.files?.[0];
+          if (selectedParentFile) {
+            await executeUpload(selectedParentFile, noteValue, setUploading || (() => {}));
+          }
         }
       };
       onUploadReady(handler);
@@ -147,7 +191,9 @@ export function VideoVersionsPanel({
   };
 
   const handleLocalUploadClick = async () => {
-    if (localFile) {
+    if (inputMode === "url") {
+      if (urlValue.trim()) await submitUrl(urlValue, localNote, setLocalUploading);
+    } else if (localFile) {
       await executeUpload(localFile, localNote, setLocalUploading);
     }
   };
@@ -176,24 +222,60 @@ export function VideoVersionsPanel({
         </ul>
       )}
 
+      {/* Source toggle: upload a file, or paste an external (YouTube) URL. */}
+      <div className="filter-pills" style={{ marginTop: "8px" }}>
+        <button
+          type="button"
+          className={`pill${inputMode === "file" ? " active" : ""}`}
+          onClick={() => setInputMode("file")}
+        >
+          Upload file
+        </button>
+        <button
+          type="button"
+          className={`pill${inputMode === "url" ? " active" : ""}`}
+          onClick={() => setInputMode("url")}
+        >
+          Paste YouTube URL
+        </button>
+      </div>
+
       {/* Render depending on mode */}
       {externalControls ? (
         <div className="issue-form versions-file-row">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
-            onChange={handleFileChange}
-          />
+          {inputMode === "url" ? (
+            <input
+              type="url"
+              placeholder="https://youtube.com/watch?v=… (unlisted is fine)"
+              value={urlValue}
+              onChange={(event) => setUrlValue(event.target.value)}
+            />
+          ) : (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
+              onChange={handleFileChange}
+            />
+          )}
         </div>
       ) : (
         <div className="issue-form">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
-            onChange={handleFileChange}
-          />
+          {inputMode === "url" ? (
+            <input
+              type="url"
+              placeholder="https://youtube.com/watch?v=… (unlisted is fine)"
+              value={urlValue}
+              onChange={(event) => setUrlValue(event.target.value)}
+            />
+          ) : (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
+              onChange={handleFileChange}
+            />
+          )}
           <input
             type="text"
             placeholder="Note (optional)…"
@@ -203,10 +285,13 @@ export function VideoVersionsPanel({
           <button
             type="button"
             className="issue-submit-btn"
-            disabled={localUploading || !localFile}
+            disabled={
+              localUploading ||
+              (inputMode === "url" ? !urlValue.trim() : !localFile)
+            }
             onClick={handleLocalUploadClick}
           >
-            {localUploading ? "Uploading…" : "Upload version"}
+            {localUploading ? "Saving…" : inputMode === "url" ? "Save URL" : "Upload version"}
           </button>
         </div>
       )}
