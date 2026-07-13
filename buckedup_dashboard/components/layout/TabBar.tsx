@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { ViewId } from "@/lib/types";
+import type { UserRole, ViewId } from "@/lib/types";
 import {
   AnalyticsIcon,
   FolderIcon,
@@ -13,27 +13,34 @@ import { motion } from "framer-motion";
 interface TabBarProps {
   activeView: ViewId;
   onViewChange: (view: ViewId) => void;
-  showAdmin: boolean;
+  role: UserRole | null;
 }
 
 interface TabIconProps {
   size?: number;
 }
 
-const BASE_TABS: { id: ViewId; label: string; icon: (props: TabIconProps) => ReactNode }[] = [
+type Tab = { id: ViewId; label: string; icon: (props: TabIconProps) => ReactNode };
+
+const BASE_TABS: Tab[] = [
   { id: "overview", label: "Overview", icon: OverviewIcon },
   { id: "library", label: "Video Library", icon: FolderIcon },
   { id: "analytics", label: "Analytics", icon: AnalyticsIcon },
 ];
 
-const ADMIN_TAB: { id: ViewId; label: string; icon: (props: TabIconProps) => ReactNode } = {
-  id: "admin",
-  label: "Admin",
-  icon: UsersIcon,
-};
+// The 4th tab is role-specific: Admin manages users, Lead configures the
+// production plan, Operator gets no 4th tab. (Both use the same UsersIcon
+// slot visually — they're never shown to the same person.)
+const ADMIN_TAB: Tab = { id: "admin", label: "Admin", icon: UsersIcon };
+const PLANNING_TAB: Tab = { id: "planning", label: "Planning", icon: UsersIcon };
 
-export function TabBar({ activeView, onViewChange, showAdmin }: TabBarProps) {
-  const tabs = showAdmin ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS;
+export function TabBar({ activeView, onViewChange, role }: TabBarProps) {
+  const tabs =
+    role === "admin"
+      ? [...BASE_TABS, ADMIN_TAB]
+      : role === "lead"
+        ? [...BASE_TABS, PLANNING_TAB]
+        : BASE_TABS;
 
   return (
     <nav className="tab-bar">

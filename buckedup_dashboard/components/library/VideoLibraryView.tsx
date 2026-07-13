@@ -103,6 +103,11 @@ export function VideoLibraryView({
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
   const canManageCatalog = role === "lead";
+  // Admin is governance-only: they can view the catalog but only its
+  // Published slice, with no write affordances and no Board (nothing to
+  // drag). Enforced in-page here rather than via a separate cut-down
+  // component so the same filter/RowDetail machinery is reused.
+  const isAdmin = role === "admin";
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
   const profileEmailById = useMemo(
@@ -113,6 +118,10 @@ export function VideoLibraryView({
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
     return products.filter((product) => {
+      // Admin only ever sees Published items, regardless of the pills.
+      if (isAdmin && productBucket(product) !== "published") {
+        return false;
+      }
       if (currentCategory !== "all" && product.category !== currentCategory) {
         return false;
       }
@@ -141,6 +150,7 @@ export function VideoLibraryView({
     });
   }, [
     products,
+    isAdmin,
     currentCategory,
     currentSubcategory,
     currentStatusFilter,
@@ -234,52 +244,56 @@ export function VideoLibraryView({
               </>
             )}
           </select>
-          <div className="filter-pills">
-            {STATUS_FILTERS.map((filter) => (
+          {isAdmin ? null : (
+            <div className="filter-pills">
+              {STATUS_FILTERS.map((filter) => (
+                <button
+                  key={filter.value}
+                  type="button"
+                  className={`pill${currentStatusFilter === filter.value ? " active" : ""}`}
+                  onClick={() => setCurrentStatusFilter(filter.value)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+              {role === "operator" ? (
+                <button
+                  type="button"
+                  className={`pill${mineOnly ? " active" : ""}`}
+                  onClick={() => setMineOnly((prev) => !prev)}
+                >
+                  My items
+                </button>
+              ) : null}
               <button
-                key={filter.value}
                 type="button"
-                className={`pill${currentStatusFilter === filter.value ? " active" : ""}`}
-                onClick={() => setCurrentStatusFilter(filter.value)}
+                className={`pill${rejectedOnly ? " active" : ""}`}
+                onClick={() => setRejectedOnly((prev) => !prev)}
               >
-                {filter.label}
+                Rejected
               </button>
-            ))}
-            {role === "operator" ? (
-              <button
-                type="button"
-                className={`pill${mineOnly ? " active" : ""}`}
-                onClick={() => setMineOnly((prev) => !prev)}
-              >
-                My items
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={`pill${rejectedOnly ? " active" : ""}`}
-              onClick={() => setRejectedOnly((prev) => !prev)}
-            >
-              Rejected
-            </button>
-          </div>
+            </div>
+          )}
         </div>
         <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className="layout-toggle">
-            <button
-              type="button"
-              className={`pill${layout === "table" ? " active" : ""}`}
-              onClick={() => setLayout("table")}
-            >
-              Table
-            </button>
-            <button
-              type="button"
-              className={`pill${layout === "board" ? " active" : ""}`}
-              onClick={() => setLayout("board")}
-            >
-              Board
-            </button>
-          </div>
+          {isAdmin ? null : (
+            <div className="layout-toggle">
+              <button
+                type="button"
+                className={`pill${layout === "table" ? " active" : ""}`}
+                onClick={() => setLayout("table")}
+              >
+                Table
+              </button>
+              <button
+                type="button"
+                className={`pill${layout === "board" ? " active" : ""}`}
+                onClick={() => setLayout("board")}
+              >
+                Board
+              </button>
+            </div>
+          )}
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <input
               type="text"

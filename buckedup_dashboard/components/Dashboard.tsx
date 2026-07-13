@@ -11,6 +11,7 @@ import { VideoLibraryView } from "./library/VideoLibraryView";
 import { VideoModal } from "./library/VideoModal";
 import { AnalyticsView } from "./analytics/AnalyticsView";
 import { AdminView } from "./admin/AdminView";
+import { PlanningView } from "./admin/PlanningView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
@@ -54,7 +55,7 @@ export function Dashboard() {
         <TabBar
           activeView={activeView}
           onViewChange={switchView}
-          showAdmin={role === "admin"}
+          role={role}
         />
       </div>
       <div className="content">
@@ -96,6 +97,11 @@ export function Dashboard() {
         {role === "admin" ? (
           <div className={`view${activeView === "admin" ? " active" : ""}`}>
             <AdminView />
+          </div>
+        ) : null}
+        {role === "lead" ? (
+          <div className={`view${activeView === "planning" ? " active" : ""}`}>
+            <PlanningView />
           </div>
         ) : null}
       </div>
