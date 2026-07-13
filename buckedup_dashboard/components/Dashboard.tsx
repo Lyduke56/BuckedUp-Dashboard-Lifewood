@@ -12,6 +12,7 @@ import { VideoModal } from "./library/VideoModal";
 import { AnalyticsView } from "./analytics/AnalyticsView";
 import { AdminView } from "./admin/AdminView";
 import { PlanningView } from "./admin/PlanningView";
+import { BuckyWidget } from "./shared/BuckyWidget";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
@@ -110,6 +111,7 @@ export function Dashboard() {
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />
+      {role === "admin" ? <BuckyWidget /> : null}
     </div>
   );
 }
