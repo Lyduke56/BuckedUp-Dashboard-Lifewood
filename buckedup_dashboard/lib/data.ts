@@ -1,4 +1,4 @@
-import type { DailyCompletionPoint, PipelineStatus } from "./types";
+import type { PipelineStatus } from "./types";
 
 export const CATEGORY_TREE: Record<string, string[]> = {
   "Pre-Workout & Energy": [
@@ -132,18 +132,9 @@ export const DAILY_VIDEO_TARGET = 3;
 export const PROJECT_START_DATE = "2026-07-01";
 export const PROJECT_DEADLINE = "2026-09-01";
 
-// Illustrative-only sample data for the Daily Target chart — there's no
-// real snapshot history yet (see DailyProgressChart's empty-state path,
-// used until this is replaced). Never treat these numbers as real.
-export const MOCK_DAILY_PROGRESS: DailyCompletionPoint[] = [
-  { date: "Jul 2", target: DAILY_VIDEO_TARGET, actual: 1 },
-  { date: "Jul 3", target: DAILY_VIDEO_TARGET, actual: 2 },
-  { date: "Jul 4", target: DAILY_VIDEO_TARGET, actual: 0 },
-  { date: "Jul 5", target: DAILY_VIDEO_TARGET, actual: 3 },
-  { date: "Jul 6", target: DAILY_VIDEO_TARGET, actual: 2 },
-  { date: "Jul 7", target: DAILY_VIDEO_TARGET, actual: 4 },
-  { date: "Jul 8", target: DAILY_VIDEO_TARGET, actual: 1 },
-];
+// DailyProgressChart is now backed by lib/useDailyProgress.ts (live rollup
+// of product_status_history) — the old MOCK_DAILY_PROGRESS sample array was
+// removed when that landed.
 
 export interface ProjectPacing {
   status: "COMPLETE" | "ON TRACK" | "AT RISK" | "LATE";

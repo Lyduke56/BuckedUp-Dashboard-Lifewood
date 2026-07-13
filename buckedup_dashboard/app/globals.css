@@ -1791,6 +1791,24 @@ a {
   height: 100%;
 }
 
+/* Stacked per-day bar for the By stage / By category breakdown modes. */
+.stacked-day-bar {
+  flex: 1;
+  width: 60%;
+  max-width: 34px;
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.stacked-day-seg {
+  width: 100%;
+  min-height: 2px;
+}
+
 .column-bars {
   display: flex;
   align-items: flex-end;

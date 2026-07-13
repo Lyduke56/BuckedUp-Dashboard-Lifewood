@@ -1,7 +1,7 @@
-import { MOCK_DAILY_PROGRESS } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
+import { useDailyProgress } from "@/lib/useDailyProgress";
 import { CategoryChart } from "./CategoryChart";
 import { DailyProgressChart } from "./DailyProgressChart";
 import { LanguageProgressChart } from "./LanguageProgressChart";
@@ -20,6 +20,7 @@ interface AnalyticsViewProps {
 export function AnalyticsView({ products }: AnalyticsViewProps) {
   const { stageAgeByProductId } = useStageAge();
   const { plan } = useProductionPlan();
+  const dailyProgress = useDailyProgress(14);
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +43,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           </div>
           <div className="chart-mt">
             <DailyProgressChart
-              points={MOCK_DAILY_PROGRESS}
+              points={dailyProgress}
               dailyTarget={plan?.categoryTargets ? Object.values(plan.categoryTargets).reduce((sum, val) => sum + Number(val), 0) : undefined}
             />
           </div>
