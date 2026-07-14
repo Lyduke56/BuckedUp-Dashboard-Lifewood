@@ -512,7 +512,8 @@ a {
 }
 
 [data-theme='light'] .section-sub {
-  color: #796c56 !important; /* A warm grayish-brown that fits the cream perfectly */
+  color: #796c56 !important;
+  /* A warm grayish-brown that fits the cream perfectly */
 }
 
 .section-divider {
@@ -4642,7 +4643,8 @@ body.light .kanban-column {
 }
 
 [data-theme='light'] .title-accent {
-  color: #796c56; /* Soft warm gray-brown */
+  color: #697956;
+  /* Soft warm gray-brown */
 }
 
 .page-subtitle {
@@ -4651,6 +4653,7 @@ body.light .kanban-column {
   margin-top: 8px;
   max-width: 600px;
 }
+
 [data-theme='light'] .page-subtitle {
   color: #796c56;
 }
