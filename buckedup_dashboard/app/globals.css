@@ -2467,82 +2467,73 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-45deg, #04120e, #060b0f, #0c1a14, #080f0c);
+  /* Lighter, softer dark teal background (lightened by 20%) */
+  background: linear-gradient(-45deg, #1c3d2f, #244d3b, #30664e, #285542);
   background-size: 400% 400%;
-  animation: loginBgShift 16s ease infinite;
+  animation: loginBgShift 20s ease infinite;
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
 
 @keyframes loginBgShift {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-/* Floating dynamic background orbs */
-.login-shell::before {
-  content: "";
+/* Fluid dynamic background orbs */
+.fluid-orb {
   position: absolute;
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
-  top: 5%;
-  left: 10%;
+  border-radius: 50%;
+  filter: blur(80px);
   pointer-events: none;
-  animation: floatOrb1 20s ease-in-out infinite;
+  opacity: 0.6; /* Increased opacity for more visibility */
+  animation: floatFluid 25s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.login-shell::after {
-  content: "";
-  position: absolute;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle, rgba(217, 131, 36, 0.08) 0%, transparent 70%);
-  bottom: 5%;
-  right: 5%;
-  pointer-events: none;
-  animation: floatOrb2 24s ease-in-out infinite;
+.orb-1 {
+  width: 600px;
+  height: 600px;
+  background: rgba(16, 185, 129, 0.25); /* Green */
+  top: -10%;
+  left: -5%;
+  animation-duration: 28s;
+  animation-delay: -5s;
 }
 
-@keyframes floatOrb1 {
+.orb-2 {
+  width: 700px;
+  height: 700px;
+  background: rgba(217, 131, 36, 0.18); /* Gold */
+  bottom: -20%;
+  right: -10%;
+  animation-duration: 32s;
+  animation-direction: reverse;
+}
+
+.orb-3 {
+  width: 500px;
+  height: 500px;
+  background: rgba(4, 98, 65, 0.25); /* Darker green */
+  top: 40%;
+  left: 60%;
+  animation-duration: 24s;
+  animation-delay: -12s;
+}
+
+@keyframes floatFluid {
   0% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scale(1) rotate(0deg);
   }
-
   33% {
-    transform: translate(70px, -50px) scale(1.1);
+    transform: translate(120px, -80px) scale(1.2) rotate(120deg);
   }
-
   66% {
-    transform: translate(-40px, 40px) scale(0.9);
+    transform: translate(-80px, 100px) scale(0.8) rotate(240deg);
   }
-
   100% {
-    transform: translate(0, 0) scale(1);
-  }
-}
-
-@keyframes floatOrb2 {
-  0% {
-    transform: translate(0, 0) scale(1.05);
-  }
-
-  50% {
-    transform: translate(-90px, 50px) scale(0.95);
-  }
-
-  100% {
-    transform: translate(0, 0) scale(1.05);
+    transform: translate(0, 0) scale(1) rotate(360deg);
   }
 }
 

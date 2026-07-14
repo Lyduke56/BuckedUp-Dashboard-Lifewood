@@ -85,3 +85,7 @@ export function parseDriveFileId(url: string): string | null {
   }
   return null;
 }
+
+export function cn(...inputs: (string | undefined | null | false)[]) {
+  return inputs.filter(Boolean).join(" ");
+}
