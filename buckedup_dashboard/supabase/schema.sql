@@ -26,6 +26,11 @@ create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   role user_role not null default 'operator',
+  -- Set true only by the admin-created-account flow (see
+  -- app/api/admin/create-user/route.ts) so the new user is forced through
+  -- ForcePasswordChangeView on their first login instead of using the
+  -- admin-issued temporary password indefinitely.
+  must_change_password boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -79,6 +84,22 @@ create policy "Authenticated read" on profiles for select
   using (auth.role() = 'authenticated');
 create policy "Admin update" on profiles for update
   using (get_my_role() = 'admin');
+
+-- "Admin update" above is the ONLY update policy on profiles — nobody,
+-- not even a user editing their own row, can update it unless their own
+-- role is admin. A non-admin's self-service "I changed my password,
+-- clear my flag" action needs its own narrow escape hatch, not a broader
+-- policy change: deliberately parameterless, only ever touches
+-- auth.uid()'s own row, so "can't target another user's flag" is true by
+-- construction.
+create or replace function clear_must_change_password()
+returns void as $$
+begin
+  update profiles
+  set must_change_password = false
+  where id = auth.uid();
+end;
+$$ language plpgsql security definer set search_path = public;
 
 create table products (
   id uuid primary key default gen_random_uuid(),

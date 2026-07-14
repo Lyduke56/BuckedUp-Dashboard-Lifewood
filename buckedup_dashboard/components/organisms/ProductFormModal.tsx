@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect, type FormEvent } from "react";
+import { useState, useRef, useCallback, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { CATEGORY_TREE, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
@@ -103,23 +103,23 @@ export function ProductFormModal({
   const currentDeliverable = product && currentStatus ? (currentByKey.get(`${product.id}:${currentStatus}`) ?? null) : null;
   const isDeliverableStage = currentStatus && (DELIVERABLE_STAGES as string[]).includes(currentStatus);
 
-  const [delKind, setDelKind] = useState<"file" | "text">("file");
+  const [delKind, setDelKind] = useState<"file" | "text">(
+    currentStatus === "Prompting" ? "text" : "file",
+  );
   const [delText, setDelText] = useState("");
   const [delError, setDelError] = useState<string | null>(null);
   const [delSubmitting, setDelSubmitting] = useState(false);
   const [delSubmittingReview, setDelSubmittingReview] = useState(false);
   const delFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync delKind with currentStatus change
-  useEffect(() => {
-    if (currentStatus === "Prompting") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDelKind("text");
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDelKind("file");
-    }
-  }, [currentStatus]);
+  // Adjusted during render (React's sanctioned pattern for syncing local
+  // state from a changed value) rather than an effect — resets delKind
+  // exactly once when currentStatus changes, not on every render.
+  const [lastSyncedStatus, setLastSyncedStatus] = useState(currentStatus);
+  if (currentStatus !== lastSyncedStatus) {
+    setLastSyncedStatus(currentStatus);
+    setDelKind(currentStatus === "Prompting" ? "text" : "file");
+  }
 
   const handleDeliverableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
