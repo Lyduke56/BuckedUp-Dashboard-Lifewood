@@ -1,34 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Product } from "@/lib/types";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface LanguageProgressChartProps {
   products: Product[];
   languageTargets?: Record<string, number>;
 }
 
-export function LanguageProgressChart({
-  products,
-  languageTargets,
-}: LanguageProgressChartProps) {
+export function LanguageProgressChart({ products, languageTargets }: LanguageProgressChartProps) {
   const [tooltip, setTooltip] = useState({ x: 0, y: 0, content: "", visible: false });
-
-  const languages = Array.from(
-    new Set(products.map((product) => product.language)),
-  );
-
-  const rows = languages
-    .map((language) => {
-      const items = products.filter(
-        (product) => product.language === language,
-      );
-      const delivered = items.filter(
-        (product) => product.reviewStatus === "Accepted",
-      ).length;
-      return { language, total: items.length, delivered };
-    })
-    .sort((a, b) => b.total - a.total);
 
   const showTip = (e: React.MouseEvent, content: string) =>
     setTooltip({ x: e.clientX, y: e.clientY, content, visible: true });
@@ -36,26 +18,47 @@ export function LanguageProgressChart({
     setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
   const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
 
+  const rows = useMemo(() => {
+    const stats = new Map<string, { total: number; delivered: number }>();
+
+    products.forEach((p) => {
+      const lang = p.language || "Unknown";
+      if (!stats.has(lang)) {
+        stats.set(lang, { total: 0, delivered: 0 });
+      }
+      const s = stats.get(lang)!;
+      s.total++;
+      if (p.items.some((i) => i.status === "Published")) {
+        s.delivered++;
+      }
+    });
+
+    return Array.from(stats.entries())
+      .map(([language, counts]) => ({
+        language,
+        total: counts.total,
+        delivered: counts.delivered,
+        pct: counts.total > 0 ? (counts.delivered / counts.total) * 100 : 0,
+      }))
+      .sort((a, b) => b.pct - a.pct);
+  }, [products]);
+
+  if (rows.length === 0) {
+    return (
+      <div className="empty-state">
+        No language data available.
+      </div>
+    );
+  }
+
   return (
     <>
       {rows.map((row) => {
+        const pct = row.total > 0 ? Math.round((row.delivered / row.total) * 100) : 0;
         const targetVal = languageTargets?.[row.language];
-        const targetPct = row.total > 0 && targetVal ? (targetVal / row.total) * 100 : 0;
+        const targetPct = targetVal ? (row.delivered / targetVal) * 100 : 0;
+        const tipText = `${row.language}: ${row.delivered} / ${row.total} accepted (${pct}%)${targetVal ? ` · Target: ${targetVal}` : ""}`;
 
-        if (row.total === 0) {
-          return (
-            <div key={row.language} className="flex flex-col mb-4 last:mb-0 opacity-30 select-none">
-              <div className="flex justify-between items-center text-xs font-bold mb-1.5 text-[var(--ink-soft)]">
-                <span>{row.language}</span>
-                <span>No items</span>
-              </div>
-              <div className="h-2 w-full bg-white/[0.02] border border-white/[0.04] rounded-full overflow-hidden" />
-            </div>
-          );
-        }
-
-        const pct = Math.round((row.delivered / row.total) * 100);
-        const tipText = `${row.language}: ${row.delivered}/${row.total} accepted (${pct}%)${targetVal ? ` · Target: ${targetVal}` : ""}`;
         return (
           <div
             key={row.language}
@@ -65,7 +68,7 @@ export function LanguageProgressChart({
             style={{ cursor: "default" }}
           >
             <div className="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span className="text-[var(--text-main)] group-hover:text-[var(--castleton)] transition-colors duration-200 truncate pr-2 max-w-[170px]">
+              <span className="text-[var(--text-main)] group-hover:text-[var(--castleton)] transition-colors duration-200">
                 {row.language}
               </span>
               <span className="text-[var(--ink-soft)] font-semibold flex-shrink-0">
@@ -86,7 +89,6 @@ export function LanguageProgressChart({
                 <div
                   className="absolute top-0 bottom-0 w-0.5 bg-white/70 border-r border-black/40 z-10"
                   style={{ left: `${Math.min(targetPct, 100)}%` }}
-                  title={`Target: ${targetVal}`}
                 />
               )}
             </div>
@@ -94,20 +96,12 @@ export function LanguageProgressChart({
         );
       })}
 
-      {tooltip.visible && (
-        <div
-          className="chart-tooltip"
-          style={{
-            position: "fixed",
-            left: tooltip.x + 14,
-            top: tooltip.y - 8,
-            zIndex: 10000,
-            pointerEvents: "none",
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
+      <ChartTooltip
+        isVisible={tooltip.visible}
+        x={tooltip.x}
+        y={tooltip.y}
+        content={tooltip.content}
+      />
     </>
   );
 }

@@ -2,7 +2,6 @@ import type { Product } from "@/lib/types";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
-import { CategoryChart } from "@/components/organisms/CategoryChart";
 import { DailyProgressChart } from "@/components/organisms/DailyProgressChart";
 import { LanguageProgressChart } from "@/components/organisms/LanguageProgressChart";
 import { ReviewStatusChart } from "@/components/organisms/ReviewStatusChart";
@@ -106,18 +105,8 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
         </div>
 
         {/* ================= ROW 3 ================= */}
-        {/* Completion by category */}
-        <div className="panel flex flex-col lg:col-span-1">
-          <div className="section-heading section-heading-sm">
-            Completion by category
-          </div>
-          <div className="chart-mt flex flex-col gap-4">
-            <CategoryChart products={products} categoryTargets={plan?.categoryTargets} />
-          </div>
-        </div>
-
         {/* Rejection rate by category */}
-        <div className="panel flex flex-col lg:col-span-1">
+        <div className="panel flex flex-col lg:col-span-2">
           <div className="section-heading section-heading-sm">
             Rejection rate by category
           </div>

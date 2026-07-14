@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CATEGORY_TREE } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface RejectionRateChartProps {
   products: Product[];
@@ -102,20 +103,12 @@ export function RejectionRateChart({ products }: RejectionRateChartProps) {
         );
       })}
 
-      {tooltip.visible && (
-        <div
-          className="chart-tooltip"
-          style={{
-            position: "fixed",
-            left: tooltip.x + 14,
-            top: tooltip.y - 8,
-            zIndex: 10000,
-            pointerEvents: "none",
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
+      <ChartTooltip
+        isVisible={tooltip.visible}
+        x={tooltip.x}
+        y={tooltip.y}
+        content={tooltip.content}
+      />
     </>
   );
 }

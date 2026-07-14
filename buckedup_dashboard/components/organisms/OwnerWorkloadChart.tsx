@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Product } from "@/lib/types";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface OwnerWorkloadChartProps {
   products: Product[];
@@ -176,22 +177,13 @@ export function OwnerWorkloadChart({ products }: OwnerWorkloadChartProps) {
       </div>
 
       {/* Shared Tooltip */}
-      {tooltip.visible && (
-        <div
-          className="chart-tooltip"
-          style={{
-            position: "fixed",
-            left: tooltip.x + 14,
-            top: tooltip.y - 8,
-            zIndex: 10000,
-            pointerEvents: "none",
-            borderColor: tooltip.borderColor,
-            borderWidth: tooltip.borderColor ? "1.5px" : "1px",
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
+      <ChartTooltip
+        isVisible={tooltip.visible}
+        x={tooltip.x}
+        y={tooltip.y}
+        content={tooltip.content}
+        borderColor={tooltip.borderColor}
+      />
     </div>
   );
 }

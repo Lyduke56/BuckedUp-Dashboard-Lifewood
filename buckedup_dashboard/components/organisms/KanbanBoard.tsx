@@ -3,6 +3,7 @@ import { STATUS_HEX, STATUS_HEX_LIGHT, STATUS_ORDER } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import type { Issue, PipelineStatus, Product } from "@/lib/types";
 import { getModalKey } from "@/lib/utils";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface KanbanBoardProps {
   products: Product[];
@@ -177,31 +178,29 @@ export function KanbanBoard({
 
       {/* Kanban Board Floating Tooltip */}
       {tooltip.visible && tooltip.product && (
-        <div
-          className="chart-tooltip kanban-tooltip"
-          style={{
-            position: "fixed",
-            left: tooltip.x + 14,
-            top: tooltip.y - 8,
-            zIndex: 10000,
-            pointerEvents: "none",
-            borderColor: statusHex[tooltip.product.items[0].status as PipelineStatus],
-          }}
-        >
-          <div style={{ fontWeight: 800, fontSize: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "4px", marginBottom: "4px" }}>
-            {tooltip.product.name}
-          </div>
-          <div><strong>Category:</strong> {tooltip.product.category}</div>
-          <div><strong>Subcategory:</strong> {tooltip.product.subcategory}</div>
-          <div><strong>Language:</strong> {tooltip.product.language}</div>
-          <div><strong>Owner:</strong> {tooltip.ownerLabel}</div>
-          <div><strong>Stage:</strong> <span style={{ color: statusHex[tooltip.product.items[0].status as PipelineStatus], fontWeight: 700 }}>{tooltip.product.items[0].status}</span></div>
-          {tooltip.openCount > 0 && (
-            <div style={{ color: "#ef4444", fontWeight: 700 }}>
-              ⚠️ {tooltip.openCount} open issue{tooltip.openCount === 1 ? "" : "s"}
-            </div>
-          )}
-        </div>
+        <ChartTooltip
+          isVisible={tooltip.visible}
+          x={tooltip.x + 14}
+          y={tooltip.y - 8}
+          borderColor={statusHex[tooltip.product.items[0].status as PipelineStatus]}
+          content={
+            <>
+              <div style={{ fontWeight: 800, fontSize: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "4px", marginBottom: "4px" }}>
+                {tooltip.product.name}
+              </div>
+              <div><strong>Category:</strong> {tooltip.product.category}</div>
+              <div><strong>Subcategory:</strong> {tooltip.product.subcategory}</div>
+              <div><strong>Language:</strong> {tooltip.product.language}</div>
+              <div><strong>Owner:</strong> {tooltip.ownerLabel}</div>
+              <div><strong>Stage:</strong> <span style={{ color: statusHex[tooltip.product.items[0].status as PipelineStatus], fontWeight: 700 }}>{tooltip.product.items[0].status}</span></div>
+              {tooltip.openCount > 0 && (
+                <div style={{ color: "#ef4444", fontWeight: 700 }}>
+                  ⚠️ {tooltip.openCount} open issue{tooltip.openCount === 1 ? "" : "s"}
+                </div>
+              )}
+            </>
+          }
+        />
       )}
     </div>
   );

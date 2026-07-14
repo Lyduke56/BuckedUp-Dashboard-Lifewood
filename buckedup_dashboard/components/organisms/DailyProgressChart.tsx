@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DAILY_VIDEO_TARGET, STATUS_HEX, STATUS_ORDER } from "@/lib/data";
 import { categoryColor } from "@/lib/colors";
 import type { DailyProgressPoint } from "@/lib/useDailyProgress";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface DailyProgressChartProps {
   points: DailyProgressPoint[];
@@ -17,6 +18,13 @@ export function DailyProgressChart({
   dailyTarget = DAILY_VIDEO_TARGET,
 }: DailyProgressChartProps) {
   const [dimension, setDimension] = useState<Dimension>("overall");
+  const [activeLegend, setActiveLegend] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{ isVisible: boolean; x: number; y: number; content: React.ReactNode }>({
+    isVisible: false,
+    x: 0,
+    y: 0,
+    content: null,
+  });
 
   const hasData = points.some(
     (p) => p.published > 0 || Object.keys(p.byStage).length > 0,
@@ -75,14 +83,18 @@ export function DailyProgressChart({
                 <div key={point.date} className="column-group">
                   <div className="column-bars">
                     <div
-                      className="column-bar column-bar-target"
-                      style={{ height: `${(dailyTarget / axisMax) * 100}%` }}
+                      className="column-bar column-bar-target cursor-pointer transition-opacity"
+                      style={{ height: `${(dailyTarget / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "target" ? 0.3 : 1 }}
+                      onMouseEnter={() => setActiveLegend("target")}
+                      onMouseLeave={() => setActiveLegend(null)}
                     >
                       <span className="column-bar-value">{dailyTarget}</span>
                     </div>
                     <div
-                      className="column-bar column-bar-actual"
-                      style={{ height: `${(point.published / axisMax) * 100}%` }}
+                      className="column-bar column-bar-actual cursor-pointer transition-opacity"
+                      style={{ height: `${(point.published / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "published" ? 0.3 : 1 }}
+                      onMouseEnter={() => setActiveLegend("published")}
+                      onMouseLeave={() => setActiveLegend(null)}
                     >
                       <span className="column-bar-value">{point.published}</span>
                     </div>
@@ -93,11 +105,21 @@ export function DailyProgressChart({
             </div>
           </div>
           <div className="column-chart-legend">
-            <span className="column-chart-legend-item">
+            <span 
+              className="column-chart-legend-item cursor-default transition-opacity"
+              style={{ opacity: activeLegend && activeLegend !== "target" ? 0.3 : 1 }}
+              onMouseEnter={() => setActiveLegend("target")}
+              onMouseLeave={() => setActiveLegend(null)}
+            >
               <span className="column-chart-legend-dot target" />
               Daily Target
             </span>
-            <span className="column-chart-legend-item">
+            <span 
+              className="column-chart-legend-item cursor-default transition-opacity"
+              style={{ opacity: activeLegend && activeLegend !== "published" ? 0.3 : 1 }}
+              onMouseEnter={() => setActiveLegend("published")}
+              onMouseLeave={() => setActiveLegend(null)}
+            >
               <span className="column-chart-legend-dot actual" />
               Published
             </span>
@@ -138,7 +160,6 @@ export function DailyProgressChart({
                 <div key={point.date} className="column-group">
                   <div
                     className="stacked-day-bar"
-                    title={`${point.label}: ${dayTotal(point)} total`}
                   >
                     {keys.map((key) => {
                       const v = values[key] ?? 0;
@@ -150,8 +171,33 @@ export function DailyProgressChart({
                           style={{
                             height: `${(v / axisMax) * 100}%`,
                             background: colorFor(key),
+                            opacity: activeLegend && activeLegend !== key ? 0.25 : 1,
+                            transition: "opacity 0.2s ease, filter 0.2s ease",
+                            cursor: "pointer",
+                            filter: activeLegend === key ? "brightness(1.1)" : "none",
                           }}
-                          title={`${key}: ${v}`}
+                          onMouseMove={(e) => {
+                            setTooltip({
+                              isVisible: true,
+                              x: e.clientX,
+                              y: e.clientY,
+                              content: (
+                                <>
+                                  <div className="font-medium text-[11px] text-white/60 mb-1">{point.label}</div>
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorFor(key) }} />
+                                    <span className="font-semibold text-[12px]">{key}</span>
+                                  </div>
+                                  <div className="text-white/80">{v} products</div>
+                                </>
+                              ),
+                            });
+                          }}
+                          onMouseEnter={() => setActiveLegend(key)}
+                          onMouseLeave={() => {
+                            setActiveLegend(null);
+                            setTooltip((prev) => ({ ...prev, isVisible: false }));
+                          }}
                         />
                       );
                     })}
@@ -164,13 +210,26 @@ export function DailyProgressChart({
         </div>
         <div className="category-legend" style={{ marginTop: "12px" }}>
           {keys.map((key) => (
-            <div key={key} className="category-legend-item">
-              <span className="category-legend-dot" style={{ background: colorFor(key) }} />
+            <div 
+              key={key} 
+              className="category-legend-item cursor-default transition-all duration-200"
+              style={{
+                opacity: activeLegend && activeLegend !== key ? 0.3 : 1,
+                transform: activeLegend === key ? "scale(1.02)" : "scale(1)",
+              }}
+              onMouseEnter={() => setActiveLegend(key)}
+              onMouseLeave={() => setActiveLegend(null)}
+            >
+              <span 
+                className="category-legend-dot transition-transform" 
+                style={{ background: colorFor(key), transform: activeLegend === key ? "scale(1.2)" : "scale(1)" }} 
+              />
               {key}
             </div>
           ))}
         </div>
       </div>
+      <ChartTooltip {...tooltip} />
     </div>
   );
 }

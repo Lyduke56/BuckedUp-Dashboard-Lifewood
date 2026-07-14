@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { REVIEW_STATUS_HEX, REVIEW_STATUS_ORDER } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { ChartTooltip } from "@/components/atoms/ChartTooltip";
 
 interface ReviewStatusChartProps {
   products: Product[];
@@ -41,6 +45,14 @@ function arcPath(
 }
 
 export function ReviewStatusChart({ products }: ReviewStatusChartProps) {
+  const [tooltip, setTooltip] = useState<{ isVisible: boolean; x: number; y: number; content: React.ReactNode }>({
+    isVisible: false,
+    x: 0,
+    y: 0,
+    content: null,
+  });
+  const [activeLegend, setActiveLegend] = useState<string | null>(null);
+
   const counts: Record<string, number> = {};
   REVIEW_STATUS_ORDER.forEach((status) => {
     counts[status] = 0;
@@ -87,8 +99,9 @@ export function ReviewStatusChart({ products }: ReviewStatusChartProps) {
         {total === 0 ? (
           <circle cx={CENTER} cy={CENTER} r={OUTER_R} fill="var(--seasalt)" />
         ) : (
-          slices.map((slice) =>
-            slice.end > slice.start ? (
+          slices.map((slice) => {
+            const percent = Math.round((slice.count / total) * 100);
+            return slice.end > slice.start ? (
               <path
                 key={slice.label}
                 d={arcPath(
@@ -100,14 +113,36 @@ export function ReviewStatusChart({ products }: ReviewStatusChartProps) {
                   slice.end,
                 )}
                 fill={slice.color}
-              >
-                <title>
-                  {slice.label}: {slice.count} (
-                  {Math.round((slice.count / total) * 100)}%)
-                </title>
-              </path>
-            ) : null,
-          )
+                style={{
+                  opacity: activeLegend && activeLegend !== slice.label ? 0.25 : 1,
+                  transition: "opacity 0.2s ease, filter 0.2s ease",
+                  cursor: "pointer",
+                  filter: activeLegend === slice.label ? "brightness(1.1)" : "none",
+                }}
+                onMouseMove={(e) => {
+                  setTooltip({
+                    isVisible: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    content: (
+                      <>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: slice.color }} />
+                          <span className="font-semibold text-[12px]">{slice.label}</span>
+                        </div>
+                        <div className="text-white/80">{slice.count} products ({percent}%)</div>
+                      </>
+                    ),
+                  });
+                }}
+                onMouseEnter={() => setActiveLegend(slice.label)}
+                onMouseLeave={() => {
+                  setActiveLegend(null);
+                  setTooltip((prev) => ({ ...prev, isVisible: false }));
+                }}
+              />
+            ) : null;
+          })
         )}
         <text
           x={CENTER}
@@ -128,16 +163,26 @@ export function ReviewStatusChart({ products }: ReviewStatusChartProps) {
       </svg>
       <div className="category-legend donut-legend">
         {rows.map((row) => (
-          <div key={row.label} className="category-legend-item">
+          <div 
+            key={row.label} 
+            className="category-legend-item cursor-default transition-all duration-200"
+            style={{ 
+              opacity: activeLegend && activeLegend !== row.label ? 0.3 : 1,
+              transform: activeLegend === row.label ? "scale(1.02)" : "scale(1)",
+            }}
+            onMouseEnter={() => setActiveLegend(row.label)}
+            onMouseLeave={() => setActiveLegend(null)}
+          >
             <span
-              className="category-legend-dot"
-              style={{ background: row.color }}
+              className="category-legend-dot transition-transform"
+              style={{ background: row.color, transform: activeLegend === row.label ? "scale(1.2)" : "scale(1)" }}
             />
             {row.label} — {row.count}
             {total > 0 ? ` (${Math.round((row.count / total) * 100)}%)` : ""}
           </div>
         ))}
       </div>
+      <ChartTooltip {...tooltip} />
     </div>
   );
 }
