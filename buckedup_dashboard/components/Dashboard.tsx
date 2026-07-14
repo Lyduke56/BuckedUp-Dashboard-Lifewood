@@ -13,6 +13,7 @@ import { AnalyticsView } from "./analytics/AnalyticsView";
 import { AdminView } from "./admin/AdminView";
 import { PlanningView } from "./admin/PlanningView";
 import { BuckyWidget } from "./shared/BuckyWidget";
+import { ForcePasswordChangeView } from "./auth/ForcePasswordChangeView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
@@ -20,7 +21,7 @@ export function Dashboard() {
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const { products, loading, error } = useVideoRequests();
-  const { role } = useAuth();
+  const { role, mustChangePassword } = useAuth();
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
@@ -44,6 +45,13 @@ export function Dashboard() {
     setLibrarySearch(productName);
     setActiveView("library");
   };
+
+  // Replaces the entire dashboard shell (not layered over it) whenever an
+  // admin-created account hasn't set its own password yet — nothing else
+  // mounts, so there's nothing to accidentally interact with underneath.
+  if (mustChangePassword) {
+    return <ForcePasswordChangeView />;
+  }
 
   return (
     <div className="shell">

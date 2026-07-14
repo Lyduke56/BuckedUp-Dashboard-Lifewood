@@ -64,7 +64,10 @@ export const config = {
      * - _next/image (image optimization)
      * - favicon.ico
      * - public folder assets (svg, png, jpg, etc.)
+     * - api (route handlers do their own auth check and return JSON —
+     *   this proxy's HTML redirect would otherwise get silently followed
+     *   by fetch() and hand back a login page where JSON was expected)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
