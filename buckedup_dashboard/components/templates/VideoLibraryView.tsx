@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { CATEGORY_TREE, STATUS_CLASS, STATUS_ORDER, reviewStatusClass } from "@/lib/data";
 import {
   DELIVERABLE_STAGES,
@@ -214,7 +215,7 @@ export function VideoLibraryView({
   if (loading && products.length === 0) {
     return (
       <div>
-        <div className="section-heading">Video Library</div>
+        <PageHeader title="Video Library | BuckedUp" overline="CATALOG" />
         <div className="empty-state">Loading video requests…</div>
       </div>
     );
@@ -223,7 +224,7 @@ export function VideoLibraryView({
   if (error) {
     return (
       <div>
-        <div className="section-heading">Video Library</div>
+        <PageHeader title="Video Library | BuckedUp" overline="CATALOG" />
         <div className="empty-state">Couldn&apos;t reach Supabase: {error}</div>
       </div>
     );
@@ -231,11 +232,11 @@ export function VideoLibraryView({
 
   return (
     <div>
-      <div className="section-heading">Video Library</div>
-      <div className="section-sub">
-        Priority-ranked shot list — grows automatically as new products are
-        requested, across any category in the catalog.
-      </div>
+      <PageHeader 
+        title="Video Library | BuckedUp" 
+        overline="CATALOG" 
+        subtitle="Priority-ranked shot list — grows automatically as new products are requested, across any category in the catalog."
+      />
       <div className="filter-row">
         <div className="filter-row-left">
           <select

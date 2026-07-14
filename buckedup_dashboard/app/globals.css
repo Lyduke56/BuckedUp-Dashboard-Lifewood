@@ -83,9 +83,9 @@
 
 :root[data-theme='light'],
 [data-theme='light'] {
-  --body-bg: #f5eedb;
-  --shell-bg: #f9f7f7;
-  --seasalt: #f5eedb;
+  --body-bg: #f7f3e8;
+  --shell-bg: #faf8f3;
+  --seasalt: #f7f3e8;
   --white: rgba(255, 255, 255, 0.85);
   --panel-bg: #ffffff;
   --paper: #133020;
@@ -175,8 +175,8 @@ body {
 
 /* Light mode: override body background directly via JS-toggled class on <body> */
 body.light {
-  background-color: #f5eedb;
-  background-image:
+  background-color: #f7f3e8;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23133020' fill-opacity='0.05'/%3E%3C/svg%3E"),
     radial-gradient(circle at 10% 20%, rgba(4, 98, 65, 0.04) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(255, 179, 71, 0.03) 0%, transparent 40%);
 }
@@ -438,11 +438,18 @@ a {
 }
 
 [data-theme='light'] .panel-glass {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(20px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
-  border: 1px solid rgba(217, 131, 36, 0.18) !important;
-  box-shadow: 0 12px 32px rgba(217, 131, 36, 0.08) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(217, 131, 36, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+[data-theme='light'] .panel-glass:hover {
+  border-color: rgba(217, 131, 36, 0.3) !important;
+  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px);
 }
 
 .panel:hover {
@@ -461,6 +468,10 @@ a {
   gap: 10px;
 }
 
+[data-theme='light'] .section-heading {
+  color: rgba(19, 48, 32, 0.9) !important;
+}
+
 /* Page titles layout formatting styling */
 .view>div>.section-heading,
 .view>div>div>.section-heading {
@@ -477,6 +488,13 @@ a {
   -webkit-text-fill-color: transparent;
 }
 
+[data-theme='light'] .view>div>.section-heading,
+[data-theme='light'] .view>div>div>.section-heading {
+  background: linear-gradient(135deg, var(--text-main) 30%, rgba(217, 131, 36, 0.9) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
 .section-heading-sm {
   font-size: 16px;
   margin-bottom: 4px;
@@ -491,6 +509,10 @@ a {
   color: var(--ink-soft);
   margin-bottom: 24px;
   line-height: 1.6;
+}
+
+[data-theme='light'] .section-sub {
+  color: #796c56 !important; /* A warm grayish-brown that fits the cream perfectly */
 }
 
 .section-divider {
@@ -540,20 +562,25 @@ a {
 }
 
 [data-theme='light'] .progress-banner {
-  background: linear-gradient(135deg, rgba(18, 48, 36, 0.75) 0%, rgba(10, 18, 22, 0.75) 100%) !important;
+  background: #ffffff !important;
   border: 1px solid rgba(16, 185, 129, 0.2) !important;
-  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.06) !important;
+  border-left: 6px solid #10b981 !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08) !important;
 }
 
 [data-theme='light'] .progress-banner .progress-pct,
-[data-theme='light'] .progress-banner .progress-deadline,
+[data-theme='light'] .progress-banner .progress-deadline {
+  color: var(--text-main) !important;
+  text-shadow: none !important;
+}
+
 [data-theme='light'] .progress-banner .progress-status-pill {
   color: #ffffff !important;
 }
 
 [data-theme='light'] .progress-banner .progress-label,
 [data-theme='light'] .progress-banner .progress-today {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--ink-soft) !important;
 }
 
 /* Light mode green hover highlights for topbar shell-header buttons */
@@ -660,11 +687,18 @@ a {
 }
 
 [data-theme='light'] .card-glass {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(20px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
-  border: 1px solid rgba(217, 131, 36, 0.18) !important;
-  box-shadow: 0 12px 32px rgba(217, 131, 36, 0.08) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(217, 131, 36, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+[data-theme='light'] .card-glass:hover {
+  border-color: rgba(217, 131, 36, 0.3) !important;
+  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px);
 }
 
 .card-default:hover {
@@ -794,7 +828,8 @@ a {
 
 [data-theme='light'] .kpi-card.c-categories:hover {
   border-color: rgba(20, 184, 166, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px) !important;
 }
 
 [data-theme='light'] .kpi-card.c-planned {
@@ -805,7 +840,8 @@ a {
 
 [data-theme='light'] .kpi-card.c-planned:hover {
   border-color: rgba(99, 102, 241, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px) !important;
 }
 
 [data-theme='light'] .kpi-card.c-published {
@@ -816,7 +852,8 @@ a {
 
 [data-theme='light'] .kpi-card.c-published:hover {
   border-color: rgba(4, 98, 65, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(4, 98, 65, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(4, 98, 65, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px) !important;
 }
 
 [data-theme='light'] .kpi-card.c-progress {
@@ -827,7 +864,8 @@ a {
 
 [data-theme='light'] .kpi-card.c-progress:hover {
   border-color: rgba(217, 131, 36, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(217, 131, 36, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(217, 131, 36, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px) !important;
 }
 
 [data-theme='light'] .kpi-card.c-notstarted {
@@ -838,7 +876,8 @@ a {
 
 [data-theme='light'] .kpi-card.c-notstarted:hover {
   border-color: rgba(244, 63, 94, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  transform: translateY(-2px) !important;
 }
 
 .kpi-icon {
@@ -4569,4 +4608,49 @@ body.light .kanban-column {
 .plan-target-btn-delete:hover {
   background: rgba(220, 53, 69, 0.25);
   border-color: #ef4444;
+}
+
+/* ================= PAGE HEADER TYPOGRAPHY ================= */
+.page-header-container {
+  margin-bottom: 24px;
+}
+
+.page-overline {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--castleton);
+  margin-bottom: 6px;
+}
+
+[data-theme='light'] .page-overline {
+  color: rgba(217, 131, 36, 0.9);
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.title-accent {
+  color: var(--ink-soft);
+}
+
+[data-theme='light'] .title-accent {
+  color: #796c56; /* Soft warm gray-brown */
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  max-width: 600px;
+}
+[data-theme='light'] .page-subtitle {
+  color: #796c56;
 }

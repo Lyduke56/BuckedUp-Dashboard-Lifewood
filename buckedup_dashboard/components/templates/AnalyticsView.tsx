@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/types";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
@@ -23,13 +24,11 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <div className="section-heading">Analytics</div>
-        <div className="section-sub">
-          Current snapshot of the queue — reflects the live production stage,
-          rejection analytics, and owner workloads.
-        </div>
-      </div>
+      <PageHeader 
+        title="Analytics | BuckedUp" 
+        overline="PERFORMANCE" 
+        subtitle="Current snapshot of the queue — reflects the live production stage, rejection analytics, and owner workloads."
+      />
 
       {/* Tightly aligned 3-Column Grid representing the "invisible square" layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">

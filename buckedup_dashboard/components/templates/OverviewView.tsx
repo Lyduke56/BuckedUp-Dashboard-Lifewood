@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/types";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { KpiRow } from "@/components/molecules/KpiRow";
 import { OverviewSnapshot } from "@/components/organisms/OverviewSnapshot";
 import { ProjectProgressCard } from "@/components/organisms/ProjectProgressCard";
@@ -25,17 +26,10 @@ export function OverviewView({
 
   return (
     <div className="flex flex-col gap-6">
-      <div 
-        className="section-heading font-extrabold tracking-tight" 
-        style={{ 
-          fontSize: "32px", 
-          borderLeftWidth: "6px",
-          marginBottom: "12px",
-          lineHeight: "1.2"
-        }}
-      >
-        {projectName}
-      </div>
+      <PageHeader 
+        title={projectName} 
+        overline="CURRENT PIPELINE"
+      />
       <ProjectProgressCard products={products} />
       <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
 
