@@ -7,6 +7,11 @@
   --seasalt: #070908;
   --white: rgba(15, 22, 19, 0.65);
   --panel-bg: rgba(15, 23, 20, 0.6);
+  /* Fully opaque, unlike --panel-bg — for fixed-position overlays like
+     Bucky's panel, where backdrop-filter isn't reliable across browsers
+     (e.g. Brave Shields can suppress it) and translucency would let
+     whatever's behind the overlay bleed through legibly. */
+  --panel-bg-opaque: #0d1310;
   --paper: #f8fafc;
   --line: rgba(255, 255, 255, 0.06);
 
@@ -80,6 +85,7 @@
   --seasalt: #f5eedb;
   --white: rgba(255, 255, 255, 0.85);
   --panel-bg: #ffffff;
+  --panel-bg-opaque: #ffffff;
   --paper: #133020;
   --line: rgba(19, 48, 32, 0.08);
 
@@ -1398,12 +1404,11 @@ a {
   flex-direction: column;
   border-radius: 18px;
   overflow: hidden;
-  background: var(--panel-bg);
-  /* panel-bg is translucent in dark mode (glassmorphism) — without blur,
-     whatever's behind the fixed-position panel (the dashboard page
-     content) reads through legibly instead of just tinting it. */
-  backdrop-filter: blur(28px) saturate(130%);
-  -webkit-backdrop-filter: blur(28px) saturate(130%);
+  /* Deliberately opaque, not var(--panel-bg) — see --panel-bg-opaque's
+     definition. backdrop-filter blur was tried first but isn't reliably
+     applied in every browser (confirmed not applying in testing), so
+     don't depend on it for legibility. */
+  background: var(--panel-bg-opaque);
   border: 1px solid var(--glass-border);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   animation: buckyIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
