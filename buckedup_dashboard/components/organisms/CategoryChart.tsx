@@ -5,8 +5,6 @@ import { categoryColor } from "@/lib/colors";
 import { CATEGORY_TREE } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { ChartTooltip } from "@/components/atoms/ChartTooltip";
-import { productBucket } from "@/lib/utils";
-
 interface CategoryChartProps {
   products: Product[];
   categoryTargets?: Record<string, number>;
@@ -21,14 +19,12 @@ export function CategoryChart({ products, categoryTargets }: CategoryChartProps)
     setTooltip(t => ({ ...t, x: e.clientX, y: e.clientY }));
   const hideTip = () => setTooltip(t => ({ ...t, visible: false }));
 
-  const rows = CATEGORY_TREE.map((cat) => {
-    const bucket = productBucket(cat.name);
-    
+  const rows = Object.keys(CATEGORY_TREE).map((categoryName) => {
     let total = 0;
     let delivered = 0;
 
     products.forEach((p) => {
-      if (p.category_id === bucket) {
+      if (p.category === categoryName) {
         total++;
         if (p.items.some((i) => i.status === "Published")) {
           delivered++;
@@ -37,7 +33,7 @@ export function CategoryChart({ products, categoryTargets }: CategoryChartProps)
     });
 
     return {
-      name: cat.name,
+      name: categoryName,
       total,
       delivered,
       pct: total > 0 ? (delivered / total) * 100 : 0,
