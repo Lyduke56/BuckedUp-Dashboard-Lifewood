@@ -93,15 +93,15 @@ export const STATUS_HEX_LIGHT: Record<PipelineStatus, string> = {
 // the full value set isn't enforced by a DB check constraint, so styling
 // here is best-effort with a neutral fallback.
 const REVIEW_STATUS_CLASS: Record<string, string> = {
-  "Not Started": "rs-not-started",
-  "In Production": "rs-in-production",
-  Accepted: "rs-accepted",
-  Rejected: "rs-rejected",
+  "Not Started": "not-started",
+  "In Production": "in-production",
+  Accepted: "accepted",
+  Rejected: "rejected",
 };
 
 export function reviewStatusClass(status: string | null): string {
-  if (!status) return "rs-not-started";
-  return REVIEW_STATUS_CLASS[status] ?? "rs-unknown";
+  if (!status) return "not-started";
+  return REVIEW_STATUS_CLASS[status] ?? "unknown";
 }
 
 export const REVIEW_STATUS_ORDER = [
