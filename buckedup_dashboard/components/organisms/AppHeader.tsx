@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { Lock, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/lib/useAuth";
-import { NotificationBell } from "./NotificationBell";
+import { NotificationBell } from "@/components/molecules/NotificationBell";
 
 interface AppHeaderProps {
   theme: "dark" | "light";

@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useTodayStats } from "@/lib/useTodayStats";
 import { useVideoRequests } from "@/lib/useVideoRequests";
-import { Tilt } from "@/components/shared/Tilt";
+import { Tilt } from "@/components/atoms/Tilt";
 
 export function ProductionOutputWidget() {
   const { plan } = useProductionPlan();

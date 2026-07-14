@@ -4,7 +4,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Tilt } from "@/components/shared/Tilt";
+import { Tilt } from "@/components/atoms/Tilt";
 
 const MailIcon = () => (
   <svg

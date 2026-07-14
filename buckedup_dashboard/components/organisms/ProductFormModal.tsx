@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { DELIVERABLE_STAGES } from "@/lib/types";
 import type { DeliveryType, PipelineStatus, Product } from "@/lib/types";
-import { VideoVersionsPanel } from "./VideoVersionsPanel";
+import { VideoVersionsPanel } from "@/components/organisms/VideoVersionsPanel";
 
 const DOC_ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -46,18 +46,18 @@ function initialState(
   if (mode === "edit" && product) {
     const item = product.items[0];
     return {
-      rank: String(product.rank),
-      name: product.name,
-      category: product.category,
-      subcategory: product.subcategory,
-      contentType: product.type,
-      language: product.language,
+      rank: String(product.rank ?? nextRank ?? 0),
+      name: product.name ?? "",
+      category: product.category ?? "",
+      subcategory: product.subcategory ?? "",
+      contentType: product.type ?? "",
+      language: product.language ?? "",
       productUrl: product.productUrl ?? "",
-      contentAngle: product.contentAngle,
+      contentAngle: product.contentAngle ?? "",
       ownerId: product.ownerId ?? "",
       publishDate: product.publishDate ?? "",
       status: item.status,
-      deliveryType: product.deliveryType,
+      deliveryType: product.deliveryType ?? "pipeline",
       videoUrl: item.videoUrl ?? "",
     };
   }
@@ -590,6 +590,35 @@ export function ProductFormModal({
               />
             </label>
 
+            {/* Thumbnail Portal */}
+            <div className="thumbnail-portal" style={isOperator ? { pointerEvents: "none", opacity: 0.8 } : undefined}>
+              <div className="content-angle-label">{isOperator ? "Thumbnail" : "Add thumbnail:"}</div>
+              {/* Clicking the box opens the hidden file input */}
+              <div
+                className="thumbnail-preview-box"
+                onClick={() => !isOperator && thumbnailInputRef.current?.click()}
+                role="button"
+                tabIndex={isOperator ? -1 : 0}
+                onKeyDown={(e) => !isOperator && e.key === "Enter" && thumbnailInputRef.current?.click()}
+                title={isOperator ? undefined : "Click to choose a thumbnail image"}
+              >
+                <input
+                  ref={thumbnailInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailChange}
+                  style={{ display: "none" }}
+                />
+                {thumbnailPreview ? (
+                  <img src={thumbnailPreview} alt="Thumbnail preview" className="thumbnail-preview-image" />
+                ) : (
+                  <div className="thumbnail-placeholder-icon">
+                    <span>Click to add thumbnail</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
              <div className="form-actions">
               {isOperator ? (
                 <button
@@ -651,36 +680,9 @@ export function ProductFormModal({
               </div>
             )}
 
-            {/* Thumbnail Portal */}
-            <div className="thumbnail-portal" style={isOperator ? { pointerEvents: "none", opacity: 0.8 } : undefined}>
-              <div className="content-angle-label">{isOperator ? "Thumbnail" : "Add thumbnail:"}</div>
-              {/* Clicking the box opens the hidden file input */}
-              <div
-                className="thumbnail-preview-box"
-                onClick={() => !isOperator && thumbnailInputRef.current?.click()}
-                role="button"
-                tabIndex={isOperator ? -1 : 0}
-                onKeyDown={(e) => !isOperator && e.key === "Enter" && thumbnailInputRef.current?.click()}
-                title={isOperator ? undefined : "Click to choose a thumbnail image"}
-              >
-                <input
-                  ref={thumbnailInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleThumbnailChange}
-                  style={{ display: "none" }}
-                />
-                {thumbnailPreview ? (
-                  <img src={thumbnailPreview} alt="Thumbnail preview" className="thumbnail-preview-image" />
-                ) : (
-                  <div className="thumbnail-placeholder-icon">
-                    <span>Click to add thumbnail</span>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* Note + Upload Version — rendered below thumbnail (Lead only or Operator who can submit) */}
+
+            {/* Note + Upload Version — rendered below video versions (Lead only or Operator who can submit) */}
             {mode === "edit" && product && (!isOperator || (isOperator && (product.ownerId === user?.id || !product.ownerId) && currentStatus === "Editing")) ? (
               <div className="version-upload-controls">
                 <input
@@ -696,7 +698,7 @@ export function ProductFormModal({
                   disabled={versionUploading || !versionFile}
                   onClick={() => uploadHandlerRef.current?.()}
                 >
-                  {versionUploading ? "Uploading…" : "Upload version"}
+                  {versionUploading ? "Uploading…" : "Upload video version"}
                 </button>
               </div>
             ) : null}
