@@ -1,10 +1,10 @@
 // KpiRow.tsx
 import type { Product } from "@/lib/types";
 import { productBucket, totalVideos } from "@/lib/utils";
-import { Card } from "@/components/shared/Card";
-import { CardGrid } from "@/components/shared/CardGrid";
+import { Card } from "@/components/atoms/Card";
+import { CardGrid } from "@/components/molecules/CardGrid";
 import React from 'react';
-import { Tilt } from "@/components/shared/Tilt";
+import { Tilt } from "@/components/atoms/Tilt";
 
 import { Package, Clapperboard, CheckCircle2, Clock, CircleDashed } from "lucide-react";
 

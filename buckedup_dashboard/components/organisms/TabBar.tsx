@@ -7,7 +7,7 @@ import {
   FolderIcon,
   OverviewIcon,
   UsersIcon,
-} from "@/components/shared/icons";
+} from "@/components/atoms/icons";
 import { motion } from "framer-motion";
 
 interface TabBarProps {

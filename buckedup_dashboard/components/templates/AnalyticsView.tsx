@@ -2,15 +2,15 @@ import type { Product } from "@/lib/types";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
-import { CategoryChart } from "./CategoryChart";
-import { DailyProgressChart } from "./DailyProgressChart";
-import { LanguageProgressChart } from "./LanguageProgressChart";
-import { ReviewStatusChart } from "./ReviewStatusChart";
-import { StageAgeChart } from "./StageAgeChart";
-import { StatusChart } from "./StatusChart";
-import { FunnelChart } from "./FunnelChart";
-import { OwnerWorkloadChart } from "./OwnerWorkloadChart";
-import { RejectionRateChart } from "./RejectionRateChart";
+import { CategoryChart } from "@/components/organisms/CategoryChart";
+import { DailyProgressChart } from "@/components/organisms/DailyProgressChart";
+import { LanguageProgressChart } from "@/components/organisms/LanguageProgressChart";
+import { ReviewStatusChart } from "@/components/organisms/ReviewStatusChart";
+import { StageAgeChart } from "@/components/organisms/StageAgeChart";
+import { StatusChart } from "@/components/organisms/StatusChart";
+import { FunnelChart } from "@/components/organisms/FunnelChart";
+import { OwnerWorkloadChart } from "@/components/organisms/OwnerWorkloadChart";
+import { RejectionRateChart } from "@/components/organisms/RejectionRateChart";
 import { PlayCircle, ShieldCheck, HelpCircle } from "lucide-react";
 
 interface AnalyticsViewProps {

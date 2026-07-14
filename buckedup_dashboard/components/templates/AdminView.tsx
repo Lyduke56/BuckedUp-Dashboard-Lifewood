@@ -1,6 +1,6 @@
 "use client";
 
-import { ManageUsersView } from "./ManageUsersView";
+import { ManageUsersView } from "@/components/templates/ManageUsersView";
 
 // Admin is governance-only now: user-account management is its sole job
 // (production-plan config moved to Lead's Planning tab, see PlanningView).

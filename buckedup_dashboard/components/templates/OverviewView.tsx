@@ -1,10 +1,10 @@
 import type { Product } from "@/lib/types";
-import { KpiRow } from "./KpiRow";
-import { OverviewSnapshot } from "./OverviewSnapshot";
-import { ProjectProgressCard } from "./ProjectProgressCard";
-import { ProductionOutputWidget } from "./ProductionOutputWidget";
-import { RecentActivityWidget } from "./RecentActivityWidget";
-import { Tilt } from "@/components/shared/Tilt";
+import { KpiRow } from "@/components/molecules/KpiRow";
+import { OverviewSnapshot } from "@/components/organisms/OverviewSnapshot";
+import { ProjectProgressCard } from "@/components/organisms/ProjectProgressCard";
+import { ProductionOutputWidget } from "@/components/organisms/ProductionOutputWidget";
+import { RecentActivityWidget } from "@/components/organisms/RecentActivityWidget";
+import { Tilt } from "@/components/atoms/Tilt";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 
 interface OverviewViewProps {

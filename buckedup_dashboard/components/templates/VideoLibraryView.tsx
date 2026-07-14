@@ -23,13 +23,13 @@ import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
-import { KanbanBoard } from "./KanbanBoard";
-import { CategoryFolderGrid } from "./CategoryFolderGrid";
-import { ProductThumbnailGrid } from "./ProductThumbnailGrid";
-import { ProductFormModal } from "./ProductFormModal";
-import { ProductionModal } from "./ProductionModal";
-import { ProductReviewModal } from "./ProductReviewModal";
-import { StageHistoryLog } from "./StageHistoryLog";
+import { KanbanBoard } from "@/components/organisms/KanbanBoard";
+import { CategoryFolderGrid } from "@/components/molecules/CategoryFolderGrid";
+import { ProductThumbnailGrid } from "@/components/molecules/ProductThumbnailGrid";
+import { ProductFormModal } from "@/components/organisms/ProductFormModal";
+import { ProductionModal } from "@/components/organisms/ProductionModal";
+import { ProductReviewModal } from "@/components/organisms/ProductReviewModal";
+import { StageHistoryLog } from "@/components/organisms/StageHistoryLog";
 
 // Stages an Operator can submit a deliverable for (the 3 doc/text stages
 // plus Editing's video). A Lead reviews the same set plus In Review.

@@ -5,7 +5,7 @@ import { useMounted } from "@/lib/useMounted";
 import { STATUS_HEX } from "@/lib/data";
 import type { PipelineStatus, Product } from "@/lib/types";
 import { parseDriveFileId, parseModalKey } from "@/lib/utils";
-import { PlayCircleIcon, VideoCameraIcon } from "@/components/shared/icons";
+import { PlayCircleIcon, VideoCameraIcon } from "@/components/atoms/icons";
 
 interface VideoModalProps {
   products: Product[];

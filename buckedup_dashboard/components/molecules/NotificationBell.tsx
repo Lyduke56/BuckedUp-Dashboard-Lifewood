@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNotifications } from "@/lib/useNotifications";
-import { BellIcon } from "@/components/shared/icons";
+import { BellIcon } from "@/components/atoms/icons";
 
 interface NotificationBellProps {
   onNavigate: (productName: string) => void;

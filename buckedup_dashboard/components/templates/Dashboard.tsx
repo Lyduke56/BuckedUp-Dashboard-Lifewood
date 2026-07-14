@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import type { ViewId } from "@/lib/types";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
-import { AppHeader } from "./layout/AppHeader";
-import { TabBar } from "./layout/TabBar";
-import { OverviewView } from "./overview/OverviewView";
-import { VideoLibraryView } from "./library/VideoLibraryView";
-import { VideoModal } from "./library/VideoModal";
-import { AnalyticsView } from "./analytics/AnalyticsView";
-import { AdminView } from "./admin/AdminView";
-import { PlanningView } from "./admin/PlanningView";
-import { BuckyWidget } from "./shared/BuckyWidget";
+import { AppHeader } from "@/components/organisms/AppHeader";
+import { TabBar } from "@/components/organisms/TabBar";
+import { OverviewView } from "@/components/templates/OverviewView";
+import { VideoLibraryView } from "@/components/templates/VideoLibraryView";
+import { VideoModal } from "@/components/organisms/VideoModal";
+import { AnalyticsView } from "@/components/templates/AnalyticsView";
+import { AdminView } from "@/components/templates/AdminView";
+import { PlanningView } from "@/components/templates/PlanningView";
+import { BuckyWidget } from "@/components/organisms/BuckyWidget";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");

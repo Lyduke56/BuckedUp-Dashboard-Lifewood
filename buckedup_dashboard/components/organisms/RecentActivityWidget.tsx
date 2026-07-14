@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/types";
 import { CheckCircle2, Video } from "lucide-react";
-import { Tilt } from "@/components/shared/Tilt";
+import { Tilt } from "@/components/atoms/Tilt";
 
 interface RecentActivityWidgetProps {
   products: Product[];

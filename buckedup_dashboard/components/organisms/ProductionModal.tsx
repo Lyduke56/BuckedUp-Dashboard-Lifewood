@@ -11,7 +11,7 @@ import {
   type Product,
   type StageDeliverable,
 } from "@/lib/types";
-import { VideoVersionsPanel } from "./VideoVersionsPanel";
+import { VideoVersionsPanel } from "@/components/organisms/VideoVersionsPanel";
 
 interface ProductionModalProps {
   product: Product;

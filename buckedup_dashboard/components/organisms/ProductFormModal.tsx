@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { DELIVERABLE_STAGES } from "@/lib/types";
 import type { DeliveryType, PipelineStatus, Product } from "@/lib/types";
-import { VideoVersionsPanel } from "./VideoVersionsPanel";
+import { VideoVersionsPanel } from "@/components/organisms/VideoVersionsPanel";
 
 const DOC_ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -113,8 +113,10 @@ export function ProductFormModal({
   // Sync delKind with currentStatus change
   useEffect(() => {
     if (currentStatus === "Prompting") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDelKind("text");
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDelKind("file");
     }
   }, [currentStatus]);
