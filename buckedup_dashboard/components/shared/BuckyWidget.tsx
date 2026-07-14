@@ -3,47 +3,37 @@
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Bot, Send, X } from "lucide-react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, isToolUIPart } from "ai";
 import { useMounted } from "@/lib/useMounted";
 
-interface ChatMessage {
-  from: "bucky" | "user";
-  text: string;
-}
+const GREETING =
+  "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
 
-const GREETING: ChatMessage = {
-  from: "bucky",
-  text: "Hi, I'm Bucky. Ask me about the pipeline, or tell me what you'd like to do — I can help you operate the dashboard.",
-};
-
-// UI-only assistant for admins. No LLM/backend is wired yet — Bucky replies
-// with a canned acknowledgement so the interaction surface exists and can
-// be connected to a real agent later. Presentational only; state resets on
-// close/reload.
+// Admin-only assistant, wired to a real tool-calling backend
+// (app/api/bucky/chat/route.ts). Read-only for now: Bucky can answer
+// questions about any dashboard data but can't yet create/edit/delete
+// anything — see the Bucky plan for the phased rollout. State resets on
+// close/reload (no persisted chat history yet).
 export function BuckyWidget() {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [draft, setDraft] = useState("");
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/bucky/chat" }),
+  });
 
   const send = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
     setDraft("");
-    setMessages((prev) => [...prev, { from: "user", text }]);
-    // Canned response (no real agent yet).
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          from: "bucky",
-          text: "I'm still learning the ropes — a real assistant will be wired up here soon. For now, try the tabs above to navigate the dashboard.",
-        },
-      ]);
-    }, 500);
+    sendMessage({ text });
   };
 
   if (!mounted) return null;
+
+  const busy = status === "submitted" || status === "streaming";
 
   return createPortal(
     <div className="bucky-root">
@@ -65,11 +55,52 @@ export function BuckyWidget() {
           </div>
 
           <div className="bucky-messages">
-            {messages.map((message, index) => (
-              <div key={index} className={`bucky-msg bucky-msg-${message.from}`}>
-                {message.text}
-              </div>
-            ))}
+            <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+
+            {messages.map((message) =>
+              message.parts.map((part, partIndex) => {
+                const key = `${message.id}-${partIndex}`;
+                if (part.type === "text") {
+                  return (
+                    <div
+                      key={key}
+                      className={`bucky-msg bucky-msg-${message.role === "user" ? "user" : "bucky"}`}
+                    >
+                      {part.text}
+                    </div>
+                  );
+                }
+                if (isToolUIPart(part)) {
+                  const toolName =
+                    part.type === "dynamic-tool" ? part.toolName : part.type.slice("tool-".length);
+                  if (part.state === "output-available") {
+                    return (
+                      <div key={key} className="bucky-tool-json">
+                        {toolName}: {JSON.stringify(part.output, null, 2)}
+                      </div>
+                    );
+                  }
+                  if (part.state === "output-error") {
+                    return (
+                      <div key={key} className="bucky-msg-tool">
+                        {toolName} failed: {part.errorText}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={key} className="bucky-msg-tool">
+                      Checking {toolName}…
+                    </div>
+                  );
+                }
+                return null;
+              }),
+            )}
+
+            {busy ? <div className="bucky-msg-tool">Bucky is thinking…</div> : null}
+            {status === "error" ? (
+              <div className="bucky-msg-tool">Something went wrong — try again.</div>
+            ) : null}
           </div>
 
           <form className="bucky-input-row" onSubmit={send}>
@@ -79,8 +110,14 @@ export function BuckyWidget() {
               placeholder="Ask Bucky…"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              disabled={busy}
             />
-            <button type="submit" className="bucky-send" aria-label="Send" disabled={!draft.trim()}>
+            <button
+              type="submit"
+              className="bucky-send"
+              aria-label="Send"
+              disabled={!draft.trim() || busy}
+            >
               <Send size={15} />
             </button>
           </form>
