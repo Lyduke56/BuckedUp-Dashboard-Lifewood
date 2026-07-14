@@ -80,7 +80,16 @@ export function VideoVersionsPanel({
   const [localUploading, setLocalUploading] = useState(false);
 
   useEffect(() => {
-    fetchVersions(productId).then(setVersions);
+    fetchVersions(productId).then(data => {
+      setVersions(data);
+      const fetchedHasFile = data.some(v => v.video_url.includes('/storage/v1/object/public/videos/'));
+      const fetchedHasUrl = data.some(v => !v.video_url.includes('/storage/v1/object/public/videos/'));
+      if (fetchedHasFile) {
+        setInputMode("file");
+      } else if (fetchedHasUrl) {
+        setInputMode("url");
+      }
+    });
   }, [productId]);
 
   // Upload handler logic (unified)
@@ -198,6 +207,9 @@ export function VideoVersionsPanel({
     }
   };
 
+  const hasFile = versions.some(v => v.video_url.includes('/storage/v1/object/public/videos/'));
+  const hasUrl = versions.some(v => !v.video_url.includes('/storage/v1/object/public/videos/'));
+
   return (
     <div className="video-versions">
       <div className="content-angle-label">Video versions</div>
@@ -224,20 +236,24 @@ export function VideoVersionsPanel({
 
       {/* Source toggle: upload a file, or paste an external (YouTube) URL. */}
       <div className="filter-pills" style={{ marginTop: "8px" }}>
-        <button
-          type="button"
-          className={`pill${inputMode === "file" ? " active" : ""}`}
-          onClick={() => setInputMode("file")}
-        >
-          Upload file
-        </button>
-        <button
-          type="button"
-          className={`pill${inputMode === "url" ? " active" : ""}`}
-          onClick={() => setInputMode("url")}
-        >
-          Paste YouTube URL
-        </button>
+        {!hasUrl && (
+          <button
+            type="button"
+            className={`pill${inputMode === "file" ? " active" : ""}`}
+            onClick={() => setInputMode("file")}
+          >
+            Upload file
+          </button>
+        )}
+        {!hasFile && (
+          <button
+            type="button"
+            className={`pill${inputMode === "url" ? " active" : ""}`}
+            onClick={() => setInputMode("url")}
+          >
+            Paste YouTube URL
+          </button>
+        )}
       </div>
 
       {/* Render depending on mode */}
@@ -245,6 +261,7 @@ export function VideoVersionsPanel({
         <div className="issue-form versions-file-row">
           {inputMode === "url" ? (
             <input
+              key="url-input"
               type="url"
               placeholder="https://youtube.com/watch?v=… (unlisted is fine)"
               value={urlValue}
@@ -252,6 +269,7 @@ export function VideoVersionsPanel({
             />
           ) : (
             <input
+              key="file-input"
               ref={fileInputRef}
               type="file"
               accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"
@@ -263,6 +281,7 @@ export function VideoVersionsPanel({
         <div className="issue-form">
           {inputMode === "url" ? (
             <input
+              key="url-input"
               type="url"
               placeholder="https://youtube.com/watch?v=… (unlisted is fine)"
               value={urlValue}
@@ -270,6 +289,7 @@ export function VideoVersionsPanel({
             />
           ) : (
             <input
+              key="file-input"
               ref={fileInputRef}
               type="file"
               accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska"

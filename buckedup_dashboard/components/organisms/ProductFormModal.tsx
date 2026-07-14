@@ -46,18 +46,18 @@ function initialState(
   if (mode === "edit" && product) {
     const item = product.items[0];
     return {
-      rank: String(product.rank),
-      name: product.name,
-      category: product.category,
-      subcategory: product.subcategory,
-      contentType: product.type,
-      language: product.language,
+      rank: String(product.rank ?? nextRank ?? 0),
+      name: product.name ?? "",
+      category: product.category ?? "",
+      subcategory: product.subcategory ?? "",
+      contentType: product.type ?? "",
+      language: product.language ?? "",
       productUrl: product.productUrl ?? "",
-      contentAngle: product.contentAngle,
+      contentAngle: product.contentAngle ?? "",
       ownerId: product.ownerId ?? "",
       publishDate: product.publishDate ?? "",
       status: item.status,
-      deliveryType: product.deliveryType,
+      deliveryType: product.deliveryType ?? "pipeline",
       videoUrl: item.videoUrl ?? "",
     };
   }
