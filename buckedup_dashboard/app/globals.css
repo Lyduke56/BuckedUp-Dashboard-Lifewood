@@ -53,11 +53,19 @@
 
   /* Shell header glassmorphism variables */
   --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.75) 0%, rgba(6, 11, 15, 0.75) 100%);
+  --header-top-bg: transparent;
+  --header-bottom-bg: var(--glass-bg);
   --header-border: rgba(16, 185, 129, 0.35);
   --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 16px rgba(16, 185, 129, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-  --active-tab-bg: linear-gradient(135deg, rgba(255, 179, 71, 0.25) 0%, rgba(255, 157, 0, 0.05) 100%);
-  --active-tab-border: rgba(255, 179, 71, 0.5);
-  --active-tab-shadow: 0 0 15px rgba(255, 179, 71, 0.3);
+  --header-text: #ffffff;
+  --header-text-muted: rgba(255, 255, 255, 0.75);
+  --header-item-bg-active: rgba(255, 255, 255, 0.1);
+  --header-badge-bg: rgba(255, 255, 255, 0.08);
+  --header-badge-border: rgba(255, 255, 255, 0.15);
+  --header-badge-text: rgba(255, 255, 255, 0.85);
+  --active-tab-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 100%);
+  --active-tab-border: rgba(16, 185, 129, 0.45);
+  --active-tab-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 
   /* Progress Card & Pill custom variables (Dark mode) */
   --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%);
@@ -94,12 +102,14 @@
   --ink: #133020;
   --ink-soft: #4d7d68;
   --serpent: #fcf8f2;
-  --header-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.8) 0%, rgba(6, 11, 15, 0.8) 100%);
+  --header-bg: transparent;
+  --header-top-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.8) 0%, rgba(6, 11, 15, 0.8) 100%);
+  --header-bottom-bg: rgba(255, 255, 255, 0.95);
   --header-border: rgba(16, 185, 129, 0.35);
   --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-  --active-tab-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 100%);
-  --active-tab-border: rgba(16, 185, 129, 0.45);
-  --active-tab-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+  --active-tab-bg: linear-gradient(135deg, rgba(255, 179, 71, 0.25) 0%, rgba(255, 157, 0, 0.05) 100%);
+  --active-tab-border: rgba(255, 179, 71, 0.5);
+  --active-tab-shadow: 0 0 15px rgba(255, 179, 71, 0.3);
 
   --saffron: #d98324;
   --earth-yellow: #9a621e;
@@ -115,7 +125,7 @@
   --progress-card-mouse-glow: radial-gradient(circle, rgba(0, 214, 133, 0.2) 0%, transparent 70%);
   --progress-card-shimmer-color: rgba(0, 214, 133, 0.08);
 
-  --pill-active-bg: rgba(217, 131, 36, 0.15);
+  --pill-active-bg: linear-gradient(135deg, rgba(255, 179, 71, 0.3) 0%, rgba(255, 179, 71, 0.1) 100%);
   --pill-active-border: rgba(217, 131, 36, 0.4);
   --pill-active-shadow: 0 0 12px rgba(217, 131, 36, 0.15);
 
@@ -271,12 +281,26 @@ a {
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
+[data-theme='light'] .shell-header .tab-bar-item {
+  color: var(--ink-soft) !important;
+}
+
+[data-theme='light'] .shell-header .tab-bar-item:hover {
+  color: var(--ink) !important;
+}
+
+[data-theme='light'] .shell-header .tab-bar-item.active {
+  color: var(--ink) !important;
+  background: rgba(19, 48, 32, 0.08) !important;
+}
+
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 28px;
-  background: transparent;
+  background: var(--header-top-bg);
+  border-radius: 23px 23px 0 0;
 }
 
 .brand-row {
@@ -350,10 +374,11 @@ a {
 /* ================= TAB BAR ================= */
 .tab-bar {
   display: flex;
-  background: var(--glass-bg);
+  background: var(--header-bottom-bg);
   border-top: 1px solid var(--glass-hover);
   padding: 6px 16px;
   gap: 8px;
+  border-radius: 0 0 23px 23px;
 }
 
 .tab-bar-item {
@@ -395,6 +420,8 @@ a {
 
 .panel {
   background: var(--panel-bg);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 28px;

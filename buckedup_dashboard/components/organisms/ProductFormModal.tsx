@@ -98,6 +98,7 @@ export function ProductFormModal({
   const { user, role } = useAuth();
   const { currentByKey } = useStageDeliverables();
   const isOperator = role === "operator";
+  const canEditThumbnail = mode === "add" || isOperator;
 
   const currentStatus = product ? product.items[0].status : null;
   const currentDeliverable = product && currentStatus ? (currentByKey.get(`${product.id}:${currentStatus}`) ?? null) : null;
@@ -591,16 +592,16 @@ export function ProductFormModal({
             </label>
 
             {/* Thumbnail Portal */}
-            <div className="thumbnail-portal" style={isOperator ? { pointerEvents: "none", opacity: 0.8 } : undefined}>
-              <div className="content-angle-label">{isOperator ? "Thumbnail" : "Add thumbnail:"}</div>
+            <div className="thumbnail-portal" style={!canEditThumbnail ? { pointerEvents: "none", opacity: 0.8 } : undefined}>
+              <div className="content-angle-label">{!canEditThumbnail ? "Thumbnail" : "Add thumbnail:"}</div>
               {/* Clicking the box opens the hidden file input */}
               <div
                 className="thumbnail-preview-box"
-                onClick={() => !isOperator && thumbnailInputRef.current?.click()}
+                onClick={() => canEditThumbnail && thumbnailInputRef.current?.click()}
                 role="button"
-                tabIndex={isOperator ? -1 : 0}
-                onKeyDown={(e) => !isOperator && e.key === "Enter" && thumbnailInputRef.current?.click()}
-                title={isOperator ? undefined : "Click to choose a thumbnail image"}
+                tabIndex={!canEditThumbnail ? -1 : 0}
+                onKeyDown={(e) => canEditThumbnail && e.key === "Enter" && thumbnailInputRef.current?.click()}
+                title={!canEditThumbnail ? undefined : "Click to choose a thumbnail image"}
               >
                 <input
                   ref={thumbnailInputRef}
@@ -620,18 +621,8 @@ export function ProductFormModal({
             </div>
 
              <div className="form-actions">
-              {isOperator ? (
-                <button
-                  type="button"
-                  className="pill"
-                  onClick={onClose}
-                  style={{ marginLeft: "auto", height: "38px", borderRadius: "12px", padding: "0 20px" }}
-                >
-                  Close
-                </button>
-              ) : (
                 <>
-                  {mode === "edit" ? (
+                  {mode === "edit" && !isOperator ? (
                     <button
                       type="button"
                       className="delete-btn"
@@ -647,6 +638,7 @@ export function ProductFormModal({
                     type="submit"
                     className="issue-submit-btn"
                     disabled={submitting || deleting}
+                    style={isOperator ? { marginLeft: "auto" } : {}}
                   >
                     {submitting
                       ? "Saving…"
@@ -655,7 +647,6 @@ export function ProductFormModal({
                         : "Add product"}
                   </button>
                 </>
-              )}
             </div>
           </form>
 
@@ -682,8 +673,8 @@ export function ProductFormModal({
 
 
 
-            {/* Note + Upload Version — rendered below video versions (Lead only or Operator who can submit) */}
-            {mode === "edit" && product && (!isOperator || (isOperator && (product.ownerId === user?.id || !product.ownerId) && currentStatus === "Editing")) ? (
+            {/* Note + Upload Version — rendered below video versions (Operator only) */}
+            {mode === "edit" && product && isOperator ? (
               <div className="version-upload-controls">
                 <input
                   type="text"

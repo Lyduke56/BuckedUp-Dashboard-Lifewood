@@ -36,11 +36,11 @@ export function AppHeader({
         <span style={{
           fontSize: '12px',
           fontWeight: 700,
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: 'var(--header-text)',
           marginLeft: '14px',
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.15)',
+          borderLeft: '1px solid var(--header-border)',
           paddingLeft: '14px',
           height: '14px',
           display: 'inline-flex',
@@ -54,11 +54,11 @@ export function AppHeader({
         {authLoading ? null : user ? (
           <div className="auth-status" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <NotificationBell onNavigate={onNotificationNavigate} />
-            <span className="auth-email" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{user.email}</span>
+            <span className="auth-email" style={{ fontSize: '12px', color: 'var(--header-text)', fontWeight: 600 }}>{user.email}</span>
             <button type="button" className="header-btn" onClick={signOut} style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              color: '#ffffff',
+              background: 'var(--header-badge-bg, rgba(255,255,255,0.1))',
+              border: '1px solid var(--header-badge-border, rgba(255,255,255,0.15))',
+              color: 'var(--header-text)',
               padding: '6px 12px',
               borderRadius: '20px',
               fontSize: '12px',
