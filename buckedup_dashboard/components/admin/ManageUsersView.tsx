@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
 import { createClient } from "@/lib/supabase/client";
 import { roleLabel } from "@/lib/utils";
@@ -8,25 +9,23 @@ import type { UserRole } from "@/lib/types";
 
 const ROLE_OPTIONS: UserRole[] = ["operator", "lead", "admin"];
 
-interface CreatedAccount {
+interface InvitedAccount {
   email: string;
   role: UserRole;
-  temporaryPassword: string;
 }
 
 export function ManageUsersView() {
+  const { user } = useAuth();
   const { profiles, loading } = useProfiles();
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("operator");
-  const [manualPassword, setManualPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [created, setCreated] = useState<CreatedAccount | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [invited, setInvited] = useState<InvitedAccount | null>(null);
 
   const handleRoleChange = async (id: string, role: UserRole) => {
     setSavingId(id);
@@ -48,40 +47,34 @@ export function ManageUsersView() {
     const res = await fetch("/api/admin/create-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: newEmail.trim(),
-        role: newRole,
-        password: manualPassword ? newPassword.trim() : undefined,
-      }),
+      body: JSON.stringify({ email: newEmail.trim(), role: newRole }),
     });
     const body = await res.json();
 
     setCreating(false);
     if (!res.ok) {
-      setCreateError(body.error ?? "Failed to create account");
+      setCreateError(body.error ?? "Failed to send invite");
       return;
     }
 
-    setCreated(body as CreatedAccount);
+    setInvited(body as InvitedAccount);
     setNewEmail("");
     setNewRole("operator");
-    setManualPassword(false);
-    setNewPassword("");
   };
 
-  const dismissCreated = () => {
-    setCreated(null);
-    setCopied(false);
-  };
+  const dismissInvited = () => setInvited(null);
 
-  const copyPassword = async () => {
-    if (!created) return;
-    try {
-      await navigator.clipboard.writeText(created.temporaryPassword);
-      setCopied(true);
-    } catch {
-      // Clipboard API can be unavailable (permissions/insecure context) —
-      // the password stays visible in the panel to copy manually either way.
+  const handleDelete = async (profileId: string, email: string) => {
+    if (!window.confirm(`Delete ${email}'s account? This can't be undone.`)) {
+      return;
+    }
+    setDeletingId(profileId);
+    setError(null);
+    const res = await fetch(`/api/admin/users/${profileId}`, { method: "DELETE" });
+    setDeletingId(null);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Failed to delete account");
     }
   };
 
@@ -92,7 +85,7 @@ export function ManageUsersView() {
   return (
     <div>
       <div className="content-angle-label">Create user</div>
-      {created ? (
+      {invited ? (
         <div
           className="callout"
           style={{
@@ -104,30 +97,11 @@ export function ManageUsersView() {
           }}
         >
           <div>
-            Account created for <strong>{created.email}</strong> ({roleLabel(created.role)}).
-          </div>
-          <div style={{ fontSize: "12px", fontWeight: 700 }}>
-            Temporary password — copy this now, it will not be shown again:
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <code
-              style={{
-                fontFamily: "monospace",
-                fontSize: "14px",
-                padding: "6px 10px",
-                borderRadius: "8px",
-                background: "var(--glass-bg)",
-                border: "1px solid var(--glass-border)",
-              }}
-            >
-              {created.temporaryPassword}
-            </code>
-            <button type="button" className="header-btn" onClick={copyPassword}>
-              {copied ? "Copied" : "Copy"}
-            </button>
+            Invite sent to <strong>{invited.email}</strong> ({roleLabel(invited.role)}).
+            They&apos;ll receive an email to set their password.
           </div>
           <div>
-            <button type="button" className="header-btn" onClick={dismissCreated}>
+            <button type="button" className="header-btn" onClick={dismissInvited}>
               Done
             </button>
           </div>
@@ -167,36 +141,10 @@ export function ManageUsersView() {
             </select>
           </label>
 
-          <label className="form-field form-field-wide" style={{ flexDirection: "row", alignItems: "center", gap: "8px" }}>
-            <input
-              type="checkbox"
-              checked={manualPassword}
-              onChange={(event) => setManualPassword(event.target.checked)}
-              style={{ width: "auto" }}
-            />
-            <span style={{ textTransform: "none", letterSpacing: "normal" }}>
-              Set the temporary password manually (otherwise one is generated for you)
-            </span>
-          </label>
-
-          {manualPassword ? (
-            <label className="form-field form-field-wide">
-              <span>Temporary password</span>
-              <input
-                type="text"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                placeholder="At least 8 characters"
-                minLength={8}
-                required={manualPassword}
-              />
-            </label>
-          ) : null}
-
           <div className="form-actions">
             <span />
             <button type="submit" className="issue-submit-btn" disabled={creating}>
-              {creating ? "Creating…" : "Create account"}
+              {creating ? "Sending invite…" : "Send invite"}
             </button>
           </div>
         </form>
@@ -222,6 +170,7 @@ export function ManageUsersView() {
             <tr>
               <th>Email</th>
               <th>Role</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -243,6 +192,18 @@ export function ManageUsersView() {
                       </option>
                     ))}
                   </select>
+                </td>
+                <td>
+                  {profile.id !== user?.id ? (
+                    <button
+                      type="button"
+                      className="header-btn"
+                      disabled={deletingId === profile.id}
+                      onClick={() => handleDelete(profile.id, profile.email)}
+                    >
+                      {deletingId === profile.id ? "Deleting…" : "Delete"}
+                    </button>
+                  ) : null}
                 </td>
               </tr>
             ))}

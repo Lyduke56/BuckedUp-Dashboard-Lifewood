@@ -1,23 +1,9 @@
-import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { UserRole } from "@/lib/types";
 
 const ROLE_VALUES: UserRole[] = ["operator", "lead", "admin"];
-const MIN_PASSWORD_LENGTH = 8;
-// Excludes visually-ambiguous characters (0/O, 1/l/I) since this is meant
-// to be read off a screen and typed/copy-pasted by a human once.
-const PASSWORD_ALPHABET =
-  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-
-function generateTempPassword(length = 12): string {
-  let out = "";
-  for (let i = 0; i < length; i++) {
-    out += PASSWORD_ALPHABET[randomInt(PASSWORD_ALPHABET.length)];
-  }
-  return out;
-}
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -46,7 +32,7 @@ export async function POST(request: Request) {
   }
 
   // 3. Validate the request body.
-  let body: { email?: unknown; role?: unknown; password?: unknown };
+  let body: { email?: unknown; role?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -55,7 +41,6 @@ export async function POST(request: Request) {
 
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const role = typeof body.role === "string" ? body.role : "";
-  const password = typeof body.password === "string" ? body.password.trim() : "";
 
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
@@ -63,41 +48,43 @@ export async function POST(request: Request) {
   if (!ROLE_VALUES.includes(role as UserRole)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
-  if (password && password.length < MIN_PASSWORD_LENGTH) {
-    return NextResponse.json(
-      { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` },
-      { status: 400 },
-    );
-  }
 
   // 4. Only now touch the service-role client — everything above this
   // line is a plain, RLS-respecting check under the caller's own session.
   const adminClient = createAdminClient();
-  const tempPassword = password || generateTempPassword();
+  const redirectTo = `${new URL(request.url).origin}/auth/confirm`;
 
-  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+  const { data: created, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
     email,
-    password: tempPassword,
-    email_confirm: true,
-  });
+    { redirectTo },
+  );
 
-  if (createError || !created.user) {
+  if (inviteError || !created.user) {
     const alreadyExists =
-      createError?.status === 422 ||
-      /already.*registered|already.*exists/i.test(createError?.message ?? "");
+      inviteError?.status === 422 ||
+      /already.*registered|already.*exists/i.test(inviteError?.message ?? "");
+    // Supabase's built-in email service caps at 2 sends/hour (30/hour once
+    // custom SMTP is configured) — surface this distinctly rather than a
+    // generic 500, since it's an expected, recoverable condition.
+    const rateLimited =
+      inviteError?.status === 429 ||
+      inviteError?.code === "over_email_send_rate_limit";
     return NextResponse.json(
       {
         error: alreadyExists
           ? "An account with this email already exists"
-          : createError?.message ?? "Failed to create account",
+          : rateLimited
+            ? "Too many invites sent recently — please try again in a few minutes"
+            : inviteError?.message ?? "Failed to send invite",
       },
-      { status: alreadyExists ? 409 : 500 },
+      { status: alreadyExists ? 409 : rateLimited ? 429 : 500 },
     );
   }
 
   // 5. handle_new_user() has now inserted a profiles row defaulting to
   // role='operator'/must_change_password=false — set the requested role
-  // and flip the flag in one follow-up write.
+  // and flip the flag so the invited user is forced to set a password
+  // (they have none yet) before seeing the dashboard.
   const { error: profileError } = await adminClient
     .from("profiles")
     .update({ role, must_change_password: true })
@@ -107,15 +94,12 @@ export async function POST(request: Request) {
     // Best-effort rollback so a retry with the same email doesn't hit a
     // false "already exists" against an orphaned, half-configured account.
     await adminClient.auth.admin.deleteUser(created.user.id).catch(() => {});
-    console.error("create-user: failed to set role/flag after account creation", profileError);
+    console.error("create-user: failed to set role/flag after invite", profileError);
     return NextResponse.json(
       { error: "Account creation failed while finishing setup — please retry" },
       { status: 500 },
     );
   }
 
-  return NextResponse.json(
-    { email, role, temporaryPassword: tempPassword },
-    { status: 201 },
-  );
+  return NextResponse.json({ email, role }, { status: 201 });
 }

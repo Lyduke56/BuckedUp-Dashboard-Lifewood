@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Tilt } from "@/components/shared/Tilt";
 
@@ -60,11 +60,27 @@ const SignInIcon = () => (
 );
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteLinkInvalid = searchParams.get("error") === "invite-link-invalid";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const displayError =
+    error ??
+    (inviteLinkInvalid
+      ? "That invite link is invalid or has expired. Ask an admin to resend the invite."
+      : null);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -116,7 +132,7 @@ export default function LoginPage() {
             AIGC video queues monitoring & pipeline administration. Authorized partners sign in to manage, edit, and update video tasks.
           </p>
 
-          {error ? <div className="callout login-error">{error}</div> : null}
+          {displayError ? <div className="callout login-error">{displayError}</div> : null}
 
           <div className="login-fields-container" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             <label className="login-field">

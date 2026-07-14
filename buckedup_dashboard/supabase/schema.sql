@@ -350,7 +350,7 @@ create table video_versions (
   video_url text not null,
   note text,
   is_current boolean not null default false,
-  created_by uuid references profiles(id),
+  created_by uuid references profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
 

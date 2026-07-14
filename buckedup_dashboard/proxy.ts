@@ -67,7 +67,10 @@ export const config = {
      * - api (route handlers do their own auth check and return JSON —
      *   this proxy's HTML redirect would otherwise get silently followed
      *   by fetch() and hand back a login page where JSON was expected)
+     * - auth (invite/recovery email links land here with no session yet —
+     *   the redirect-to-/login rule below would otherwise hijack the
+     *   request before /auth/confirm ever runs)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api|auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
