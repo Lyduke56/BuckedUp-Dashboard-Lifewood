@@ -10,6 +10,20 @@ import { useMounted } from "@/lib/useMounted";
 const GREETING =
   "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
 
+// The model tends to answer with **bold** markdown around key numbers/
+// names — render that as actual emphasis rather than literal asterisks,
+// without pulling in a full markdown parser for just this one case.
+function renderInlineMarkdown(text: string) {
+  const segments = text.split(/(\*\*[^*]+\*\*)/g);
+  return segments.map((segment, index) =>
+    segment.startsWith("**") && segment.endsWith("**") ? (
+      <strong key={index}>{segment.slice(2, -2)}</strong>
+    ) : (
+      segment
+    ),
+  );
+}
+
 // Admin-only assistant, wired to a real tool-calling backend
 // (app/api/bucky/chat/route.ts). Read-only for now: Bucky can answer
 // questions about any dashboard data but can't yet create/edit/delete
@@ -66,7 +80,7 @@ export function BuckyWidget() {
                       key={key}
                       className={`bucky-msg bucky-msg-${message.role === "user" ? "user" : "bucky"}`}
                     >
-                      {part.text}
+                      {renderInlineMarkdown(part.text)}
                     </div>
                   );
                 }
@@ -75,9 +89,10 @@ export function BuckyWidget() {
                     part.type === "dynamic-tool" ? part.toolName : part.type.slice("tool-".length);
                   if (part.state === "output-available") {
                     return (
-                      <div key={key} className="bucky-tool-json">
-                        {toolName}: {JSON.stringify(part.output, null, 2)}
-                      </div>
+                      <details key={key} className="bucky-tool-json">
+                        <summary>Looked up {toolName}</summary>
+                        <pre>{JSON.stringify(part.output, null, 2)}</pre>
+                      </details>
                     );
                   }
                   if (part.state === "output-error") {

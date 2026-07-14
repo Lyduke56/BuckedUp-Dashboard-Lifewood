@@ -1399,6 +1399,11 @@ a {
   border-radius: 18px;
   overflow: hidden;
   background: var(--panel-bg);
+  /* panel-bg is translucent in dark mode (glassmorphism) — without blur,
+     whatever's behind the fixed-position panel (the dashboard page
+     content) reads through legibly instead of just tinting it. */
+  backdrop-filter: blur(28px) saturate(130%);
+  -webkit-backdrop-filter: blur(28px) saturate(130%);
   border: 1px solid var(--glass-border);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   animation: buckyIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
@@ -1490,19 +1495,46 @@ a {
   border-bottom-left-radius: 4px;
 }
 
+/* A collapsed <details> pill by default — the raw tool JSON is useful for
+   debugging but shouldn't dominate the chat when the real answer is the
+   text reply that follows it. */
 .bucky-tool-json {
   align-self: flex-start;
   max-width: 92%;
-  max-height: 160px;
-  overflow: auto;
-  padding: 10px 12px;
   border-radius: 10px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+}
+
+.bucky-tool-json summary {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-style: italic;
+  cursor: pointer;
+  list-style: none;
+}
+
+.bucky-tool-json summary::-webkit-details-marker {
+  display: none;
+}
+
+.bucky-tool-json summary::before {
+  content: "▸ ";
+}
+
+.bucky-tool-json[open] summary::before {
+  content: "▾ ";
+}
+
+.bucky-tool-json pre {
+  margin: 0;
+  padding: 0 12px 10px 12px;
+  max-height: 160px;
+  overflow: auto;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-size: 10.5px;
   line-height: 1.5;
-  color: var(--ink-soft);
   white-space: pre-wrap;
   word-break: break-word;
 }
