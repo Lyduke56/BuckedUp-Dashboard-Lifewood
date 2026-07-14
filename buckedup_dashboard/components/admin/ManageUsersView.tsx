@@ -58,6 +58,7 @@ export function ManageUsersView() {
                 <td>{profile.email}</td>
                 <td>
                   <select
+                    className="user-role-select"
                     value={profile.role}
                     disabled={savingId === profile.id}
                     onChange={(event) =>
