@@ -24,6 +24,24 @@ function renderInlineMarkdown(text: string) {
   );
 }
 
+// Some free-tier reasoning models (e.g. gpt-oss) internally separate a
+// hidden "analysis"/chain-of-thought channel from the real "final" answer
+// using special tokens — when the provider doesn't strip that channel
+// correctly, it leaks through as a normal text part (seen live: a bubble
+// starting "Expert commentary (analysis)" full of stray ‹...› tokens and
+// self-narration like "We need to call tool X"). The system prompt now
+// tells the model not to do this, but that's not a guarantee on a free
+// model — this is the belt-and-suspenders backstop that drops any text
+// part matching the leak pattern entirely, rather than showing it.
+function isLeakedReasoning(text: string): boolean {
+  return (
+    /^expert commentary/i.test(text.trim()) ||
+    /[‹›]/.test(text) ||
+    /<\|.*?\|>/.test(text) ||
+    /\bwe need to call tool\b/i.test(text)
+  );
+}
+
 // Human-readable summary of a proposed action-tool call, shown in the
 // confirm/cancel card before it runs. Falls back to the raw tool name for
 // anything not explicitly described here (e.g. if a new action tool gets
@@ -125,6 +143,9 @@ export function BuckyWidget() {
               message.parts.map((part, partIndex) => {
                 const key = `${message.id}-${partIndex}`;
                 if (part.type === "text") {
+                  if (message.role === "assistant" && isLeakedReasoning(part.text)) {
+                    return null;
+                  }
                   return (
                     <div
                       key={key}
