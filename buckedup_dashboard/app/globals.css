@@ -12,6 +12,8 @@
      (e.g. Brave Shields can suppress it) and translucency would let
      whatever's behind the overlay bleed through legibly. */
   --panel-bg-opaque: #0d1310;
+  --modal-bg: rgba(14, 21, 18, 0.96);
+  --modal-backdrop: rgba(0, 0, 0, 0.75);
   --paper: #f8fafc;
   --line: rgba(255, 255, 255, 0.06);
 
@@ -94,6 +96,8 @@
   --white: rgba(255, 255, 255, 0.85);
   --panel-bg: #ffffff;
   --panel-bg-opaque: #ffffff;
+  --modal-bg: rgba(255, 255, 255, 0.96);
+  --modal-backdrop: rgba(19, 48, 32, 0.4);
   --paper: #133020;
   --line: rgba(19, 48, 32, 0.08);
 
@@ -244,7 +248,7 @@ a {
   flex-direction: column;
   min-height: 100vh;
   padding: 24px;
-  max-width: 1400px;
+  max-width: 1700px;
   min-width: 1100px;
   margin: 0 auto;
   gap: 24px;

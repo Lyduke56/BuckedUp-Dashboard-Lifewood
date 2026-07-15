@@ -2,7 +2,7 @@ import React from 'react';
 import { Input, InputProps } from '@/components/atoms/Input';
 import { Search } from 'lucide-react';
 
-export interface SearchBarProps extends InputProps {}
+export type SearchBarProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 export function SearchBar({ className, ...props }: SearchBarProps) {
   return (

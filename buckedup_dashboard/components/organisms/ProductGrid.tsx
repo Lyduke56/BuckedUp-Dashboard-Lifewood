@@ -23,7 +23,7 @@ export function ProductGrid({
         <LayoutGrid className="h-12 w-12 text-[var(--ink-soft)] opacity-50 mb-4" />
         <h3 className="text-lg font-medium text-[var(--text-main)]">No products found</h3>
         <p className="text-sm text-[var(--ink-soft)] text-center mt-2">
-          Try adjusting your search or filters to find what you're looking for.
+          Try adjusting your search or filters to find what you&apos;re looking for.
         </p>
       </div>
     );

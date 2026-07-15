@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 
 interface MousePosition {
@@ -97,21 +97,7 @@ export const Particles: React.FC<ParticlesProps> = ({
       }
     }
   }, [color])
-
-  useEffect(() => {
-    onMouseMove()
-  }, [mousePosition.x, mousePosition.y])
-
-  useEffect(() => {
-    initCanvas()
-  }, [refresh])
-
-  const initCanvas = () => {
-    resizeCanvas()
-    drawParticles()
-  }
-
-  const onMouseMove = () => {
+  const onMouseMove = useCallback(() => {
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect()
       const { w, h } = canvasSize.current
@@ -123,7 +109,21 @@ export const Particles: React.FC<ParticlesProps> = ({
         mouse.current.y = y
       }
     }
-  }
+  }, [mousePosition.x, mousePosition.y]);
+
+  useEffect(() => {
+    onMouseMove()
+  }, [mousePosition.x, mousePosition.y, onMouseMove])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initCanvas = useCallback(() => {
+    resizeCanvas()
+    drawParticles()
+  }, [])
+
+  useEffect(() => {
+    initCanvas()
+  }, [refresh, initCanvas])
 
   interface Circle {
     x: number
