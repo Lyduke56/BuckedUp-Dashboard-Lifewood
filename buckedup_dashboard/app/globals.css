@@ -5745,6 +5745,162 @@ body.light .kanban-column {
   box-shadow: none;
 }
 
+/* ── Catalog Detail Drawer ───────────────────────────────────────── */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(5, 7, 6, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease both;
+}
+
+.catalog-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  width: 100%;
+  max-width: 440px;
+  background: rgba(14, 21, 18, 0.96);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--castleton-glow);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.catalog-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.catalog-drawer-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.catalog-drawer-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.catalog-drawer-thumb {
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalog-drawer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.catalog-drawer-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--castleton);
+  text-transform: uppercase;
+}
+
+.catalog-drawer-field span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.catalog-drawer-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.catalog-drawer-label {
+  color: var(--ink-soft);
+}
+
+.catalog-drawer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--castleton);
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.15s;
+}
+
+.catalog-drawer-link:hover {
+  color: #10b981;
+}
+
+.catalog-drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-drawer-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.catalog-drawer-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 /* ── Small button utilities ─────────────────────────────────────── */
 .btn-ghost-sm {
   display: inline-flex;

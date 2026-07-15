@@ -207,40 +207,40 @@ export function CatalogProductFormModal({
   const subcategories = CATEGORY_TREE[form.category] ?? [];
 
   const modal = (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="overlay show modal-overlay" onClick={onClose} role="presentation">
       <div
-        className="modal-panel catalog-form-modal"
+        className="modal form-modal modal-panel catalog-form-modal"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: 640, width: "100%" }}
       >
         {/* Header */}
-        <div className="modal-header">
+        <div className="modal-header flex items-start justify-between p-6 border-b border-white/10 bg-white/[0.02] gap-4 flex-shrink-0">
           <div>
-            <div className="modal-overline">PRODUCT CATALOG</div>
-            <h2 className="modal-title">
+            <div className="modal-overline text-xs font-bold text-[var(--castleton)] uppercase tracking-wider mb-1">PRODUCT CATALOG</div>
+            <h2 className="modal-title text-lg font-extrabold text-white m-0">
               {mode === "add" ? "Add Catalog Product" : "Edit Catalog Product"}
             </h2>
           </div>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close">
+          <button className="modal-close-btn w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[var(--ink-soft)] hover:text-white transition-all flex-shrink-0" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-body">
+        <form onSubmit={handleSubmit} className="modal-body flex-1 p-6 overflow-y-auto flex flex-col gap-5">
           {/* Thumbnail */}
-          <div className="catalog-thumb-row">
+          <div className="catalog-thumb-row flex items-start gap-4 mb-2">
             <div
-              className="catalog-thumb-preview"
+              className="catalog-thumb-preview w-24 h-24 rounded-2xl bg-black/40 border border-dashed border-white/20 hover:border-[var(--castleton)] cursor-pointer overflow-hidden flex items-center justify-center transition-all flex-shrink-0"
               onClick={() => thumbnailInputRef.current?.click()}
               title="Click to upload thumbnail"
             >
               {thumbnailPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumbnailPreview} alt="Thumbnail preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }} />
+                <img src={thumbnailPreview} alt="Thumbnail preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 16 }} />
               ) : (
-                <div className="catalog-thumb-placeholder">
-                  <ImageIcon size={28} style={{ opacity: 0.35 }} />
-                  <span style={{ fontSize: 11, opacity: 0.5, marginTop: 4 }}>Upload image</span>
+                <div className="catalog-thumb-placeholder flex flex-col items-center gap-1.5 text-[var(--ink-soft)]">
+                  <ImageIcon size={28} className="opacity-40" />
+                  <span className="text-[11px] opacity-60 font-semibold">Upload image</span>
                 </div>
               )}
             </div>
@@ -251,25 +251,25 @@ export function CatalogProductFormModal({
               style={{ display: "none" }}
               onChange={handleThumbnailChange}
             />
-            <div className="catalog-thumb-meta">
-              <p className="form-help">Product thumbnail (optional). PNG/JPG/WebP, max 5MB.</p>
+            <div className="catalog-thumb-meta flex-1 flex flex-col gap-2 justify-center py-1">
+              <p className="form-help text-xs text-[var(--ink-soft)] m-0">Product thumbnail (optional). Recommended PNG/JPG/WebP, max 5MB.</p>
               {thumbnailPreview && (
                 <button
                   type="button"
-                  className="btn-ghost-sm"
+                  className="btn-ghost-sm text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white self-start transition-all"
                   onClick={() => { setThumbnailFile(null); setThumbnailPreview(null); }}
                 >
-                  Remove
+                  Remove image
                 </button>
               )}
             </div>
           </div>
 
           {/* Name */}
-          <div className="form-group">
-            <label className="form-label">Product Name *</label>
+          <div className="form-group flex flex-col gap-1.5">
+            <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Product Name *</label>
             <input
-              className="form-input"
+              className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
               placeholder="e.g. Woke AF - High Stimulant Pre-Workout"
@@ -278,11 +278,11 @@ export function CatalogProductFormModal({
           </div>
 
           {/* Category + Subcategory */}
-          <div className="form-row-2">
-            <div className="form-group">
-              <label className="form-label">Category</label>
+          <div className="form-row-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Category</label>
               <select
-                className="form-select"
+                className="form-select w-full px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.category}
                 onChange={(e) => update("category", e.target.value)}
               >
@@ -291,10 +291,10 @@ export function CatalogProductFormModal({
                 ))}
               </select>
             </div>
-            <div className="form-group">
-              <label className="form-label">Subcategory</label>
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Subcategory</label>
               <select
-                className="form-select"
+                className="form-select w-full px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.subcategory}
                 onChange={(e) => update("subcategory", e.target.value)}
               >
@@ -306,27 +306,27 @@ export function CatalogProductFormModal({
           </div>
 
           {/* Variants */}
-          <div className="form-group">
-            <label className="form-label">
-              Variants
-              <span className="form-label-count">{form.variants.length}</span>
+          <div className="form-group flex flex-col gap-1.5">
+            <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider flex items-center justify-between">
+              <span>Variants</span>
+              <span className="form-label-count text-xs px-2 py-0.5 rounded-full bg-[var(--castleton)]/20 text-[var(--castleton)] font-extrabold">{form.variants.length}</span>
             </label>
-            <div className="variant-tag-input">
+            <div className="variant-tag-input flex flex-wrap items-center gap-2 min-h-[46px] p-2 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-[var(--castleton)] transition-all">
               {form.variants.map((v, i) => (
-                <span key={i} className="variant-chip">
+                <span key={i} className="variant-chip inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--castleton)]/20 border border-[var(--castleton)]/40 text-[var(--castleton)]">
                   {v}
                   <button
                     type="button"
-                    className="variant-chip-remove"
+                    className="variant-chip-remove hover:opacity-100 opacity-70 transition-opacity"
                     onClick={() => removeVariant(i)}
                     aria-label={`Remove ${v}`}
                   >
-                    <X size={10} />
+                    <X size={12} />
                   </button>
                 </span>
               ))}
               <input
-                className="variant-chip-input"
+                className="variant-chip-input flex-1 min-w-[140px] bg-transparent border-none outline-none text-white text-sm px-1 placeholder-white/30"
                 placeholder={form.variants.length === 0 ? "Type a variant and press Enter or comma…" : "Add another…"}
                 value={form.variantInput}
                 onChange={(e) => update("variantInput", e.target.value)}
@@ -334,24 +334,24 @@ export function CatalogProductFormModal({
                 onBlur={addVariant}
               />
             </div>
-            <p className="form-help">Press Enter or comma to add. Backspace to remove last.</p>
+            <p className="form-help text-xs text-[var(--ink-soft)] m-0">Press Enter or comma to add. Backspace to remove last.</p>
           </div>
 
           {/* Price + Flag */}
-          <div className="form-row-2">
-            <div className="form-group">
-              <label className="form-label">Price</label>
+          <div className="form-row-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Price</label>
               <input
-                className="form-input"
+                className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.price}
                 onChange={(e) => update("price", e.target.value)}
                 placeholder="$54.99"
               />
             </div>
-            <div className="form-group">
-              <label className="form-label">Flag / Status</label>
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Flag / Status</label>
               <input
-                className="form-input"
+                className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.flagStatus}
                 onChange={(e) => update("flagStatus", e.target.value)}
                 placeholder="★ Best Seller #1 / NEW / CLEARANCE"
@@ -360,66 +360,65 @@ export function CatalogProductFormModal({
           </div>
 
           {/* Product URL */}
-          <div className="form-group">
-            <label className="form-label">Product Page URL</label>
-            <div style={{ position: "relative" }}>
+          <div className="form-group flex flex-col gap-1.5">
+            <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Product Page URL</label>
+            <div className="relative w-full">
               <input
-                className="form-input"
+                className="form-input w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 type="url"
                 value={form.productUrl}
                 onChange={(e) => update("productUrl", e.target.value)}
                 placeholder="https://www.buckedup.com/shop/…"
-                style={{ paddingRight: form.productUrl ? 40 : 12 }}
               />
               {form.productUrl && (
                 <a
                   href={form.productUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "var(--castleton)" }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--castleton)] hover:text-[#10b981] transition-colors"
                 >
-                  <ExternalLink size={15} />
+                  <ExternalLink size={16} />
                 </a>
               )}
             </div>
           </div>
 
           {/* Is Active toggle */}
-          <div className="form-group" style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <label className="form-label" style={{ margin: 0 }}>Active in Catalog</label>
+          <div className="form-group flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+            <label className="form-label text-xs font-bold text-white uppercase tracking-wider m-0">Active in Catalog</label>
             <button
               type="button"
-              className={`toggle-btn${form.isActive ? " active" : ""}`}
+              className={`toggle-btn relative w-11 h-6 rounded-full transition-colors flex-shrink-0 border ${form.isActive ? "bg-[var(--castleton)] border-[var(--castleton)]" : "bg-white/10 border-white/20"}`}
               onClick={() => update("isActive", !form.isActive)}
               aria-pressed={form.isActive}
             >
-              <span className="toggle-thumb" />
+              <span className={`toggle-thumb absolute top-1 left-1 w-3.5 h-3.5 rounded-full bg-white transition-transform ${form.isActive ? "translate-x-5" : "translate-x-0"}`} />
             </button>
-            <span className="form-help" style={{ margin: 0 }}>
-              {form.isActive ? "Visible to all users" : "Hidden (discontinued)"}
+            <span className="form-help text-xs text-[var(--ink-soft)] m-0 flex-1">
+              {form.isActive ? "Visible to all users across dashboard" : "Hidden (discontinued product)"}
             </span>
           </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error text-xs font-semibold text-[#dc3545] p-3 rounded-xl bg-[#dc3545]/10 border border-[#dc3545]/20">{error}</p>}
 
           {/* Actions */}
-          <div className="modal-actions">
+          <div className="modal-actions flex items-center justify-end gap-3 mt-2 pt-4 border-t border-white/10 flex-shrink-0">
             {mode === "edit" && (
-              <div style={{ marginRight: "auto" }}>
+              <div className="mr-auto flex items-center">
                 {!showDeleteConfirm ? (
                   <button
                     type="button"
-                    className="btn-danger-ghost"
+                    className="btn-danger-ghost px-4 py-2.5 rounded-xl font-bold text-sm text-[#dc3545] border border-[#dc3545]/30 hover:bg-[#dc3545]/10 flex items-center gap-2 transition-all"
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={14} /> Delete
                   </button>
                 ) : (
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontSize: 13, color: "var(--earth-yellow)" }}>Delete this product?</span>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-xs font-bold text-[var(--earth-yellow)]">Delete this product?</span>
                     <button
                       type="button"
-                      className="btn-danger"
+                      className="btn-danger px-4 py-2 rounded-xl font-bold text-xs bg-[#dc3545] text-white hover:bg-[#bb2d3b] transition-all"
                       onClick={handleDelete}
                       disabled={deleting}
                     >
@@ -427,7 +426,7 @@ export function CatalogProductFormModal({
                     </button>
                     <button
                       type="button"
-                      className="btn-ghost"
+                      className="btn-ghost px-3 py-2 rounded-xl font-bold text-xs bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white transition-all"
                       onClick={() => setShowDeleteConfirm(false)}
                     >
                       Cancel
@@ -436,12 +435,12 @@ export function CatalogProductFormModal({
                 )}
               </div>
             )}
-            <button type="button" className="btn-ghost" onClick={onClose}>
+            <button type="button" className="btn-ghost px-5 py-2.5 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white transition-all" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={submitting}>
+            <button type="submit" className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm bg-[var(--castleton)] text-white flex items-center justify-center gap-2 hover:bg-[#08754e] shadow-lg transition-all" disabled={submitting}>
               {submitting ? "Saving…" : mode === "add" ? (
-                <><Plus size={14} /> Add Product</>
+                <><Plus size={15} /> Add Product</>
               ) : "Save Changes"}
             </button>
           </div>

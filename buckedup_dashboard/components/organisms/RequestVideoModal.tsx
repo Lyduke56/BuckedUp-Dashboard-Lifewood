@@ -121,45 +121,45 @@ export function RequestVideoModal({
   if (!mounted) return null;
 
   const modal = (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="overlay show modal-overlay" onClick={onClose} role="presentation">
       <div
-        className="modal-panel"
+        className="modal form-modal modal-panel"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: 620, width: "100%" }}
       >
         {/* Header */}
-        <div className="modal-header">
+        <div className="modal-header flex items-start justify-between p-6 border-b border-white/10 bg-white/[0.02] gap-4 flex-shrink-0">
           <div>
-            <div className="modal-overline">VIDEO LIBRARY</div>
-            <h2 className="modal-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Video size={18} style={{ color: "var(--castleton)" }} />
+            <div className="modal-overline text-xs font-bold text-[var(--castleton)] uppercase tracking-wider mb-1">VIDEO LIBRARY</div>
+            <h2 className="modal-title text-lg font-extrabold text-white flex items-center gap-2 m-0">
+              <Video size={18} className="text-[var(--castleton)] flex-shrink-0" />
               Request AIGC Video from Catalog
             </h2>
           </div>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close">
+          <button className="modal-close-btn w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[var(--ink-soft)] hover:text-white transition-all flex-shrink-0" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body flex-1 p-6 overflow-y-auto flex flex-col gap-5">
           {/* If no product is currently selected, show the catalog product picker */}
           {!activeCatalogProduct ? (
-            <div className="mb-6">
-              <label className="form-label mb-2 block font-semibold text-[var(--text-main)]">
+            <div className="mb-2 flex flex-col gap-3">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
                 Select Product from Catalog *
               </label>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-soft)]" />
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-soft)]" />
                   <input
-                    className="form-input pl-8"
+                    className="form-input w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                     placeholder="Search catalog product by name..."
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
                   />
                 </div>
                 <select
-                  className="form-select w-44"
+                  className="form-select w-full sm:w-48 px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                 >
@@ -170,13 +170,13 @@ export function RequestVideoModal({
                 </select>
               </div>
 
-              <div className="max-h-60 overflow-y-auto border border-[var(--glass-border)] rounded-xl p-2 bg-[var(--glass-bg)] flex flex-col gap-1.5">
+              <div className="max-h-56 overflow-y-auto border border-white/10 rounded-xl p-2 bg-black/30 flex flex-col gap-1.5">
                 {catalogLoading ? (
-                  <div className="p-6 text-center text-sm text-[var(--ink-soft)]">
+                  <div className="p-6 text-center text-sm text-[var(--ink-soft)] font-semibold">
                     Loading catalog products...
                   </div>
                 ) : filteredCatalog.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-[var(--ink-soft)]">
+                  <div className="p-6 text-center text-sm text-[var(--ink-soft)] font-semibold">
                     No matching catalog products found.
                   </div>
                 ) : (
@@ -186,30 +186,30 @@ export function RequestVideoModal({
                       <div
                         key={p.id}
                         onClick={() => setSelectedCatalogId(p.id)}
-                        className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all border ${
+                        className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
                           isSelected
-                            ? "bg-[var(--castleton)]/15 border-[var(--castleton)] text-[var(--text-main)]"
-                            : "bg-black/20 border-transparent hover:bg-white/5 text-[var(--text-main)]"
+                            ? "bg-[var(--castleton)]/20 border-[var(--castleton)] text-white"
+                            : "bg-white/[0.02] border-transparent hover:bg-white/5 text-white"
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded bg-black/40 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
+                          <div className="w-11 h-11 rounded-lg bg-black/40 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
                             {p.thumbnailUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={p.thumbnailUrl} alt={p.name} className="w-full h-full object-cover" />
                             ) : (
-                              <Package size={16} className="text-[var(--ink-soft)] opacity-40" />
+                              <Package size={18} className="text-[var(--ink-soft)] opacity-40" />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold truncate">{p.name}</div>
-                            <div className="text-xs text-[var(--ink-soft)]">
+                            <div className="text-sm font-bold truncate text-white">{p.name}</div>
+                            <div className="text-xs text-[var(--ink-soft)] font-semibold">
                               {p.category} &bull; {p.subcategory}
                             </div>
                           </div>
                         </div>
                         {isSelected && (
-                          <div className="w-6 h-6 rounded-full bg-[var(--castleton)] flex items-center justify-center text-white flex-shrink-0">
+                          <div className="w-6 h-6 rounded-full bg-[var(--castleton)] flex items-center justify-center text-white flex-shrink-0 shadow-md">
                             <Check size={14} />
                           </div>
                         )}
@@ -221,36 +221,36 @@ export function RequestVideoModal({
             </div>
           ) : (
             /* Selected catalog summary box */
-            <div className="request-catalog-summary relative mb-5">
+            <div className="request-catalog-summary flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 relative">
               {activeCatalogProduct.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={activeCatalogProduct.thumbnailUrl}
                   alt={activeCatalogProduct.name}
-                  className="request-catalog-thumb"
+                  className="request-catalog-thumb w-16 h-16 rounded-xl object-cover border border-white/10 flex-shrink-0"
                 />
               ) : (
-                <div className="request-catalog-thumb flex items-center justify-center bg-black/30">
+                <div className="request-catalog-thumb w-16 h-16 rounded-xl flex items-center justify-center bg-black/40 border border-white/10 flex-shrink-0">
                   <Package size={24} className="text-[var(--ink-soft)] opacity-40" />
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <div className="request-catalog-name">{activeCatalogProduct.name}</div>
-                <div className="request-catalog-meta">
-                  <span className="status-pill st-not-started" style={{ fontSize: 11 }}>
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <div className="request-catalog-name text-sm font-extrabold text-white truncate">{activeCatalogProduct.name}</div>
+                <div className="request-catalog-meta flex items-center gap-2">
+                  <span className="status-pill text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--castleton)]/20 text-[var(--castleton)] border border-[var(--castleton)]/30">
                     {activeCatalogProduct.category}
                   </span>
-                  <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>
+                  <span className="text-xs font-semibold text-[var(--ink-soft)] truncate">
                     {activeCatalogProduct.subcategory}
                   </span>
                 </div>
                 {activeCatalogProduct.variants.length > 0 && (
-                  <div className="request-catalog-variants">
+                  <div className="request-catalog-variants flex flex-wrap gap-1.5 mt-1">
                     {activeCatalogProduct.variants.slice(0, 4).map((v) => (
-                      <span key={v} className="variant-chip-sm">{v}</span>
+                      <span key={v} className="variant-chip-sm text-[11px] font-bold px-2 py-0.5 rounded bg-white/5 text-[var(--ink-soft)] border border-white/10">{v}</span>
                     ))}
                     {activeCatalogProduct.variants.length > 4 && (
-                      <span className="variant-chip-more">+{activeCatalogProduct.variants.length - 4}</span>
+                      <span className="variant-chip-more text-[11px] font-bold px-2 py-0.5 rounded bg-white/5 text-[var(--ink-soft)] border border-white/10">+{activeCatalogProduct.variants.length - 4}</span>
                     )}
                   </div>
                 )}
@@ -259,7 +259,7 @@ export function RequestVideoModal({
                 <button
                   type="button"
                   onClick={() => setSelectedCatalogId("")}
-                  className="btn-ghost-sm text-xs self-start"
+                  className="btn-ghost-sm text-xs font-bold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white transition-all self-start flex-shrink-0"
                 >
                   Change Product
                 </button>
@@ -267,17 +267,17 @@ export function RequestVideoModal({
             </div>
           )}
 
-          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 20 }}>
+          <p className="text-xs text-[var(--ink-soft)] font-semibold m-0 bg-white/[0.02] p-3 rounded-xl border border-white/5">
             Fill in the production details below. Name, category, subcategory, and product URL are
             pre-filled from the catalog and cannot be changed here.
           </p>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-row-2">
-              <div className="form-group">
-                <label className="form-label">Rank *</label>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="form-row-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="form-group flex flex-col gap-1.5">
+                <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Rank *</label>
                 <input
-                  className="form-input"
+                  className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                   type="number"
                   min={1}
                   value={form.rank}
@@ -285,10 +285,10 @@ export function RequestVideoModal({
                   required
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Language</label>
+              <div className="form-group flex flex-col gap-1.5">
+                <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Language</label>
                 <select
-                  className="form-select"
+                  className="form-select w-full px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                   value={form.language}
                   onChange={(e) => update("language", e.target.value)}
                 >
@@ -304,20 +304,20 @@ export function RequestVideoModal({
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Content Type</label>
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Content Type</label>
               <input
-                className="form-input"
+                className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.contentType}
                 onChange={(e) => update("contentType", e.target.value)}
                 placeholder="e.g. Product Demo, Testimonial, Tutorial…"
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Content Angle / Brief</label>
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Content Angle / Brief</label>
               <textarea
-                className="form-textarea"
+                className="form-textarea w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all min-h-[88px]"
                 rows={3}
                 value={form.contentAngle}
                 onChange={(e) => update("contentAngle", e.target.value)}
@@ -325,10 +325,10 @@ export function RequestVideoModal({
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Assign Operator</label>
+            <div className="form-group flex flex-col gap-1.5">
+              <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Assign Operator</label>
               <select
-                className="form-select"
+                className="form-select w-full px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                 value={form.ownerId}
                 onChange={(e) => update("ownerId", e.target.value)}
               >
@@ -341,19 +341,19 @@ export function RequestVideoModal({
               </select>
             </div>
 
-            {error && <p className="form-error">{error}</p>}
+            {error && <p className="form-error text-xs font-semibold text-[#dc3545] p-3 rounded-xl bg-[#dc3545]/10 border border-[#dc3545]/20">{error}</p>}
 
-            <div className="modal-actions">
-              <button type="button" className="btn-ghost" onClick={onClose}>
+            <div className="modal-actions flex items-center justify-end gap-3 mt-2 pt-4 border-t border-white/10 flex-shrink-0">
+              <button type="button" className="btn-ghost px-5 py-2.5 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white transition-all" onClick={onClose}>
                 Cancel
               </button>
               <button
                 type="submit"
-                className="btn-primary"
+                className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm bg-[var(--castleton)] text-white flex items-center justify-center gap-2 hover:bg-[#08754e] shadow-lg transition-all"
                 disabled={submitting || !activeCatalogProduct}
               >
                 {submitting ? "Creating…" : (
-                  <><Video size={14} /> Request Video</>
+                  <><Video size={15} /> Request Video</>
                 )}
               </button>
             </div>

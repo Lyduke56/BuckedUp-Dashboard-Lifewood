@@ -481,68 +481,68 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
   return (
     <>
       {/* Backdrop */}
-      <div className="drawer-backdrop" onClick={onClose} />
+      <div className="drawer-backdrop fixed inset-0 z-[9998] bg-black/75 backdrop-blur-md animate-fadeIn" onClick={onClose} />
 
       {/* Drawer panel */}
-      <div className="catalog-drawer">
-        <div className="catalog-drawer-header">
-          <div>
-            <div className="modal-overline">CATALOG DETAIL</div>
-            <h2 className="catalog-drawer-title">{product.name}</h2>
+      <div className="catalog-drawer fixed top-0 right-0 bottom-0 z-[9999] w-full max-w-[440px] bg-[#0e1512]/96 border-l border-white/10 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-slideLeft">
+        <div className="catalog-drawer-header flex items-start justify-between p-6 border-b border-white/10 bg-white/[0.02] gap-4 flex-shrink-0">
+          <div className="min-w-0 flex-1">
+            <div className="modal-overline text-xs font-bold text-[var(--castleton)] uppercase tracking-wider mb-1">CATALOG DETAIL</div>
+            <h2 className="catalog-drawer-title text-lg font-extrabold text-white leading-snug break-words">{product.name}</h2>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>
+          <button className="modal-close-btn w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[var(--ink-soft)] hover:text-white transition-all flex-shrink-0" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        <div className="catalog-drawer-body">
+        <div className="catalog-drawer-body p-6 overflow-y-auto flex-1 flex flex-col gap-6">
           {/* Thumb */}
-          <div className="catalog-drawer-thumb">
+          <div className="catalog-drawer-thumb w-full h-56 rounded-2xl bg-black/40 border border-white/10 overflow-hidden relative flex items-center justify-center">
             {product.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={product.thumbnailUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--ink-soft)" }}>
-                <Package size={36} style={{ opacity: 0.3 }} />
+              <div className="flex items-center justify-center h-full text-[var(--ink-soft)]">
+                <Package size={36} className="opacity-30" />
               </div>
             )}
-            <span className={`catalog-aigc-badge ${badge.cls}`} style={{ position: "absolute", top: 12, right: 12, fontSize: 13, padding: "4px 10px" }}>
+            <span className={`catalog-aigc-badge ${badge.cls} absolute top-3 right-3 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-md backdrop-blur-md`}>
               {badge.label}
             </span>
           </div>
 
           {/* Meta */}
-          <div className="catalog-drawer-meta">
-            <div className="catalog-drawer-field">
-              <label>Category</label>
-              <span>{product.category}</span>
+          <div className="catalog-drawer-meta flex flex-col gap-3">
+            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+              <label className="text-[11px] font-bold text-[var(--castleton)] uppercase tracking-wider">Category</label>
+              <span className="text-sm font-semibold text-white">{product.category}</span>
             </div>
-            <div className="catalog-drawer-field">
-              <label>Subcategory</label>
-              <span>{product.subcategory}</span>
+            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+              <label className="text-[11px] font-bold text-[var(--castleton)] uppercase tracking-wider">Subcategory</label>
+              <span className="text-sm font-semibold text-white">{product.subcategory}</span>
             </div>
             {product.price && (
-              <div className="catalog-drawer-meta-row">
-                <span className="catalog-drawer-label">Price</span>
-                <span>{product.price}</span>
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+                <span className="catalog-drawer-label text-[var(--ink-soft)]">Price</span>
+                <span className="text-white">{product.price}</span>
               </div>
             )}
             {product.flagStatus && (
-              <div className="catalog-drawer-meta-row">
-                <span className="catalog-drawer-label">Status</span>
-                <span style={{ color: "var(--saffron)" }}>{product.flagStatus}</span>
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+                <span className="catalog-drawer-label text-[var(--ink-soft)]">Status</span>
+                <span className="text-[var(--saffron)]">{product.flagStatus}</span>
               </div>
             )}
             {product.productUrl && (
-              <div className="catalog-drawer-meta-row">
-                <span className="catalog-drawer-label">Product Page</span>
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+                <span className="catalog-drawer-label text-[var(--ink-soft)]">Product Page</span>
                 <a
                   href={product.productUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="catalog-drawer-link"
+                  className="catalog-drawer-link inline-flex items-center gap-1.5 text-[var(--castleton)] hover:text-[#10b981] font-bold transition-colors"
                 >
-                  Visit page <ExternalLink size={11} />
+                  Visit page <ExternalLink size={12} />
                 </a>
               </div>
             )}
@@ -550,44 +550,44 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
 
           {/* Variants */}
           {product.variants.length > 0 && (
-            <div className="catalog-drawer-section">
-              <div className="catalog-drawer-section-title">
+            <div className="catalog-drawer-section flex flex-col gap-3">
+              <div className="catalog-drawer-section-title text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
                 Variants ({product.variantCount})
               </div>
-              <div className="catalog-drawer-variants">
+              <div className="catalog-drawer-variants flex flex-wrap gap-2">
                 {product.variants.map((v) => (
-                  <span key={v} className="variant-chip-sm">{v}</span>
+                  <span key={v} className="variant-chip-sm text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[var(--ink-soft)]">{v}</span>
                 ))}
               </div>
             </div>
           )}
 
           {/* AIGC Production status */}
-          <div className="catalog-drawer-section">
-            <div className="catalog-drawer-section-title">AIGC Video Status</div>
-            <div className={`catalog-aigc-card ${badge.cls}`}>
-              <span className="catalog-aigc-card-badge">{badge.label}</span>
+          <div className="catalog-drawer-section flex flex-col gap-3">
+            <div className="catalog-drawer-section-title text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">AIGC Video Status</div>
+            <div className={`catalog-aigc-card ${badge.cls} p-4 rounded-xl border flex flex-col gap-2.5`}>
+              <span className="catalog-aigc-card-badge text-xs font-bold uppercase tracking-wider">{badge.label}</span>
               {linkedProduct ? (
-                <div className="catalog-aigc-card-details">
-                  <div>
-                    <span className="catalog-drawer-label">Stage</span>
-                    <span>{linkedProduct.items[0]?.status ?? "—"}</span>
+                <div className="catalog-aigc-card-details flex flex-col gap-1.5 text-sm text-[var(--ink)]">
+                  <div className="flex justify-between items-center">
+                    <span className="catalog-drawer-label text-[var(--ink-soft)]">Stage</span>
+                    <span className="font-semibold text-white">{linkedProduct.items[0]?.status ?? "—"}</span>
                   </div>
                   {linkedProduct.reviewStatus && (
-                    <div>
-                      <span className="catalog-drawer-label">Review</span>
-                      <span>{linkedProduct.reviewStatus}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="catalog-drawer-label text-[var(--ink-soft)]">Review</span>
+                      <span className="font-semibold text-white">{linkedProduct.reviewStatus}</span>
                     </div>
                   )}
                   {linkedProduct.owner && (
-                    <div>
-                      <span className="catalog-drawer-label">Operator</span>
-                      <span>{linkedProduct.owner}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="catalog-drawer-label text-[var(--ink-soft)]">Operator</span>
+                      <span className="font-semibold text-white">{linkedProduct.owner}</span>
                     </div>
                   )}
                 </div>
               ) : (
-                <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
+                <p className="text-sm text-[var(--ink-soft)] m-0">
                   No AIGC video has been requested for this product yet.
                 </p>
               )}
@@ -595,14 +595,14 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
           </div>
 
           {/* Actions */}
-          <div className="catalog-drawer-actions">
+          <div className="catalog-drawer-actions flex items-center justify-end gap-3 mt-auto pt-4 border-t border-white/10 flex-shrink-0">
             {aigcStatus !== "none" && (
-              <button className="btn-primary" onClick={onNavigateToLibrary}>
+              <button className="btn-primary px-4 py-2.5 rounded-xl font-bold text-sm bg-[var(--castleton)] text-white flex items-center gap-2 hover:bg-[#08754e] transition-all" onClick={onNavigateToLibrary}>
                 <ChevronRight size={14} /> View in Library
               </button>
             )}
             {isLead && (
-              <button className="btn-ghost" onClick={onEdit}>
+              <button className="btn-ghost px-4 py-2.5 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white flex items-center gap-2 transition-all" onClick={onEdit}>
                 <Edit2 size={14} /> Edit Product
               </button>
             )}
