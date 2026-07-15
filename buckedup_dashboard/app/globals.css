@@ -7,6 +7,11 @@
   --seasalt: #070908;
   --white: rgba(15, 22, 19, 0.65);
   --panel-bg: rgba(15, 23, 20, 0.6);
+  /* Fully opaque, unlike --panel-bg — for fixed-position overlays like
+     Bucky's panel, where backdrop-filter isn't reliable across browsers
+     (e.g. Brave Shields can suppress it) and translucency would let
+     whatever's behind the overlay bleed through legibly. */
+  --panel-bg-opaque: #0d1310;
   --paper: #f8fafc;
   --line: rgba(255, 255, 255, 0.06);
 
@@ -88,6 +93,7 @@
   --seasalt: #f7f3e8;
   --white: rgba(255, 255, 255, 0.85);
   --panel-bg: #ffffff;
+  --panel-bg-opaque: #ffffff;
   --paper: #133020;
   --line: rgba(19, 48, 32, 0.08);
 
@@ -312,7 +318,6 @@ a {
 .brand-logo {
   height: 22px;
   width: auto;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1));
 }
 
 .logo-buckedup {
@@ -448,7 +453,7 @@ a {
 
 [data-theme='light'] .panel-glass:hover {
   border-color: rgba(217, 131, 36, 0.3) !important;
-  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
   transform: translateY(-2px);
 }
 
@@ -492,6 +497,7 @@ a {
 [data-theme='light'] .view>div>div>.section-heading {
   background: linear-gradient(135deg, var(--text-main) 30%, rgba(217, 131, 36, 0.9) 100%) !important;
   -webkit-background-clip: text !important;
+  background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
 
@@ -698,7 +704,7 @@ a {
 
 [data-theme='light'] .card-glass:hover {
   border-color: rgba(217, 131, 36, 0.3) !important;
-  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
   transform: translateY(-2px);
 }
 
@@ -829,7 +835,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-categories:hover {
   border-color: rgba(20, 184, 166, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -841,7 +847,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-planned:hover {
   border-color: rgba(99, 102, 241, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -853,7 +859,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-published:hover {
   border-color: rgba(4, 98, 65, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(4, 98, 65, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(4, 98, 65, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -865,7 +871,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-progress:hover {
   border-color: rgba(217, 131, 36, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(217, 131, 36, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -877,7 +883,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-notstarted:hover {
   border-color: rgba(244, 63, 94, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -1507,7 +1513,11 @@ a {
   flex-direction: column;
   border-radius: 18px;
   overflow: hidden;
-  background: var(--panel-bg);
+  /* Deliberately opaque, not var(--panel-bg) — see --panel-bg-opaque's
+     definition. backdrop-filter blur was tried first but isn't reliably
+     applied in every browser (confirmed not applying in testing), so
+     don't depend on it for legibility. */
+  background: var(--panel-bg-opaque);
   border: 1px solid var(--glass-border);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   animation: buckyIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
@@ -1587,6 +1597,109 @@ a {
   color: #1a1207;
   font-weight: 600;
   border-bottom-right-radius: 4px;
+}
+
+.bucky-msg-tool {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--glass-border);
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  font-style: italic;
+  border-bottom-left-radius: 4px;
+}
+
+/* Confirm/cancel card for account-management actions — deliberately
+   louder than the other message styles (solid border, not dashed) since
+   it's the one place Bucky can actually change something. */
+.bucky-confirm {
+  align-self: flex-start;
+  max-width: 92%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--saffron);
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bucky-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bucky-confirm-approve,
+.bucky-confirm-deny {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bucky-confirm-approve {
+  background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
+  color: #1a1207;
+}
+
+.bucky-confirm-deny {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+}
+
+.bucky-confirm-deny:hover {
+  color: var(--text-main);
+}
+
+/* A collapsed <details> pill by default — the raw tool JSON is useful for
+   debugging but shouldn't dominate the chat when the real answer is the
+   text reply that follows it. */
+.bucky-tool-json {
+  align-self: flex-start;
+  max-width: 92%;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+}
+
+.bucky-tool-json summary {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-style: italic;
+  cursor: pointer;
+  list-style: none;
+}
+
+.bucky-tool-json summary::-webkit-details-marker {
+  display: none;
+}
+
+.bucky-tool-json summary::before {
+  content: "▸ ";
+}
+
+.bucky-tool-json[open] summary::before {
+  content: "▾ ";
+}
+
+.bucky-tool-json pre {
+  margin: 0;
+  padding: 0 12px 10px 12px;
+  max-height: 160px;
+  overflow: auto;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .bucky-input-row {
@@ -2510,8 +2623,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Lighter, softer dark teal background (lightened by 20%) */
-  background: linear-gradient(-45deg, #1c3d2f, #244d3b, #30664e, #285542);
+  /* Dark space green background */
+  background: linear-gradient(-45deg, #020705, #04100c, #071912, #05140e);
   background-size: 400% 400%;
   animation: loginBgShift 20s ease infinite;
   padding: 20px;
@@ -2547,7 +2660,7 @@ a {
 .orb-1 {
   width: 600px;
   height: 600px;
-  background: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.15);
   /* Green */
   top: -10%;
   left: -5%;
@@ -2558,8 +2671,8 @@ a {
 .orb-2 {
   width: 700px;
   height: 700px;
-  background: rgba(217, 131, 36, 0.18);
-  /* Gold */
+  background: rgba(6, 95, 70, 0.15);
+  /* Dark emerald */
   bottom: -20%;
   right: -10%;
   animation-duration: 32s;
@@ -2569,8 +2682,8 @@ a {
 .orb-3 {
   width: 500px;
   height: 500px;
-  background: rgba(4, 98, 65, 0.25);
-  /* Darker green */
+  background: rgba(2, 44, 22, 0.25);
+  /* Darkest green */
   top: 40%;
   left: 60%;
   animation-duration: 24s;
@@ -2596,10 +2709,8 @@ a {
 }
 
 .login-card {
-  background: rgba(15, 23, 20, 0.45) !important;
-  backdrop-filter: blur(28px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(130%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #09130e !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
   border-radius: 24px;
   padding: 44px 54px;
   max-width: 680px;

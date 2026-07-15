@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendInviteEmail } from "@/lib/sendInviteEmail";
 import type { UserRole } from "@/lib/types";
+import type { User } from "@supabase/supabase-js";
 
 const ROLE_VALUES: UserRole[] = ["operator", "lead", "admin"];
 
@@ -54,52 +56,106 @@ export async function POST(request: Request) {
   const adminClient = createAdminClient();
   const redirectTo = `${new URL(request.url).origin}/auth/confirm`;
 
-  const { data: created, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
-    email,
-    { redirectTo },
-  );
+  try {
+    let created: User;
 
-  if (inviteError || !created.user) {
-    const alreadyExists =
-      inviteError?.status === 422 ||
-      /already.*registered|already.*exists/i.test(inviteError?.message ?? "");
-    // Supabase's built-in email service caps at 2 sends/hour (30/hour once
-    // custom SMTP is configured) — surface this distinctly rather than a
-    // generic 500, since it's an expected, recoverable condition.
-    const rateLimited =
-      inviteError?.status === 429 ||
-      inviteError?.code === "over_email_send_rate_limit";
+    // Gmail relay when configured — bypasses Supabase's built-in mailer
+    // (2/hour cap, and its SMTP settings need org-admin permissions this
+    // project's Supabase role doesn't have) by splitting invite-link
+    // creation (generateLink, a service-role call, no email sent) from
+    // the actual send (our own Gmail SMTP relay). Falls back to
+    // inviteUserByEmail when GMAIL_APP_PASSWORD isn't set, so the feature
+    // still works either way.
+    if (process.env.GMAIL_APP_PASSWORD) {
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: "invite",
+        email,
+        options: { redirectTo },
+      });
+
+      if (linkError || !linkData) {
+        const alreadyExists = /already.*registered|already.*exists/i.test(linkError?.message ?? "");
+        return NextResponse.json(
+          { error: alreadyExists ? "An account with this email already exists" : linkError?.message ?? "Failed to create invite link" },
+          { status: alreadyExists ? 409 : 500 },
+        );
+      }
+
+      const { error: sendError } = await sendInviteEmail(email, linkData.properties.action_link);
+      if (sendError) {
+        // The auth user + link already exist at this point — same
+        // rollback precedent as the profile-update-failure branch below.
+        await adminClient.auth.admin.deleteUser(linkData.user.id).catch(() => {});
+        console.error("create-user: Gmail relay send failed", sendError);
+        return NextResponse.json(
+          { error: "Failed to send the invite email — please retry" },
+          { status: 500 },
+        );
+      }
+
+      created = linkData.user;
+    } else {
+      const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
+        email,
+        { redirectTo },
+      );
+
+      if (inviteError || !inviteData.user) {
+        const alreadyExists =
+          inviteError?.status === 422 ||
+          /already.*registered|already.*exists/i.test(inviteError?.message ?? "");
+        // Supabase's built-in email service caps at 2 sends/hour — surface
+        // this distinctly rather than a generic 500, since it's an
+        // expected, recoverable condition.
+        const rateLimited =
+          inviteError?.status === 429 ||
+          inviteError?.code === "over_email_send_rate_limit";
+        return NextResponse.json(
+          {
+            error: alreadyExists
+              ? "An account with this email already exists"
+              : rateLimited
+                ? "Too many invites sent recently — please try again in a few minutes"
+                : inviteError?.message ?? "Failed to send invite",
+          },
+          { status: alreadyExists ? 409 : rateLimited ? 429 : 500 },
+        );
+      }
+
+      created = inviteData.user;
+    }
+
+    // 5. handle_new_user() has now inserted a profiles row defaulting to
+    // role='operator'/must_change_password=false — set the requested role
+    // and flip the flag so the invited user is forced to set a password
+    // (they have none yet) before seeing the dashboard.
+    const { error: profileError } = await adminClient
+      .from("profiles")
+      .update({ role, must_change_password: true })
+      .eq("id", created.id);
+
+    if (profileError) {
+      // Best-effort rollback so a retry with the same email doesn't hit a
+      // false "already exists" against an orphaned, half-configured account.
+      await adminClient.auth.admin.deleteUser(created.id).catch(() => {});
+      console.error("create-user: failed to set role/flag after invite", profileError);
+      return NextResponse.json(
+        { error: "Account creation failed while finishing setup — please retry" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ email, role }, { status: 201 });
+  } catch (err) {
+    // Occasional transient network blips talking to Supabase (seen
+    // repeatedly in this environment) throw rather than resolving to the
+    // normal { data, error } shape — without this, that's an unhandled
+    // exception returning a non-JSON 500, which breaks any caller (this
+    // form, or Bucky's create_user tool) trying to parse a JSON error.
+    console.error("create-user: unexpected error", err);
     return NextResponse.json(
-      {
-        error: alreadyExists
-          ? "An account with this email already exists"
-          : rateLimited
-            ? "Too many invites sent recently — please try again in a few minutes"
-            : inviteError?.message ?? "Failed to send invite",
-      },
-      { status: alreadyExists ? 409 : rateLimited ? 429 : 500 },
-    );
-  }
-
-  // 5. handle_new_user() has now inserted a profiles row defaulting to
-  // role='operator'/must_change_password=false — set the requested role
-  // and flip the flag so the invited user is forced to set a password
-  // (they have none yet) before seeing the dashboard.
-  const { error: profileError } = await adminClient
-    .from("profiles")
-    .update({ role, must_change_password: true })
-    .eq("id", created.user.id);
-
-  if (profileError) {
-    // Best-effort rollback so a retry with the same email doesn't hit a
-    // false "already exists" against an orphaned, half-configured account.
-    await adminClient.auth.admin.deleteUser(created.user.id).catch(() => {});
-    console.error("create-user: failed to set role/flag after invite", profileError);
-    return NextResponse.json(
-      { error: "Account creation failed while finishing setup — please retry" },
+      { error: "Something went wrong creating that account — please try again" },
       { status: 500 },
     );
   }
-
-  return NextResponse.json({ email, role }, { status: 201 });
 }

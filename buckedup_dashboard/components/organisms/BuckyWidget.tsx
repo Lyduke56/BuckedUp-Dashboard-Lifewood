@@ -3,47 +3,119 @@
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Bot, Send, X } from "lucide-react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
 
-interface ChatMessage {
-  from: "bucky" | "user";
-  text: string;
+const GREETING =
+  "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
+
+// The model tends to answer with **bold** markdown around key numbers/
+// names — render that as actual emphasis rather than literal asterisks,
+// without pulling in a full markdown parser for just this one case.
+function renderInlineMarkdown(text: string) {
+  const segments = text.split(/(\*\*[^*]+\*\*)/g);
+  return segments.map((segment, index) =>
+    segment.startsWith("**") && segment.endsWith("**") ? (
+      <strong key={index}>{segment.slice(2, -2)}</strong>
+    ) : (
+      segment
+    ),
+  );
 }
 
-const GREETING: ChatMessage = {
-  from: "bucky",
-  text: "Hi, I'm Bucky. Ask me about the pipeline, or tell me what you'd like to do — I can help you operate the dashboard.",
-};
+// Some free-tier reasoning models (e.g. gpt-oss) internally separate a
+// hidden "analysis"/chain-of-thought channel from the real "final" answer
+// using special tokens — when the provider doesn't strip that channel
+// correctly, it leaks through as a normal text part (seen live: a bubble
+// starting "Expert commentary (analysis)" full of stray ‹...› tokens and
+// self-narration like "We need to call tool X"). The system prompt now
+// tells the model not to do this, but that's not a guarantee on a free
+// model — this is the belt-and-suspenders backstop that drops any text
+// part matching the leak pattern entirely, rather than showing it.
+function isLeakedReasoning(text: string): boolean {
+  return (
+    /^expert commentary/i.test(text.trim()) ||
+    /[‹›]/.test(text) ||
+    /<\|.*?\|>/.test(text) ||
+    /\bwe need to call tool\b/i.test(text)
+  );
+}
 
-// UI-only assistant for admins. No LLM/backend is wired yet — Bucky replies
-// with a canned acknowledgement so the interaction surface exists and can
-// be connected to a real agent later. Presentational only; state resets on
-// close/reload.
+// Human-readable summary of a proposed action-tool call, shown in the
+// confirm/cancel card before it runs. Falls back to the raw tool name for
+// anything not explicitly described here (e.g. if a new action tool gets
+// added later without updating this).
+function withArticle(word: unknown): string {
+  const w = String(word);
+  return `${/^[aeiou]/i.test(w) ? "an" : "a"} ${w}`;
+}
+
+function describeAction(toolName: string, input: unknown): string {
+  const params = (input ?? {}) as Record<string, unknown>;
+  switch (toolName) {
+    case "create_user":
+      return `Create ${withArticle(params.role)} account for ${params.email}?`;
+    case "delete_user":
+      return `Delete ${params.email}'s account? This can't be undone.`;
+    case "change_role":
+      return `Change ${params.email}'s role to ${params.role}?`;
+    default:
+      return `Run ${toolName}?`;
+  }
+}
+
+// Only auto-resubmit after an approval decision if something was actually
+// *approved* — a denial needs no further model round-trip (nothing ran,
+// nothing to report on), and the built-in
+// lastAssistantMessageIsCompleteWithApprovalResponses helper resubmits on
+// any response including an all-denied one. That round-trip measured up
+// to 70+s on the free-tier model in testing, leaving the input disabled
+// that whole time for zero benefit — skipping it makes "Cancel" instant
+// and costs nothing.
+function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }): boolean {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "assistant") return false;
+  const approvals = last.parts.filter(
+    (part) => isToolUIPart(part) && (part.state === "approval-requested" || part.state === "approval-responded"),
+  );
+  if (approvals.length === 0) return false;
+  const allResponded = approvals.every((part) => isToolUIPart(part) && part.state === "approval-responded");
+  if (!allResponded) return false;
+  return approvals.some(
+    (part) => isToolUIPart(part) && part.state === "approval-responded" && part.approval.approved,
+  );
+}
+
+// Admin-only assistant, wired to a real tool-calling backend
+// (app/api/bucky/chat/route.ts). Can answer questions about any dashboard
+// data and take three account-management actions (create/delete/change
+// role) — each requires an explicit confirm click here before it runs.
+// State resets on close/reload (no persisted chat history yet).
 export function BuckyWidget() {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [draft, setDraft] = useState("");
+  const { messages, sendMessage, status, addToolApprovalResponse } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/bucky/chat" }),
+    // Auto-resubmit once the admin has approved every pending approval in
+    // the last turn, so confirming doesn't need a separate "send" click.
+    // Denials are handled locally without a round-trip — see the comment
+    // on shouldAutoResubmitAfterApproval above.
+    sendAutomaticallyWhen: shouldAutoResubmitAfterApproval,
+  });
 
   const send = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
     setDraft("");
-    setMessages((prev) => [...prev, { from: "user", text }]);
-    // Canned response (no real agent yet).
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          from: "bucky",
-          text: "I'm still learning the ropes — a real assistant will be wired up here soon. For now, try the tabs above to navigate the dashboard.",
-        },
-      ]);
-    }, 500);
+    sendMessage({ text });
   };
 
   if (!mounted) return null;
+
+  const busy = status === "submitted" || status === "streaming";
 
   return createPortal(
     <div className="bucky-root">
@@ -65,11 +137,90 @@ export function BuckyWidget() {
           </div>
 
           <div className="bucky-messages">
-            {messages.map((message, index) => (
-              <div key={index} className={`bucky-msg bucky-msg-${message.from}`}>
-                {message.text}
-              </div>
-            ))}
+            <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+
+            {messages.map((message) =>
+              message.parts.map((part, partIndex) => {
+                const key = `${message.id}-${partIndex}`;
+                if (part.type === "text") {
+                  if (message.role === "assistant" && isLeakedReasoning(part.text)) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={key}
+                      className={`bucky-msg bucky-msg-${message.role === "user" ? "user" : "bucky"}`}
+                    >
+                      {renderInlineMarkdown(part.text)}
+                    </div>
+                  );
+                }
+                if (isToolUIPart(part)) {
+                  const toolName =
+                    part.type === "dynamic-tool" ? part.toolName : part.type.slice("tool-".length);
+                  if (part.state === "approval-requested") {
+                    return (
+                      <div key={key} className="bucky-confirm">
+                        <div>{describeAction(toolName, part.input)}</div>
+                        <div className="bucky-confirm-actions">
+                          <button
+                            type="button"
+                            className="bucky-confirm-deny"
+                            onClick={() =>
+                              addToolApprovalResponse({ id: part.approval.id, approved: false })
+                            }
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="bucky-confirm-approve"
+                            onClick={() =>
+                              addToolApprovalResponse({ id: part.approval.id, approved: true })
+                            }
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (part.state === "approval-responded") {
+                    return (
+                      <div key={key} className="bucky-msg-tool">
+                        {part.approval.approved ? "Confirmed" : "Cancelled"} — {describeAction(toolName, part.input)}
+                      </div>
+                    );
+                  }
+                  if (part.state === "output-available") {
+                    return (
+                      <details key={key} className="bucky-tool-json">
+                        <summary>Looked up {toolName}</summary>
+                        <pre>{JSON.stringify(part.output, null, 2)}</pre>
+                      </details>
+                    );
+                  }
+                  if (part.state === "output-error") {
+                    return (
+                      <div key={key} className="bucky-msg-tool">
+                        {toolName} failed: {part.errorText}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={key} className="bucky-msg-tool">
+                      Checking {toolName}…
+                    </div>
+                  );
+                }
+                return null;
+              }),
+            )}
+
+            {busy ? <div className="bucky-msg-tool">Bucky is thinking…</div> : null}
+            {status === "error" ? (
+              <div className="bucky-msg-tool">Something went wrong — try again.</div>
+            ) : null}
           </div>
 
           <form className="bucky-input-row" onSubmit={send}>
@@ -79,8 +230,14 @@ export function BuckyWidget() {
               placeholder="Ask Bucky…"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              disabled={busy}
             />
-            <button type="submit" className="bucky-send" aria-label="Send" disabled={!draft.trim()}>
+            <button
+              type="submit"
+              className="bucky-send"
+              aria-label="Send"
+              disabled={!draft.trim() || busy}
+            >
               <Send size={15} />
             </button>
           </form>
