@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts",
-    "db:seed-catalog": "tsx --env-file=.env scripts/seed-catalog.ts"
+    "db:seed-catalog": "tsx --env-file=.env scripts/seed-catalog.ts",
+    "db:scrape-images": "tsx --env-file=.env.local scripts/scrape-images.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.27",
@@ -16,6 +17,7 @@
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.1",
     "ai": "^7.0.26",
+    "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",

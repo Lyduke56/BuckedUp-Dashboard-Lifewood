@@ -45,7 +45,7 @@ export function ProductCard({
       onClick={() => onClick?.(product)}
     >
       <div className="relative">
-        <ProductImage alt={product.name} />
+        <ProductImage alt={product.name} src={product.rawCatalogProduct?.thumbnailUrl || undefined} />
         <div className="absolute top-2 left-2 flex flex-col gap-2">
           {isNew && <Badge variant="success">NEW</Badge>}
           {isBestSeller && <Badge variant="default">Best Seller</Badge>}
