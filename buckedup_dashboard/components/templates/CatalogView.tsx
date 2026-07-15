@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Search, Plus, ExternalLink, ChevronRight, X, Edit2,
   Video, Package, LayoutGrid, List, Star, Tag, Layers, ChevronLeft,
@@ -72,6 +72,14 @@ export function CatalogView({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top of the grid/list when page changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentPage]);
 
   // Reset page when filters or layout change
   // eslint-disable-next-line
@@ -350,7 +358,7 @@ export function CatalogView({
           {renderPagination("top")}
 
           {/* Main Grid/List */}
-          <div className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar p-5">
+          <div ref={scrollContainerRef} className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar p-5">
             {/* Active filters chips / Clear */}
             {(search || categoryFilter !== "all" || subcategoryFilter !== "all" || aigcFilter !== "all" || flagFilter !== "all") && (
               <div className="flex items-center gap-2 flex-wrap text-xs flex-shrink-0">

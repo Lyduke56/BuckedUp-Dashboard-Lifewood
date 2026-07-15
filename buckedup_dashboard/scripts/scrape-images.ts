@@ -41,7 +41,8 @@ async function scrapeImages() {
     console.log(`[${i + 1}/${products.length}] Scraping ${product.name}...`);
     
     try {
-      const response = await fetch(product.product_url, {
+      const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(product.product_url);
+      const response = await fetch(proxyUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
