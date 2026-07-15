@@ -12,7 +12,7 @@ interface FilterSidebarProps {
 export function FilterSidebar({ categories, selectedCategories, onCategoryChange, className = '' }: FilterSidebarProps) {
   return (
     <div className={`flex flex-col ${className}`}>
-      <div className="panel p-0 overflow-hidden bg-[var(--glass-bg)] border-[var(--glass-border)]">
+      <div className="panel p-0 overflow-hidden">
         {/* Shopee-style Main Header */}
         <div className="px-5 py-4 border-b border-[var(--glass-border)] flex items-center gap-2">
           <Filter className="h-4 w-4 text-[var(--text-main)] font-bold" strokeWidth={2.5} />

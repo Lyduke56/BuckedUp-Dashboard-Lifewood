@@ -24,9 +24,12 @@ export function ProductImage({ className, src, alt, ...props }: ProductImageProp
           loading="lazy"
         />
       ) : (
-        <div className="flex flex-col items-center justify-center text-[var(--ink-soft)] opacity-50">
-          <ImageIcon className="h-10 w-10 mb-2" />
-          <span className="text-xs font-medium uppercase tracking-wider text-center px-2">No Image</span>
+        <div className="flex flex-col items-center justify-center w-full h-full p-4 opacity-20 grayscale transition-all duration-300 hover:opacity-40 hover:grayscale-0">
+          <img 
+            src="/buckedup.svg" 
+            alt="BuckedUp Logo Placeholder" 
+            className="w-3/4 h-auto max-w-[120px] object-contain drop-shadow-xl" 
+          />
         </div>
       )}
     </div>

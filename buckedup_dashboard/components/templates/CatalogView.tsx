@@ -166,7 +166,7 @@ export function CatalogView({
 
   // ── Header section ──
   const header = (
-    <div className="panel p-4 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-lg backdrop-blur-xl bg-[var(--header-bg)] rounded-2xl border border-[var(--header-border)]">
+    <div className="panel p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
       <div className="flex-1 w-full max-w-md">
         <SearchBar
           value={search}
