@@ -1,7 +1,7 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createClient } from "@/lib/supabase/server";
-import { createBuckyReadTools } from "@/lib/bucky/tools";
+import { createBuckyReadTools, createBuckyActionTools } from "@/lib/bucky/tools";
 import { BUCKY_SYSTEM_PROMPT } from "@/lib/bucky/systemPrompt";
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
@@ -43,7 +43,21 @@ export async function POST(request: Request) {
     model: openrouter.chat(MODEL),
     system: BUCKY_SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
-    tools: createBuckyReadTools(supabase),
+    tools: {
+      ...createBuckyReadTools(supabase),
+      ...createBuckyActionTools(supabase, request),
+    },
+    // Account-management actions never run on the model's say-so alone —
+    // the tool call only proposes the action; execute() only actually
+    // runs once the admin confirms in the chat UI (BuckyWidget renders
+    // the approval-requested state as a confirm/cancel card). Read tools
+    // are absent from this map, which defaults them to no approval
+    // needed.
+    toolApproval: {
+      create_user: "user-approval",
+      delete_user: "user-approval",
+      change_role: "user-approval",
+    },
     // Default stopWhen is isStepCount(1) — the model would call a tool and
     // the stream would end right there, with no natural-language answer
     // using the result. Allow a few steps so it can call a tool then

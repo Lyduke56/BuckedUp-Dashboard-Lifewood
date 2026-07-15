@@ -60,11 +60,21 @@ export async function DELETE(
   // 5. Only now touch the service-role client. auth.users deletion cascades
   // to the profiles row via its FK.
   const adminClient = createAdminClient();
-  const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
+  try {
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
 
-  if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    return new NextResponse(null, { status: 204 });
+  } catch (err) {
+    // Same transient-network-blip concern as create-user/route.ts — an
+    // unhandled exception here would return a non-JSON 500.
+    console.error("delete-user: unexpected error", err);
+    return NextResponse.json(
+      { error: "Something went wrong deleting that account — please try again" },
+      { status: 500 },
+    );
   }
-
-  return new NextResponse(null, { status: 204 });
 }

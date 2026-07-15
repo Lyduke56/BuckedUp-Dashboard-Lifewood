@@ -1500,6 +1500,55 @@ a {
   border-bottom-left-radius: 4px;
 }
 
+/* Confirm/cancel card for account-management actions — deliberately
+   louder than the other message styles (solid border, not dashed) since
+   it's the one place Bucky can actually change something. */
+.bucky-confirm {
+  align-self: flex-start;
+  max-width: 92%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--saffron);
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bucky-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bucky-confirm-approve,
+.bucky-confirm-deny {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bucky-confirm-approve {
+  background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
+  color: #1a1207;
+}
+
+.bucky-confirm-deny {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+}
+
+.bucky-confirm-deny:hover {
+  color: var(--text-main);
+}
+
 /* A collapsed <details> pill by default — the raw tool JSON is useful for
    debugging but shouldn't dominate the chat when the real answer is the
    text reply that follows it. */
