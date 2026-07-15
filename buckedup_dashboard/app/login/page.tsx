@@ -4,7 +4,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Tilt } from "@/components/shared/Tilt";
+import { Particles } from "@/components/atoms/Particles";
 
 const MailIcon = () => (
   <svg
@@ -105,7 +105,23 @@ function LoginForm() {
 
   return (
     <div className="login-shell">
-      <Tilt maxTilt={4} className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
+      {/* Interactive Particles layer */}
+      <Particles
+        className="absolute inset-0 z-0 bg-transparent"
+        quantity={350}
+        ease={30}
+        staticity={25}
+        size={1.5}
+        color="#ffffff"
+        refresh
+      />
+
+      {/* Fluid background orbs */}
+      <div className="fluid-orb orb-1"></div>
+      <div className="fluid-orb orb-2"></div>
+      <div className="fluid-orb orb-3"></div>
+
+      <div className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
             <img
@@ -122,14 +138,14 @@ function LoginForm() {
           </div>
 
           <div className="login-header-group">
-            <h1 className="login-title">Video Production Monitor</h1>
+            <h1 className="login-title">AIGC Video Production Monitor</h1>
             <div className="login-badge-wrap">
               <span className="login-badge">Secure Access</span>
             </div>
           </div>
 
           <p className="login-sub">
-            AIGC video queues monitoring & pipeline administration. Authorized partners sign in to manage, edit, and update video tasks.
+            AIGC video queues monitoring & pipeline administration.<br></br>Authorized partners sign in to manage, edit, and update video tasks.
           </p>
 
           {displayError ? <div className="callout login-error">{displayError}</div> : null}
@@ -145,7 +161,7 @@ function LoginForm() {
                   autoComplete="email"
                   autoFocus
                   required
-                  placeholder="name@company.com"
+                  placeholder="name@lifewood.com"
                 />
                 <MailIcon />
               </div>
@@ -172,7 +188,7 @@ function LoginForm() {
             {!submitting && <SignInIcon />}
           </button>
         </form>
-      </Tilt>
+      </div>
     </div>
   );
 }

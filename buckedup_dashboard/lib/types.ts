@@ -1,4 +1,4 @@
-export type ViewId = "overview" | "library" | "analytics" | "admin" | "planning";
+export type ViewId = "overview" | "library" | "analytics" | "admin" | "planning" | "catalog";
 
 /**
  * operator = production staff, execution-only: uploads deliverables per

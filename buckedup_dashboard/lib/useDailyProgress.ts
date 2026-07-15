@@ -20,6 +20,7 @@ export interface DailyProgressPoint {
   published: number; // videos that reached Published that day
   byStage: Record<string, number>; // count entering each stage that day
   byCategory: Record<string, number>; // published-by-category that day
+  target?: number;
 }
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -38,42 +39,98 @@ function localDateKey(d: Date): string {
 // byCategory back the dimension breakdowns. No new schema/snapshot table:
 // each row in product_status_history is a discrete "entered stage X at
 // time T" event, which is exactly the flow metric this chart wants.
-export function useDailyProgress(days = 14): DailyProgressPoint[] {
+export function useDailyProgress(daysOrStartDate?: number | string): DailyProgressPoint[] {
   const [points, setPoints] = useState<DailyProgressPoint[]>([]);
   const supabaseRef = useRef(createClient());
 
   const rangeStartIso = useMemo(() => {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    start.setDate(start.getDate() - (days - 1));
+    let start: Date;
+    if (typeof daysOrStartDate === "string") {
+      const parts = daysOrStartDate.split("-");
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        start = new Date(year, month, day, 0, 0, 0, 0);
+      } else {
+        start = new Date();
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - 13);
+      }
+    } else {
+      const days = typeof daysOrStartDate === "number" ? daysOrStartDate : 14;
+      start = new Date();
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - (days - 1));
+    }
     return start.toISOString();
-  }, [days]);
+  }, [daysOrStartDate]);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabaseRef.current
-      .from("product_status_history")
-      .select("status, entered_at, products(category, subcategory)")
-      .gte("entered_at", rangeStartIso);
+    const [historyRes, targetRes] = await Promise.all([
+      supabaseRef.current
+        .from("product_status_history")
+        .select("status, entered_at, products(category, subcategory)")
+        .gte("entered_at", rangeStartIso),
+      supabaseRef.current
+        .from("daily_target_history")
+        .select("date, target")
+        .gte("date", rangeStartIso.split("T")[0])
+    ]);
 
-    if (error || !data) return;
+    if (historyRes.error || targetRes.error) return;
+    const historyData = historyRes.data || [];
+    const targetData = targetRes.data || [];
+
+    const targetMap = new Map<string, number>();
+    targetData.forEach((t: { date: string; target: number }) => {
+      targetMap.set(t.date, t.target);
+    });
 
     // Seed one bucket per day in the window so gaps render as zeros.
     const buckets = new Map<string, DailyProgressPoint>();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(today.getTime() - i * MS_PER_DAY);
-      const key = localDateKey(d);
+
+    let start: Date;
+    if (typeof daysOrStartDate === "string") {
+      const parts = daysOrStartDate.split("-");
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        start = new Date(year, month, day, 0, 0, 0, 0);
+      } else {
+        start = new Date();
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - 13);
+      }
+    } else {
+      const days = typeof daysOrStartDate === "number" ? daysOrStartDate : 14;
+      start = new Date();
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - (days - 1));
+    }
+
+    const current = new Date(start.getTime());
+    if (current > today) {
+      current.setTime(today.getTime());
+    }
+
+    while (current <= today) {
+      const key = localDateKey(current);
       buckets.set(key, {
         date: key,
-        label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        label: current.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         published: 0,
         byStage: {},
         byCategory: {},
+        target: targetMap.get(key),
       });
+      current.setDate(current.getDate() + 1);
     }
 
-    (data as unknown as HistoryRow[]).forEach((row) => {
+    (historyData as unknown as HistoryRow[]).forEach((row) => {
       const key = localDateKey(new Date(row.entered_at));
       const bucket = buckets.get(key);
       if (!bucket) return;
@@ -89,17 +146,22 @@ export function useDailyProgress(days = 14): DailyProgressPoint[] {
     });
 
     setPoints(Array.from(buckets.values()));
-  }, [days, rangeStartIso]);
+  }, [daysOrStartDate, rangeStartIso]);
 
   useEffect(() => {
     const supabase = supabaseRef.current;
     load();
 
     const channel = supabase
-      .channel(`daily-progress-changes-${Math.random().toString(36).slice(2)}`)
+      .channel(`daily-progress-realtime-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "product_status_history" },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "daily_target_history" },
         () => load(),
       )
       .subscribe();
