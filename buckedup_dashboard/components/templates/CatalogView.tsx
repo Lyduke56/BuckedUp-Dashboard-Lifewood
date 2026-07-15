@@ -116,7 +116,7 @@ export function CatalogView({
   // ── Pagination Renderer ──
   const renderPagination = (position: "top" | "bottom" | "inline") => {
     if (totalPages <= 1) return null;
-    
+
     let wrapperClasses = "flex items-center justify-between p-4 flex-shrink-0 z-10";
     if (position === "top") {
       wrapperClasses += " border-b border-[var(--glass-border)] bg-[rgba(0,0,0,0.01)] dark:bg-[rgba(255,255,255,0.01)] px-6 py-3";
