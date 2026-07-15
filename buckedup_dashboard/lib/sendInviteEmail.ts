@@ -28,6 +28,10 @@ export async function sendInviteEmail(email: string, actionLink: string): Promis
       to: email,
       subject: "You've been invited to the Video Production Monitor",
       html: buildInviteEmailHtml(email, actionLink),
+      // A plain-text alternative alongside the HTML — HTML-only mail from
+      // a personal Gmail relay (no domain reputation to lean on) reads as
+      // more spam-like to filters than a proper multipart message.
+      text: `You've been invited to the BuckedUp x Lifewood Video Production Monitor.\n\nAn admin created an account for ${email}. Accept the invite to set your password and get started:\n${actionLink}\n\nDidn't expect this invite? You can safely ignore this email.`,
     });
     return {};
   } catch (err) {
