@@ -1,4 +1,4 @@
-export type ViewId = "overview" | "library" | "analytics" | "admin" | "planning" | "catalog";
+export type ViewId = "overview" | "catalog" | "library" | "analytics" | "admin" | "planning";
 
 /**
  * operator = production staff, execution-only: uploads deliverables per
@@ -77,6 +77,8 @@ export interface Product {
   rejectionReason: string | null;
   deliveryType: DeliveryType;
   thumbnailUrl: string | null;
+  /** FK to catalog_products.id — null for one-off products not in the catalog */
+  catalogProductId: string | null;
   items: VideoItem[];
 }
 
@@ -164,3 +166,28 @@ export interface ProductionPlan {
   categoryTargets: Record<string, number>;
   notes: string | null;
 }
+
+/**
+ * A row from the `catalog_products` table — the master list of what
+ * BuckedUp sells (supplements, apparel, gear). One catalog product may
+ * have zero or many corresponding `products` rows (video production
+ * requests) linked via products.catalog_product_id.
+ */
+export interface CatalogProduct {
+  id: string;
+  name: string;
+  category: string;
+  subcategory: string;
+  /** Array of variant strings, e.g. ["Blue Raz", "Rocket Pop"] */
+  variants: string[];
+  variantCount: number;
+  price: string | null;
+  flagStatus: string | null;
+  productUrl: string | null;
+  thumbnailUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AigcStatus = "none" | "in-progress" | "published";

@@ -173,12 +173,12 @@ returns trigger as $$
 declare
   my_role user_role := get_my_role();
 begin
-  -- Controlled stage-advance made by a trusted server function
-  -- (submit_video_for_review sets this transaction-local flag). This is a
-  -- BEFORE trigger, so it fires even inside a security-definer function —
-  -- security definer changes table privileges, not auth.uid()/get_my_role()
-  -- — hence the explicit escape hatch.
-  if current_setting('app.allow_stage_advance', true) = 'on' then
+  -- Allow system operations, backend service-role scripts, direct DB migrations
+  -- (where auth.uid() is null or role is service_role), or controlled server
+  -- functions (app.allow_stage_advance).
+  if auth.uid() is null
+     or auth.role() = 'service_role'
+     or current_setting('app.allow_stage_advance', true) = 'on' then
     return new;
   end if;
 

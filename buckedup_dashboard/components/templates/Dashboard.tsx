@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import type { ViewId } from "@/lib/types";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
+import { useCatalog } from "@/lib/useCatalog";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
+import { CatalogView } from "@/components/templates/CatalogView";
 import { VideoLibraryView } from "@/components/templates/VideoLibraryView";
 import { VideoModal } from "@/components/organisms/VideoModal";
 import { AnalyticsView } from "@/components/templates/AnalyticsView";
@@ -22,6 +24,7 @@ export function Dashboard() {
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const { products, loading, error } = useVideoRequests();
+  const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
   const { role, mustChangePassword } = useAuth();
 
   const switchView = (view: ViewId) => {
@@ -88,6 +91,15 @@ export function Dashboard() {
             isLoading={loading}
             hasError={!!error}
             onBrowseLibrary={() => switchView("library")}
+          />
+        </div>
+        <div className={`view${activeView === "catalog" ? " active" : ""}`}>
+          <CatalogView
+            catalog={catalog}
+            products={products}
+            loading={catalogLoading}
+            error={catalogError}
+            onNavigateToLibrary={() => switchView("library")}
           />
         </div>
         <div className={`view${activeView === "library" ? " active" : ""}`}>

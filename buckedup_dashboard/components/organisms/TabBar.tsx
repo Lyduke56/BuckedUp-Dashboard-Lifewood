@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { UserRole, ViewId } from "@/lib/types";
 import {
   AnalyticsIcon,
+  CatalogIcon,
   FolderIcon,
   OverviewIcon,
   UsersIcon,
@@ -24,6 +25,7 @@ type Tab = { id: ViewId; label: string; icon: (props: TabIconProps) => ReactNode
 
 const BASE_TABS: Tab[] = [
   { id: "overview", label: "Overview", icon: OverviewIcon },
+  { id: "catalog", label: "Catalog", icon: CatalogIcon },
   { id: "library", label: "Video Library", icon: FolderIcon },
   { id: "analytics", label: "Analytics", icon: AnalyticsIcon },
 ];

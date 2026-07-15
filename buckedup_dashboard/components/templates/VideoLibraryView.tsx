@@ -29,6 +29,7 @@ import { KanbanBoard } from "@/components/organisms/KanbanBoard";
 import { CategoryFolderGrid } from "@/components/molecules/CategoryFolderGrid";
 import { ProductThumbnailGrid } from "@/components/molecules/ProductThumbnailGrid";
 import { ProductFormModal } from "@/components/organisms/ProductFormModal";
+import { RequestVideoModal } from "@/components/organisms/RequestVideoModal";
 import { ProductionModal } from "@/components/organisms/ProductionModal";
 import { ProductReviewModal } from "@/components/organisms/ProductReviewModal";
 import { StageHistoryLog } from "@/components/organisms/StageHistoryLog";
@@ -113,6 +114,7 @@ export function VideoLibraryView({
     mode: "add" | "edit";
     product: Product | null;
   } | null>(null);
+  const [requestCatalogModalOpen, setRequestCatalogModalOpen] = useState(false);
   const [productionModal, setProductionModal] = useState<Product | null>(null);
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
 
@@ -373,14 +375,25 @@ export function VideoLibraryView({
               </svg>
             </div>
             {canManageCatalog ? (
-              <button
-                type="button"
-                className="issue-submit-btn"
-                onClick={() => setFormModal({ mode: "add", product: null })}
-                style={{ height: '38px', borderRadius: '12px' }}
-              >
-                + Add product
-              </button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  className="issue-submit-btn"
+                  onClick={() => setFormModal({ mode: "add", product: null })}
+                  style={{ height: "38px", borderRadius: "12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--ink-soft)", fontSize: 13 }}
+                  title="Add a one-off product not in the catalog"
+                >
+                  + One-off product
+                </button>
+                <button
+                  type="button"
+                  className="issue-submit-btn"
+                  onClick={() => setRequestCatalogModalOpen(true)}
+                  style={{ height: "38px", borderRadius: "12px" }}
+                >
+                  + Request from Catalog
+                </button>
+              </div>
             ) : null}
           </div>
         </div>
@@ -661,6 +674,14 @@ export function VideoLibraryView({
           product={formModal.product}
           nextRank={nextRank}
           onClose={() => setFormModal(null)}
+        />
+      ) : null}
+
+      {requestCatalogModalOpen ? (
+        <RequestVideoModal
+          nextRank={nextRank}
+          onSuccess={() => setRequestCatalogModalOpen(false)}
+          onClose={() => setRequestCatalogModalOpen(false)}
         />
       ) : null}
 
