@@ -4,7 +4,6 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Tilt } from "@/components/atoms/Tilt";
 import { Particles } from "@/components/atoms/Particles";
 
 const MailIcon = () => (
@@ -109,8 +108,10 @@ function LoginForm() {
       {/* Interactive Particles layer */}
       <Particles
         className="absolute inset-0 z-0 bg-transparent"
-        quantity={120}
-        ease={80}
+        quantity={350}
+        ease={30}
+        staticity={25}
+        size={1.5}
         color="#ffffff"
         refresh
       />
@@ -120,7 +121,7 @@ function LoginForm() {
       <div className="fluid-orb orb-2"></div>
       <div className="fluid-orb orb-3"></div>
 
-      <Tilt maxTilt={4} className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
+      <div className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
             <img
@@ -160,7 +161,7 @@ function LoginForm() {
                   autoComplete="email"
                   autoFocus
                   required
-                  placeholder="name@company.com"
+                  placeholder="name@lifewood.com"
                 />
                 <MailIcon />
               </div>
@@ -187,7 +188,7 @@ function LoginForm() {
             {!submitting && <SignInIcon />}
           </button>
         </form>
-      </Tilt>
+      </div>
     </div>
   );
 }

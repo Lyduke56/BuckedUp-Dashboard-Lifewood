@@ -1,3 +1,5 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { STATUS_ORDER } from "./data";
 import type { PipelineStatus, Product, ProductBucket, UserRole } from "./types";
 
@@ -86,6 +88,6 @@ export function parseDriveFileId(url: string): string | null {
   return null;
 }
 
-export function cn(...inputs: (string | undefined | null | false)[]) {
-  return inputs.filter(Boolean).join(" ");
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

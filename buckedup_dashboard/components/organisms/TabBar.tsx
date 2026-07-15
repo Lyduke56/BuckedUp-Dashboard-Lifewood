@@ -33,13 +33,14 @@ const BASE_TABS: Tab[] = [
 // slot visually — they're never shown to the same person.)
 const ADMIN_TAB: Tab = { id: "admin", label: "Admin", icon: UsersIcon };
 const PLANNING_TAB: Tab = { id: "planning", label: "Planning", icon: UsersIcon };
+const CATALOG_TAB: Tab = { id: "catalog", label: "Product Catalog", icon: FolderIcon };
 
 export function TabBar({ activeView, onViewChange, role }: TabBarProps) {
   const tabs =
     role === "admin"
       ? [...BASE_TABS, ADMIN_TAB]
       : role === "lead"
-        ? [...BASE_TABS, PLANNING_TAB]
+        ? [...BASE_TABS, PLANNING_TAB, CATALOG_TAB]
         : BASE_TABS;
 
   return (

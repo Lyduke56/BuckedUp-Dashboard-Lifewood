@@ -312,7 +312,6 @@ a {
 .brand-logo {
   height: 22px;
   width: auto;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1));
 }
 
 .logo-buckedup {
@@ -448,7 +447,7 @@ a {
 
 [data-theme='light'] .panel-glass:hover {
   border-color: rgba(217, 131, 36, 0.3) !important;
-  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
   transform: translateY(-2px);
 }
 
@@ -492,6 +491,7 @@ a {
 [data-theme='light'] .view>div>div>.section-heading {
   background: linear-gradient(135deg, var(--text-main) 30%, rgba(217, 131, 36, 0.9) 100%) !important;
   -webkit-background-clip: text !important;
+  background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
 
@@ -698,7 +698,7 @@ a {
 
 [data-theme='light'] .card-glass:hover {
   border-color: rgba(217, 131, 36, 0.3) !important;
-  box-shadow: 0 16px 40px rgba(217, 131, 36, 0.12), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 8px 32px rgba(217, 131, 36, 0.06) !important;
   transform: translateY(-2px);
 }
 
@@ -829,7 +829,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-categories:hover {
   border-color: rgba(20, 184, 166, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -841,7 +841,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-planned:hover {
   border-color: rgba(99, 102, 241, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -853,7 +853,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-published:hover {
   border-color: rgba(4, 98, 65, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(4, 98, 65, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(4, 98, 65, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -865,7 +865,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-progress:hover {
   border-color: rgba(217, 131, 36, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(217, 131, 36, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -877,7 +877,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-notstarted:hover {
   border-color: rgba(244, 63, 94, 0.6) !important;
-  box-shadow: 0 12px 28px rgba(244, 63, 94, 0.15), 0 20px 40px rgba(217, 131, 36, 0.05) !important;
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.05) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -2510,8 +2510,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Lighter, softer dark teal background (lightened by 20%) */
-  background: linear-gradient(-45deg, #1c3d2f, #244d3b, #30664e, #285542);
+  /* Dark space green background */
+  background: linear-gradient(-45deg, #020705, #04100c, #071912, #05140e);
   background-size: 400% 400%;
   animation: loginBgShift 20s ease infinite;
   padding: 20px;
@@ -2547,7 +2547,7 @@ a {
 .orb-1 {
   width: 600px;
   height: 600px;
-  background: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.15);
   /* Green */
   top: -10%;
   left: -5%;
@@ -2558,8 +2558,8 @@ a {
 .orb-2 {
   width: 700px;
   height: 700px;
-  background: rgba(217, 131, 36, 0.18);
-  /* Gold */
+  background: rgba(6, 95, 70, 0.15);
+  /* Dark emerald */
   bottom: -20%;
   right: -10%;
   animation-duration: 32s;
@@ -2569,8 +2569,8 @@ a {
 .orb-3 {
   width: 500px;
   height: 500px;
-  background: rgba(4, 98, 65, 0.25);
-  /* Darker green */
+  background: rgba(2, 44, 22, 0.25);
+  /* Darkest green */
   top: 40%;
   left: 60%;
   animation-duration: 24s;
@@ -2596,10 +2596,8 @@ a {
 }
 
 .login-card {
-  background: rgba(15, 23, 20, 0.45) !important;
-  backdrop-filter: blur(28px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(130%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #09130e !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
   border-radius: 24px;
   padding: 44px 54px;
   max-width: 680px;
