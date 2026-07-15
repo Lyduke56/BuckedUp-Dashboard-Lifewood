@@ -60,7 +60,7 @@ export function DailyProgressChart({
 
   if (dimension === "overall") {
     const max = Math.max(
-      ...points.map((p) => Math.max(dailyTarget, p.published)),
+      ...points.map((p) => Math.max(p.target ?? dailyTarget, p.published)),
       1,
     );
     const axisMax = Math.ceil(max / 3) * 3 || 3;
@@ -79,29 +79,32 @@ export function DailyProgressChart({
               ))}
             </div>
             <div className="column-chart-plot">
-              {points.map((point) => (
-                <div key={point.date} className="column-group">
-                  <div className="column-bars">
-                    <div
-                      className="column-bar column-bar-target cursor-pointer transition-opacity"
-                      style={{ height: `${(dailyTarget / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "target" ? 0.3 : 1 }}
-                      onMouseEnter={() => setActiveLegend("target")}
-                      onMouseLeave={() => setActiveLegend(null)}
-                    >
-                      <span className="column-bar-value">{dailyTarget}</span>
+              {points.map((point) => {
+                const currentTarget = point.target ?? dailyTarget;
+                return (
+                  <div key={point.date} className="column-group">
+                    <div className="column-bars">
+                      <div
+                        className="column-bar column-bar-target cursor-pointer transition-opacity"
+                        style={{ height: `${(currentTarget / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "target" ? 0.3 : 1 }}
+                        onMouseEnter={() => setActiveLegend("target")}
+                        onMouseLeave={() => setActiveLegend(null)}
+                      >
+                        <span className="column-bar-value">{currentTarget}</span>
+                      </div>
+                      <div
+                        className="column-bar column-bar-actual cursor-pointer transition-opacity"
+                        style={{ height: `${(point.published / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "published" ? 0.3 : 1 }}
+                        onMouseEnter={() => setActiveLegend("published")}
+                        onMouseLeave={() => setActiveLegend(null)}
+                      >
+                        <span className="column-bar-value">{point.published}</span>
+                      </div>
                     </div>
-                    <div
-                      className="column-bar column-bar-actual cursor-pointer transition-opacity"
-                      style={{ height: `${(point.published / axisMax) * 100}%`, opacity: activeLegend && activeLegend !== "published" ? 0.3 : 1 }}
-                      onMouseEnter={() => setActiveLegend("published")}
-                      onMouseLeave={() => setActiveLegend(null)}
-                    >
-                      <span className="column-bar-value">{point.published}</span>
-                    </div>
+                    <div className="column-group-label">{point.label}</div>
                   </div>
-                  <div className="column-group-label">{point.label}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div className="column-chart-legend">

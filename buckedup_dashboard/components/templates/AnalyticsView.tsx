@@ -20,7 +20,7 @@ interface AnalyticsViewProps {
 export function AnalyticsView({ products }: AnalyticsViewProps) {
   const { stageAgeByProductId } = useStageAge();
   const { plan } = useProductionPlan();
-  const dailyProgress = useDailyProgress(14);
+  const dailyProgress = useDailyProgress(plan?.startDate);
 
   return (
     <div className="flex flex-col gap-6">
