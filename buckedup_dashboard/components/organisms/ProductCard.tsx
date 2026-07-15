@@ -62,11 +62,7 @@ export function ProductCard({
                 In Progress
               </Badge>
             )}
-            {product.aigcStatus === "none" && (
-              <Badge variant="outline" className="bg-neutral-900/85 text-neutral-400 border border-neutral-700 font-medium">
-                No Video
-              </Badge>
-            )}
+
           </div>
         )}
       </div>

@@ -5070,7 +5070,6 @@ body.light .kanban-column {
 }
 
 /* Card body */
-.aigc-none:not(.catalog-aigc-badge) { /* non-badge use on cards */ }
 
 .catalog-bestseller-badge {
   position: absolute;
@@ -5106,6 +5105,7 @@ body.light .kanban-column {
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -5213,6 +5213,8 @@ body.light .kanban-column {
 .catalog-list-row:last-child { border-bottom: none; }
 .catalog-list-row:hover { background: var(--glass-hover); }
 
+
+
 .catalog-list-thumb {
   width: 36px;
   height: 36px;
@@ -5275,19 +5277,22 @@ body.light .kanban-column {
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: transparent;
   z-index: 200;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .catalog-drawer {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 16px;
+  right: 16px;
+  bottom: auto;
+  height: fit-content;
+  max-height: calc(100vh - 32px);
   width: 400px;
   max-width: 100vw;
-  background: var(--shell-bg);
+  background: var(--glass-bg-accent, rgba(15, 23, 20, 0.45));
   border-left: 1px solid var(--glass-border);
   z-index: 201;
   display: flex;
@@ -5458,7 +5463,6 @@ body.light .kanban-column {
 }
 
 /* ── Catalog form modal-specific ────────────────────────────────── */
-.catalog-form-modal { }
 
 .catalog-thumb-row {
   display: flex;
@@ -5871,10 +5875,14 @@ body.light .kanban-column {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: rgba(5, 7, 6, 0.75);
+  background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: fadeIn 0.25s ease both;
+}
+
+[data-theme='dark'] .drawer-backdrop {
+  background: rgba(5, 7, 6, 0.75);
 }
 
 .catalog-drawer {
@@ -5885,15 +5893,21 @@ body.light .kanban-column {
   z-index: 9999;
   width: 100%;
   max-width: 440px;
-  background: rgba(14, 21, 18, 0.96);
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--castleton-glow);
+  background: rgba(255, 255, 255, 0.85);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-theme='dark'] .catalog-drawer {
+  background: rgba(14, 21, 18, 0.96);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--castleton-glow);
 }
 
 @keyframes slideLeft {

@@ -481,23 +481,23 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
   return (
     <>
       {/* Backdrop */}
-      <div className="drawer-backdrop fixed inset-0 z-[9998] bg-black/75 backdrop-blur-md animate-fadeIn" onClick={onClose} />
+      <div className="drawer-backdrop" onClick={onClose} />
 
       {/* Drawer panel */}
-      <div className="catalog-drawer fixed top-0 right-0 bottom-0 z-[9999] w-full max-w-[440px] bg-[#0e1512]/96 border-l border-white/10 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-slideLeft">
-        <div className="catalog-drawer-header flex items-start justify-between p-6 border-b border-white/10 bg-white/[0.02] gap-4 flex-shrink-0">
+      <div className="catalog-drawer">
+        <div className="catalog-drawer-header">
           <div className="min-w-0 flex-1">
             <div className="modal-overline text-xs font-bold text-[var(--castleton)] uppercase tracking-wider mb-1">CATALOG DETAIL</div>
-            <h2 className="catalog-drawer-title text-lg font-extrabold text-white leading-snug break-words">{product.name}</h2>
+            <h2 className="catalog-drawer-title text-lg font-extrabold text-[var(--text-main)] leading-snug break-words">{product.name}</h2>
           </div>
-          <button className="modal-close-btn w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[var(--ink-soft)] hover:text-white transition-all flex-shrink-0" onClick={onClose}>
+          <button className="modal-close-btn w-8 h-8 rounded-full bg-[var(--glass-hover)] hover:bg-[var(--glass-border)] flex items-center justify-center text-[var(--ink-soft)] hover:text-[var(--text-main)] transition-all flex-shrink-0" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         <div className="catalog-drawer-body p-6 overflow-y-auto flex-1 flex flex-col gap-6">
           {/* Thumb */}
-          <div className="catalog-drawer-thumb w-full h-56 rounded-2xl bg-black/40 border border-white/10 overflow-hidden relative flex items-center justify-center">
+          <div className="catalog-drawer-thumb w-full h-56 rounded-2xl bg-[var(--glass-bg)] border border-[var(--glass-border)] overflow-hidden relative flex items-center justify-center">
             {product.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={product.thumbnailUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -506,35 +506,37 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
                 <Package size={36} className="opacity-30" />
               </div>
             )}
-            <span className={`catalog-aigc-badge ${badge.cls} absolute top-3 right-3 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-md backdrop-blur-md`}>
-              {badge.label}
-            </span>
+            {aigcStatus !== 'none' && (
+              <span className={`catalog-aigc-badge ${badge.cls} absolute top-3 right-3 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-md backdrop-blur-md`}>
+                {badge.label}
+              </span>
+            )}
           </div>
 
           {/* Meta */}
           <div className="catalog-drawer-meta flex flex-col gap-3">
-            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
               <label className="text-[11px] font-bold text-[var(--castleton)] uppercase tracking-wider">Category</label>
-              <span className="text-sm font-semibold text-white">{product.category}</span>
+              <span className="text-sm font-semibold text-[var(--text-main)]">{product.category}</span>
             </div>
-            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="catalog-drawer-field flex flex-col gap-1 p-3.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
               <label className="text-[11px] font-bold text-[var(--castleton)] uppercase tracking-wider">Subcategory</label>
-              <span className="text-sm font-semibold text-white">{product.subcategory}</span>
+              <span className="text-sm font-semibold text-[var(--text-main)]">{product.subcategory}</span>
             </div>
             {product.price && (
-              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm font-semibold">
                 <span className="catalog-drawer-label text-[var(--ink-soft)]">Price</span>
-                <span className="text-white">{product.price}</span>
+                <span className="text-[var(--text-main)]">{product.price}</span>
               </div>
             )}
             {product.flagStatus && (
-              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm font-semibold">
                 <span className="catalog-drawer-label text-[var(--ink-soft)]">Status</span>
                 <span className="text-[var(--saffron)]">{product.flagStatus}</span>
               </div>
             )}
             {product.productUrl && (
-              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm font-semibold">
+              <div className="catalog-drawer-meta-row flex items-center justify-between p-3.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm font-semibold">
                 <span className="catalog-drawer-label text-[var(--ink-soft)]">Product Page</span>
                 <a
                   href={product.productUrl}
@@ -571,18 +573,18 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
                 <div className="catalog-aigc-card-details flex flex-col gap-1.5 text-sm text-[var(--ink)]">
                   <div className="flex justify-between items-center">
                     <span className="catalog-drawer-label text-[var(--ink-soft)]">Stage</span>
-                    <span className="font-semibold text-white">{linkedProduct.items[0]?.status ?? "—"}</span>
+                    <span className="font-semibold text-[var(--text-main)]">{linkedProduct.items[0]?.status ?? "—"}</span>
                   </div>
                   {linkedProduct.reviewStatus && (
                     <div className="flex justify-between items-center">
                       <span className="catalog-drawer-label text-[var(--ink-soft)]">Review</span>
-                      <span className="font-semibold text-white">{linkedProduct.reviewStatus}</span>
+                      <span className="font-semibold text-[var(--text-main)]">{linkedProduct.reviewStatus}</span>
                     </div>
                   )}
                   {linkedProduct.owner && (
                     <div className="flex justify-between items-center">
                       <span className="catalog-drawer-label text-[var(--ink-soft)]">Operator</span>
-                      <span className="font-semibold text-white">{linkedProduct.owner}</span>
+                      <span className="font-semibold text-[var(--text-main)]">{linkedProduct.owner}</span>
                     </div>
                   )}
                 </div>
@@ -595,14 +597,14 @@ function CatalogDetailDrawer({ product, aigcStatus, linkedProduct, isLead, onClo
           </div>
 
           {/* Actions */}
-          <div className="catalog-drawer-actions flex items-center justify-end gap-3 mt-auto pt-4 border-t border-white/10 flex-shrink-0">
+          <div className="catalog-drawer-actions flex items-center justify-end gap-3 mt-auto pt-4 border-t border-[var(--glass-border)] flex-shrink-0">
             {aigcStatus !== "none" && (
               <button className="btn-primary px-4 py-2.5 rounded-xl font-bold text-sm bg-[var(--castleton)] text-white flex items-center gap-2 hover:bg-[#08754e] transition-all" onClick={onNavigateToLibrary}>
                 <ChevronRight size={14} /> View in Library
               </button>
             )}
             {isLead && (
-              <button className="btn-ghost px-4 py-2.5 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white flex items-center gap-2 transition-all" onClick={onEdit}>
+              <button className="btn-ghost px-4 py-2.5 rounded-xl font-bold text-sm bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--ink-soft)] hover:text-[var(--text-main)] flex items-center gap-2 transition-all" onClick={onEdit}>
                 <Edit2 size={14} /> Edit Product
               </button>
             )}
