@@ -34,14 +34,14 @@ export function AppHeader({
           className="brand-logo logo-buckedup"
         />
         <span style={{
-          fontSize: '12px',
+          fontSize: '16px',
           fontWeight: 700,
           color: 'var(--header-text)',
-          marginLeft: '14px',
+          marginLeft: '48px',
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
           borderLeft: '1px solid var(--header-border)',
-          paddingLeft: '14px',
+          paddingLeft: '8px',
           height: '14px',
           display: 'inline-flex',
           alignItems: 'center'

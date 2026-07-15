@@ -3,17 +3,33 @@
 import type { CSSProperties } from "react";
 import { CATEGORY_TREE } from "@/lib/data";
 import { categoryColor } from "@/lib/colors";
-import type { Product } from "@/lib/types";
+import type { Product, StatusFilter } from "@/lib/types";
 import { categoryCountProducts } from "@/lib/utils";
 
 interface CategoryFolderGridProps {
   products: Product[];
+  currentStatusFilter: StatusFilter;
+  rejectedOnly?: boolean;
   onOpenFolder: (category: string) => void;
 }
 
+const FILTER_LABELS: Record<StatusFilter, string> = {
+  "all": "All Stages",
+  "not-started": "Not Started",
+  "in-progress": "In Progress",
+  "published": "Published",
+};
+
+const FILTER_COLORS: Record<StatusFilter, string> = {
+  "all": "var(--ink-soft)",
+  "not-started": "var(--gray3)", // You can adjust this to a specific color if needed
+  "in-progress": "var(--saffron)",
+  "published": "#10b981", // Fixed green across both themes
+};
+
 // Google-Drive-style top level of the Grid view: one folder tile per
 // category, with a live count from the (already-filtered) products.
-export function CategoryFolderGrid({ products, onOpenFolder }: CategoryFolderGridProps) {
+export function CategoryFolderGrid({ products, currentStatusFilter, rejectedOnly, onOpenFolder }: CategoryFolderGridProps) {
   return (
     <div className="folder-grid">
       {Object.keys(CATEGORY_TREE).map((category) => {
@@ -35,7 +51,19 @@ export function CategoryFolderGrid({ products, onOpenFolder }: CategoryFolderGri
               {category}
             </div>
             <div className="folder-tile-count">
-              {count} video{count === 1 ? "" : "s"}
+              <div>
+                <span style={{ color: "var(--ink-soft)" }}>
+                  {count} video{count === 1 ? "" : "s"} |{" "}
+                </span>
+                <span style={{ color: FILTER_COLORS[currentStatusFilter], fontWeight: 600 }}>
+                  {FILTER_LABELS[currentStatusFilter]}
+                </span>
+              </div>
+              {rejectedOnly && (
+                <div style={{ color: "var(--earth-yellow)", fontWeight: 600, marginTop: "2px" }}>
+                  Rejected
+                </div>
+              )}
             </div>
           </button>
         );

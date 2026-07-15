@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { List, LayoutGrid, Kanban } from "lucide-react";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { CATEGORY_TREE, STATUS_CLASS, STATUS_ORDER, reviewStatusClass } from "@/lib/data";
 import {
@@ -232,416 +233,427 @@ export function VideoLibraryView({
 
   return (
     <div>
-      <PageHeader 
-        title="Video Library | BuckedUp" 
-        overline="CATALOG" 
+      <PageHeader
+        title="Video Library | BuckedUp"
+        overline="CATALOG"
         subtitle="Priority-ranked shot list — grows automatically as new products are requested, across any category in the catalog."
       />
-      <div className="filter-row">
-        <div className="filter-row-left">
-          <select
-            className="filter-select"
-            value={currentCategory}
-            onChange={(event) => handleCategoryChange(event.target.value)}
-          >
-            <option value="all">All categories ({products.length})</option>
-            {Object.keys(CATEGORY_TREE).map((category) => (
-              <option key={category} value={category}>
-                {category} ({categoryCountProducts(products, category)})
-              </option>
-            ))}
-          </select>
-          <select
-            className="filter-select"
-            value={currentSubcategory}
-            disabled={currentCategory === "all"}
-            onChange={(event) => setCurrentSubcategory(event.target.value)}
-          >
-            {currentCategory === "all" ? (
-              <option value="all">All subcategories</option>
-            ) : (
-              <>
-                <option value="all">
-                  All subcategories (
-                  {categoryCountProducts(products, currentCategory)})
+      <div className="library-container">
+        <div className="library-header">
+          <div className="filter-row-left">
+            <select
+              className="filter-select"
+              value={currentCategory}
+              onChange={(event) => handleCategoryChange(event.target.value)}
+            >
+              <option value="all">All categories ({products.length})</option>
+              {Object.keys(CATEGORY_TREE).map((category) => (
+                <option key={category} value={category}>
+                  {category} ({categoryCountProducts(products, category)})
                 </option>
-                {CATEGORY_TREE[currentCategory].map((subcategory) => (
-                  <option key={subcategory} value={subcategory}>
-                    {subcategory} (
-                    {subcategoryCountProducts(
-                      products,
-                      currentCategory,
-                      subcategory,
-                    )}
-                    )
-                  </option>
-                ))}
-              </>
-            )}
-          </select>
-          {isAdmin ? null : (
-            <div className="filter-pills">
-              {STATUS_FILTERS.map((filter) => (
-                <button
-                  key={filter.value}
-                  type="button"
-                  className={`pill${currentStatusFilter === filter.value ? " active" : ""}`}
-                  onClick={() => setCurrentStatusFilter(filter.value)}
-                >
-                  {filter.label}
-                </button>
               ))}
-              {role === "operator" ? (
+            </select>
+            <select
+              className="filter-select"
+              value={currentSubcategory}
+              disabled={currentCategory === "all"}
+              onChange={(event) => setCurrentSubcategory(event.target.value)}
+            >
+              {currentCategory === "all" ? (
+                <option value="all">Select category first</option>
+              ) : (
+                <>
+                  <option value="all">
+                    All subcategories (
+                    {categoryCountProducts(products, currentCategory)})
+                  </option>
+                  {CATEGORY_TREE[currentCategory].map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory} (
+                      {subcategoryCountProducts(
+                        products,
+                        currentCategory,
+                        subcategory,
+                      )}
+                      )
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
+            <div style={{ width: '1px', height: '20px', background: 'var(--glass-border)', margin: '0 8px', alignSelf: 'center' }} />
+            {isAdmin ? null : (
+              <div className="filter-pills">
+                {STATUS_FILTERS.map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    className={`pill${currentStatusFilter === filter.value ? " active" : ""}`}
+                    onClick={() => setCurrentStatusFilter(filter.value)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+                <div style={{ width: '1px', height: '20px', background: 'var(--glass-border)', margin: '0 8px', alignSelf: 'center' }} />
+                {role === "operator" ? (
+                  <button
+                    type="button"
+                    className={`pill${mineOnly ? " active" : ""}`}
+                    onClick={() => setMineOnly((prev) => !prev)}
+                  >
+                    My items
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  className={`pill${mineOnly ? " active" : ""}`}
-                  onClick={() => setMineOnly((prev) => !prev)}
+                  className={`pill${rejectedOnly ? " active" : ""}`}
+                  onClick={() => setRejectedOnly((prev) => !prev)}
                 >
-                  My items
+                  Rejected
                 </button>
-              ) : null}
-              <button
-                type="button"
-                className={`pill${rejectedOnly ? " active" : ""}`}
-                onClick={() => setRejectedOnly((prev) => !prev)}
-              >
-                Rejected
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {isAdmin ? null : (
-            <div className="layout-toggle">
-              <button
-                type="button"
-                className={`pill${layout === "table" ? " active" : ""}`}
-                onClick={() => setLayout("table")}
-              >
-                List
-              </button>
-              <button
-                type="button"
-                className={`pill${layout === "grid" ? " active" : ""}`}
-                onClick={() => setLayout("grid")}
-              >
-                Grid
-              </button>
-              <button
-                type="button"
-                className={`pill${layout === "board" ? " active" : ""}`}
-                onClick={() => setLayout("board")}
-              >
-                Board
-              </button>
-            </div>
-          )}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <input
-              type="text"
-              className="search-input"
-              style={{ paddingLeft: '36px' }}
-              placeholder="Search product…"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-            <svg
-              style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--ink-soft)',
-                pointerEvents: 'none'
-              }}
-              viewBox="0 0 24 24"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.3-4.3" />
-            </svg>
+              </div>
+            )}
           </div>
-          {canManageCatalog ? (
-            <button
-              type="button"
-              className="issue-submit-btn"
-              onClick={() => setFormModal({ mode: "add", product: null })}
-              style={{ height: '38px', borderRadius: '12px' }}
-            >
-              + Add product
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      {layout === "grid" ? (
-        gridFolder === null ? (
-          <CategoryFolderGrid
-            products={filteredProducts}
-            onOpenFolder={(category) => setGridFolder(category)}
-          />
-        ) : (
-          <div>
-            <button
-              type="button"
-              className="folder-back"
-              onClick={() => setGridFolder(null)}
-            >
-              ← All categories
-            </button>
-            <div className="section-heading section-heading-sm" style={{ margin: "8px 0 16px" }}>
-              {gridFolder}
-            </div>
-            <ProductThumbnailGrid
-              products={filteredProducts.filter((p) => p.category === gridFolder)}
-              onOpenModal={onOpenModal}
-            />
-          </div>
-        )
-      ) : filteredProducts.length === 0 ? (
-        <div className="empty-state">
-          No products currently requested in this category yet — it will
-          appear here automatically once BuckedUp adds one.
-        </div>
-      ) : layout === "board" ? (
-        <KanbanBoard
-          products={filteredProducts}
-          issues={issues}
-          canMoveStage={canManageCatalog}
-          profileEmailById={profileEmailById}
-          onOpenModal={onOpenModal}
-          theme={theme}
-        />
-      ) : (
-        <div className="video-list">
-          {filteredProducts.map((product) => {
-            const item = product.items[0];
-            const modalKey = getModalKey(product.rank, 0);
-            const expanded = expandedRanks.has(product.rank);
-            const rowIssues = issues.filter(
-              (issue) => issue.rank === product.rank,
-            );
-            const openCount = rowIssues.filter(
-              (issue) => issue.status === "open",
-            ).length;
-
-            // Deliverable-flow flags for this row (Phase D).
-            const currentDeliverable =
-              currentByKey.get(`${product.id}:${item.status}`) ?? null;
-            // Operators may only submit for products they own (the
-            // stage_deliverables insert RLS requires owner_id = auth.uid),
-            // so don't show a doomed button for others' items.
-            const canSubmit =
-              role === "operator" &&
-              product.ownerId === user?.id &&
-              product.deliveryType === "pipeline" &&
-              OPERATOR_SUBMIT_STAGES.includes(item.status);
-            const canReview =
-              role === "lead" &&
-              product.deliveryType === "pipeline" &&
-              LEAD_REVIEW_STAGES.includes(item.status);
-            // A Lead's "needs attention": a pending doc deliverable, or a
-            // video parked in In Review.
-            const awaitingReview =
-              currentDeliverable?.decision === "pending" ||
-              item.status === "In Review";
-            const publishedText = product.publishDate
-              ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US")
-              : "—";
-
-            return (
-              <div key={product.rank} className="video-list-card-wrap">
-                <div
-                  className="video-list-card"
-                  onClick={() => onOpenModal(modalKey)}
+          <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {isAdmin ? null : (
+              <div className="layout-toggle">
+                <button
+                  type="button"
+                  className={`pill${layout === "table" ? " active" : ""}`}
+                  onClick={() => setLayout("table")}
+                  title="List view"
                 >
-                  <div className="vlc-rank">{product.rank}</div>
+                  <List size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={`pill${layout === "grid" ? " active" : ""}`}
+                  onClick={() => setLayout("grid")}
+                  title="Grid view"
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={`pill${layout === "board" ? " active" : ""}`}
+                  onClick={() => setLayout("board")}
+                  title="Board view"
+                >
+                  <Kanban size={16} />
+                </button>
+              </div>
+            )}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <input
+                type="text"
+                className="search-input"
+                style={{ paddingLeft: '36px' }}
+                placeholder="Search product…"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+              <svg
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--ink-soft)',
+                  pointerEvents: 'none'
+                }}
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+            </div>
+            {canManageCatalog ? (
+              <button
+                type="button"
+                className="issue-submit-btn"
+                onClick={() => setFormModal({ mode: "add", product: null })}
+                style={{ height: '38px', borderRadius: '12px' }}
+              >
+                + Add product
+              </button>
+            ) : null}
+          </div>
+        </div>
 
-                  <div className="vlc-thumb">
-                    {product.thumbnailUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.thumbnailUrl} alt={`${product.name} thumbnail`} />
-                    ) : (
-                      <div className="vlc-thumb-placeholder">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <path d="M21 15l-5-5L5 21" />
-                        </svg>
+        <div className="library-body">
+          {layout === "grid" ? (
+            gridFolder === null ? (
+              <CategoryFolderGrid
+                products={filteredProducts}
+                currentStatusFilter={currentStatusFilter}
+                rejectedOnly={rejectedOnly}
+                onOpenFolder={(category) => setGridFolder(category)}
+              />
+            ) : (
+              <div>
+                <button
+                  type="button"
+                  className="folder-back"
+                  onClick={() => setGridFolder(null)}
+                >
+                  ← All categories
+                </button>
+                <div className="section-heading section-heading-sm" style={{ margin: "8px 0 16px" }}>
+                  {gridFolder}
+                </div>
+                <ProductThumbnailGrid
+                  products={filteredProducts.filter((p) => p.category === gridFolder)}
+                  onOpenModal={onOpenModal}
+                />
+              </div>
+            )
+          ) : filteredProducts.length === 0 ? (
+            <div className="empty-state">
+              No products currently requested in this category yet — it will
+              appear here automatically once BuckedUp adds one.
+            </div>
+          ) : layout === "board" ? (
+            <KanbanBoard
+              products={filteredProducts}
+              issues={issues}
+              canMoveStage={canManageCatalog}
+              profileEmailById={profileEmailById}
+              onOpenModal={onOpenModal}
+              theme={theme}
+            />
+          ) : (
+            <div className="video-list">
+              {filteredProducts.map((product) => {
+                const item = product.items[0];
+                const modalKey = getModalKey(product.rank, 0);
+                const expanded = expandedRanks.has(product.rank);
+                const rowIssues = issues.filter(
+                  (issue) => issue.rank === product.rank,
+                );
+                const openCount = rowIssues.filter(
+                  (issue) => issue.status === "open",
+                ).length;
+
+                // Deliverable-flow flags for this row (Phase D).
+                const currentDeliverable =
+                  currentByKey.get(`${product.id}:${item.status}`) ?? null;
+                // Operators may only submit for products they own (the
+                // stage_deliverables insert RLS requires owner_id = auth.uid),
+                // so don't show a doomed button for others' items.
+                const canSubmit =
+                  role === "operator" &&
+                  product.ownerId === user?.id &&
+                  product.deliveryType === "pipeline" &&
+                  OPERATOR_SUBMIT_STAGES.includes(item.status);
+                const canReview =
+                  role === "lead" &&
+                  product.deliveryType === "pipeline" &&
+                  LEAD_REVIEW_STAGES.includes(item.status);
+                // A Lead's "needs attention": a pending doc deliverable, or a
+                // video parked in In Review.
+                const awaitingReview =
+                  currentDeliverable?.decision === "pending" ||
+                  item.status === "In Review";
+                const publishedText = product.publishDate
+                  ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US")
+                  : "—";
+
+                return (
+                  <div key={product.rank} className="video-list-card-wrap">
+                    <div
+                      className="video-list-card"
+                      onClick={() => onOpenModal(modalKey)}
+                    >
+                      <div className="vlc-rank">{product.rank}</div>
+
+                      <div className="vlc-thumb">
+                        {product.thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.thumbnailUrl} alt={`${product.name} thumbnail`} />
+                        ) : (
+                          <div className="vlc-thumb-placeholder">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <path d="M21 15l-5-5L5 21" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="vlc-main">
-                    <div className="vlc-title" title={product.name}>
-                      {product.name}
+                      <div className="vlc-main">
+                        <div className="vlc-title" title={product.name}>
+                          {product.name}
+                        </div>
+                        <div className="vlc-pills">
+                          <span className="vlc-tag">{product.category}</span>
+                          <span className="vlc-tag vlc-tag-sub">{product.subcategory}</span>
+                          {product.deliveryType === "link" ? (
+                            <span className="vlc-tag vlc-tag-link">Link-only</span>
+                          ) : null}
+                          {product.reviewStatus &&
+                            product.reviewStatus !== "Not Started" ? (
+                            <span
+                              className={`status-pill ${reviewStatusClass(product.reviewStatus)}`}
+                              title={
+                                product.reviewStatus === "Rejected"
+                                  ? (product.rejectionReason ?? undefined)
+                                  : undefined
+                              }
+                            >
+                              {product.reviewStatus}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="vlc-meta">
+                          Date Published: {publishedText}
+                          <span className="vlc-meta-sep"> · </span>
+                          {languageFlag(product.language)} {product.language}
+                        </div>
+                        {product.contentAngle ? (
+                          <div className="vlc-desc">{product.contentAngle}</div>
+                        ) : null}
+                      </div>
+
+                      <div
+                        className="vlc-side"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <div className="vlc-side-top">
+                          {canManageCatalog ? (
+                            <select
+                              className="vlc-stage-select"
+                              value={item.status}
+                              onClick={(event) => event.stopPropagation()}
+                              onChange={(event) => handleInlineStage(product, event.target.value as PipelineStatus)}
+                            >
+                              {STATUS_ORDER.map((s) => (
+                                <option key={s} value={s}>
+                                  {s}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
+                              {item.status}
+                            </span>
+                          )}
+
+                          <div className="row-actions">
+                            {canManageCatalog || role === "operator" ? (
+                              <button
+                                type="button"
+                                className="row-action-btn row-action-edit"
+                                title="Edit product"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setFormModal({ mode: "edit", product });
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </button>
+                            ) : null}
+                            {canSubmit ? (
+                              <button
+                                type="button"
+                                className="row-action-btn row-action-edit"
+                                title="Submit deliverable"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setProductionModal(product);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="17 8 12 3 7 8" />
+                                  <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                              </button>
+                            ) : null}
+                            {canReview ? (
+                              <button
+                                type="button"
+                                className={`row-action-btn row-action-review${awaitingReview ? " has-issues" : ""}`}
+                                title={awaitingReview ? "Review — awaiting your decision" : "Review"}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setReviewModal(product);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                {awaitingReview ? <span className="row-action-badge">!</span> : null}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
+                              title={openCount > 0 ? `${openCount} open issue${openCount === 1 ? "" : "s"}` : "Flag issue"}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleExpanded(product.rank);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill={openCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                                <line x1="4" y1="22" x2="4" y2="15" />
+                              </svg>
+                              {openCount > 0 ? <span className="row-action-badge">{openCount}</span> : null}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="vlc-progress">
+                          <div className="table-progress-track">
+                            <div
+                              className="table-progress-fill"
+                              style={{ width: `${productProgressPct(product)}%` }}
+                            />
+                          </div>
+                          <span className="table-progress-pct">
+                            {Math.round(productProgressPct(product))}%
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="vlc-pills">
-                      <span className="vlc-tag">{product.category}</span>
-                      <span className="vlc-tag vlc-tag-sub">{product.subcategory}</span>
-                      {product.deliveryType === "link" ? (
-                        <span className="vlc-tag vlc-tag-link">Link-only</span>
-                      ) : null}
-                      {product.reviewStatus &&
-                      product.reviewStatus !== "Not Started" ? (
-                        <span
-                          className={`status-pill ${reviewStatusClass(product.reviewStatus)}`}
-                          title={
-                            product.reviewStatus === "Rejected"
-                              ? (product.rejectionReason ?? undefined)
+
+                    <div className="expand-wrapper" style={{
+                      display: 'grid',
+                      gridTemplateRows: expanded ? '1fr' : '0fr',
+                      opacity: expanded ? 1 : 0,
+                      transition: 'grid-template-rows 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease'
+                    }}>
+                      <div style={{ overflow: 'hidden' }}>
+                        <RowDetail
+                          product={product}
+                          issues={rowIssues}
+                          isAuthenticated={isAuthenticated}
+                          ownerEmail={
+                            product.ownerId
+                              ? profileEmailById.get(product.ownerId)
                               : undefined
                           }
-                        >
-                          {product.reviewStatus}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="vlc-meta">
-                      Date Published: {publishedText}
-                      <span className="vlc-meta-sep"> · </span>
-                      {languageFlag(product.language)} {product.language}
-                    </div>
-                    {product.contentAngle ? (
-                      <div className="vlc-desc">{product.contentAngle}</div>
-                    ) : null}
-                  </div>
-
-                  <div
-                    className="vlc-side"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <div className="vlc-side-top">
-                      {canManageCatalog ? (
-                        <select
-                          className="vlc-stage-select"
-                          value={item.status}
-                          onClick={(event) => event.stopPropagation()}
-                          onChange={(event) => handleInlineStage(product, event.target.value as PipelineStatus)}
-                        >
-                          {STATUS_ORDER.map((s) => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
-                          {item.status}
-                        </span>
-                      )}
-
-                      <div className="row-actions">
-                        {canManageCatalog || role === "operator" ? (
-                          <button
-                            type="button"
-                            className="row-action-btn row-action-edit"
-                            title="Edit product"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setFormModal({ mode: "edit", product });
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                        ) : null}
-                        {canSubmit ? (
-                          <button
-                            type="button"
-                            className="row-action-btn row-action-edit"
-                            title="Submit deliverable"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setProductionModal(product);
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                              <polyline points="17 8 12 3 7 8" />
-                              <line x1="12" y1="3" x2="12" y2="15" />
-                            </svg>
-                          </button>
-                        ) : null}
-                        {canReview ? (
-                          <button
-                            type="button"
-                            className={`row-action-btn row-action-review${awaitingReview ? " has-issues" : ""}`}
-                            title={awaitingReview ? "Review — awaiting your decision" : "Review"}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setReviewModal(product);
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                            {awaitingReview ? <span className="row-action-badge">!</span> : null}
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
-                          title={openCount > 0 ? `${openCount} open issue${openCount === 1 ? "" : "s"}` : "Flag issue"}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleExpanded(product.rank);
-                          }}
-                        >
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill={openCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                            <line x1="4" y1="22" x2="4" y2="15" />
-                          </svg>
-                          {openCount > 0 ? <span className="row-action-badge">{openCount}</span> : null}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="vlc-progress">
-                      <div className="table-progress-track">
-                        <div
-                          className="table-progress-fill"
-                          style={{ width: `${productProgressPct(product)}%` }}
+                          onReportIssue={reportIssue}
+                          onResolveIssue={resolveIssue}
                         />
                       </div>
-                      <span className="table-progress-pct">
-                        {Math.round(productProgressPct(product))}%
-                      </span>
                     </div>
                   </div>
-                </div>
-
-                <div className="expand-wrapper" style={{
-                  display: 'grid',
-                  gridTemplateRows: expanded ? '1fr' : '0fr',
-                  opacity: expanded ? 1 : 0,
-                  transition: 'grid-template-rows 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease'
-                }}>
-                  <div style={{ overflow: 'hidden' }}>
-                    <RowDetail
-                      product={product}
-                      issues={rowIssues}
-                      isAuthenticated={isAuthenticated}
-                      ownerEmail={
-                        product.ownerId
-                          ? profileEmailById.get(product.ownerId)
-                          : undefined
-                      }
-                      onReportIssue={reportIssue}
-                      onResolveIssue={resolveIssue}
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {formModal ? (
         <ProductFormModal
