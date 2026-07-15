@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts"
+    "db:apply-schema": "tsx --env-file=.env.local scripts/apply-schema.ts",
+    "db:seed-catalog": "tsx --env-file=.env scripts/seed-catalog.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

@@ -6,6 +6,7 @@ import {
   Video,
   PlayCircle,
   BarChart2,
+  Package,
   type LucideProps,
 } from "lucide-react";
 
@@ -37,6 +38,10 @@ export function PlayCircleIcon(props: LucideProps) {
 
 export function AnalyticsIcon(props: LucideProps) {
   return <BarChart2 {...props} />;
+}
+
+export function CatalogIcon(props: LucideProps) {
+  return <Package {...props} />;
 }
 
 export function BellIcon() {
