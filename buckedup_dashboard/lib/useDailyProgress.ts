@@ -39,7 +39,10 @@ function localDateKey(d: Date): string {
 // byCategory back the dimension breakdowns. No new schema/snapshot table:
 // each row in product_status_history is a discrete "entered stage X at
 // time T" event, which is exactly the flow metric this chart wants.
-export function useDailyProgress(daysOrStartDate?: number | string): DailyProgressPoint[] {
+export function useDailyProgress(
+  daysOrStartDate?: number | string,
+  dailyAccumulativeTargets?: Record<string, number> | null,
+): DailyProgressPoint[] {
   const [points, setPoints] = useState<DailyProgressPoint[]>([]);
   const supabaseRef = useRef(createClient());
 
@@ -125,7 +128,9 @@ export function useDailyProgress(daysOrStartDate?: number | string): DailyProgre
         published: 0,
         byStage: {},
         byCategory: {},
-        target: targetMap.get(key),
+        target: (dailyAccumulativeTargets && dailyAccumulativeTargets[key] !== undefined)
+          ? dailyAccumulativeTargets[key]
+          : targetMap.get(key),
       });
       current.setDate(current.getDate() + 1);
     }
@@ -146,7 +151,7 @@ export function useDailyProgress(daysOrStartDate?: number | string): DailyProgre
     });
 
     setPoints(Array.from(buckets.values()));
-  }, [daysOrStartDate, rangeStartIso]);
+  }, [daysOrStartDate, rangeStartIso, dailyAccumulativeTargets]);
 
   useEffect(() => {
     const supabase = supabaseRef.current;

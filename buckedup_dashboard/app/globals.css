@@ -2289,6 +2289,23 @@ a {
   cursor: not-allowed;
 }
 
+.issue-delete-btn {
+  background: rgba(127, 29, 29, 0.5) !important;
+  border: 1px solid rgba(248, 113, 113, 0.4) !important;
+  color: #fca5a5 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.issue-delete-btn:hover:not(:disabled) {
+  background: rgba(153, 27, 27, 0.7) !important;
+  border-color: #f87171 !important;
+  color: #fecaca !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25) !important;
+}
+
+
 /* ================= ANALYTICS ================= */
 .analytics-grid {
   display: grid;
@@ -3167,6 +3184,55 @@ a {
   top: -4px;
   right: -4px;
 }
+
+/* ── Flag button dropdown ────────────────────────────────────── */
+.flag-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 200;
+  background: rgba(10, 18, 14, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.flag-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.flag-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.flag-dropdown-item--danger {
+  color: #fca5a5;
+}
+
+.flag-dropdown-item--danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
 
 /* ── Chart floating tooltip ─────────────────────────────────── */
 .chart-tooltip {

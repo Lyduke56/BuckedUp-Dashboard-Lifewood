@@ -165,6 +165,7 @@ export interface ProductionPlan {
   languageTargets: Record<string, number>;
   categoryTargets: Record<string, number>;
   notes: string | null;
+  dailyAccumulativeTargets: Record<string, number> | null;
 }
 
 /**

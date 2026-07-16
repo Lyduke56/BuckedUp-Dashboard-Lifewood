@@ -14,6 +14,7 @@ interface PlanRow {
   language_targets: Record<string, number>;
   category_targets: Record<string, number>;
   notes: string | null;
+  daily_accumulative_targets: Record<string, number> | null;
 }
 
 function toPlan(row: PlanRow): ProductionPlan {
@@ -29,6 +30,7 @@ function toPlan(row: PlanRow): ProductionPlan {
     languageTargets: row.language_targets ?? {},
     categoryTargets: row.category_targets ?? {},
     notes: row.notes,
+    dailyAccumulativeTargets: row.daily_accumulative_targets ?? null,
   };
 }
 

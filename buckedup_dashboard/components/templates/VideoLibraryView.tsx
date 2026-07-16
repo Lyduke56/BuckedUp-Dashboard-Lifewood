@@ -117,6 +117,8 @@ export function VideoLibraryView({
   const [requestCatalogModalOpen, setRequestCatalogModalOpen] = useState(false);
   const [productionModal, setProductionModal] = useState<Product | null>(null);
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
@@ -214,6 +216,17 @@ export function VideoLibraryView({
       }
       return next;
     });
+  };
+
+  const handleDeleteProduct = async (product: Product) => {
+    setDeleting(true);
+    try {
+      const supabase = createClient();
+      await supabase.from("products").delete().eq("id", product.id);
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
+    }
   };
 
   if (loading && products.length === 0) {
@@ -377,15 +390,6 @@ export function VideoLibraryView({
             </div>
             {canManageCatalog ? (
               <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  className="issue-submit-btn"
-                  onClick={() => setFormModal({ mode: "add", product: null })}
-                  style={{ height: "38px", borderRadius: "12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--ink-soft)", fontSize: 13 }}
-                  title="Add a one-off product not in the catalog"
-                >
-                  + One-off product
-                </button>
                 <button
                   type="button"
                   className="issue-submit-btn"
@@ -671,6 +675,8 @@ export function VideoLibraryView({
                           }
                           onReportIssue={reportIssue}
                           onResolveIssue={resolveIssue}
+                          canDelete={canManageCatalog}
+                          onDeleteRequest={() => setDeleteConfirm(product)}
                         />
                       </div>
                     </div>
@@ -723,6 +729,99 @@ export function VideoLibraryView({
           onClose={() => setReviewModal(null)}
         />
       ) : null}
+
+      {deleteConfirm ? (
+        <div
+          onClick={() => setDeleteConfirm(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.72)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#0d1310",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 440,
+              margin: "0 16px",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" /><path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                </div>
+                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#f87171" }}>Delete product?</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 4 }}
+              >✕</button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "0 24px 8px", color: "rgba(255,255,255,0.65)", fontSize: 14, lineHeight: 1.65 }}>
+              <p style={{ margin: "0 0 8px" }}>You are about to permanently delete:</p>
+              <p style={{ margin: "0 0 10px", fontWeight: 700, color: "#fff", fontSize: 15, padding: "8px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
+                "{deleteConfirm.name}"
+              </p>
+              <p style={{ margin: 0 }}>This removes the product and all its data from the database. <strong style={{ color: "#fca5a5" }}>This cannot be undone.</strong></p>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", padding: "20px 24px 24px" }}>
+              <button
+                type="button"
+                className="issue-submit-btn"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="issue-submit-btn"
+                style={{ background: "#7f1d1d", border: "1px solid #f87171", color: "#fca5a5", display: "inline-flex", alignItems: "center", gap: 6 }}
+                onClick={() => handleDeleteProduct(deleteConfirm)}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  "Deleting…"
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                    Yes, delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -738,6 +837,8 @@ interface RowDetailProps {
     severity: IssueSeverity,
   ) => Promise<void>;
   onResolveIssue: (id: string) => Promise<void>;
+  canDelete: boolean;
+  onDeleteRequest: () => void;
 }
 
 function RowDetail({
@@ -747,6 +848,8 @@ function RowDetail({
   ownerEmail,
   onReportIssue,
   onResolveIssue,
+  canDelete,
+  onDeleteRequest,
 }: RowDetailProps) {
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState<IssueSeverity>("medium");
@@ -852,6 +955,32 @@ function RowDetail({
             >
               {submitting ? "Reporting…" : "Report issue"}
             </button>
+            {canDelete ? (
+              <button
+                type="button"
+                className="issue-submit-btn"
+                onClick={onDeleteRequest}
+                title="Delete this product listing from the database"
+                style={{
+                  background: "rgba(127, 29, 29, 0.6)",
+                  border: "1px solid rgba(248, 113, 113, 0.45)",
+                  color: "#fca5a5",
+                  display: "inline-flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+                Delete product
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className="issue-empty">

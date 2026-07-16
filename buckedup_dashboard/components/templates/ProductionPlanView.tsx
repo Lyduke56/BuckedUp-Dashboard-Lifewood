@@ -1,13 +1,148 @@
 "use client";
 
-import { useState, useMemo, type FormEvent } from "react";
+import { useState, useMemo, useRef, type FormEvent } from "react";
 import { Film, Grid3x3, Globe } from "lucide-react";
+import * as XLSX from "xlsx";
 import { CATEGORY_TREE } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useTodayStats } from "@/lib/useTodayStats";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import type { ProductionPlan } from "@/lib/types";
+
+interface ParsedImport {
+  name: string;
+  totalVideoTarget: number;
+  startDate: string;
+  deadline: string;
+  dailyAccumulativeTargets: Record<string, number>;
+}
+
+function parseExcelDate(val: any): Date | null {
+  if (val instanceof Date) return val;
+  if (typeof val === "number") {
+    const date = new Date(Date.UTC(1899, 11, 30));
+    date.setUTCDate(date.getUTCDate() + val);
+    return date;
+  }
+  if (typeof val === "string") {
+    const parsed = Date.parse(val);
+    if (!isNaN(parsed)) return new Date(parsed);
+  }
+  return null;
+}
+
+function formatDateIso(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function parseProductionPlanXlsx(file: File): Promise<ParsedImport> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        if (!data) {
+          reject(new Error("Failed to read the file."));
+          return;
+        }
+        const workbook = XLSX.read(data, { type: "array", cellDates: true });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+        if (rows.length < 2) {
+          reject(new Error("The Excel sheet is empty or lacks rows."));
+          return;
+        }
+
+        const headers = rows[0].map((h) => String(h || "").trim().toLowerCase());
+        const dateIdx = headers.indexOf("date");
+        const dailyTargetIdx = headers.indexOf("daily target") !== -1
+          ? headers.indexOf("daily target")
+          : headers.indexOf("daily targets");
+        const targetAccumIdx = headers.indexOf("target (accumulative)");
+
+        if (dateIdx === -1) {
+          reject(new Error("Missing required column header: 'Date'"));
+          return;
+        }
+        if (dailyTargetIdx === -1) {
+          reject(new Error("Missing required column header: 'Daily Target' or 'Daily Targets'"));
+          return;
+        }
+
+        let firstDateStr: string | null = null;
+        let lastDateStr: string | null = null;
+        let lastAccumTargetVal = 0;
+        let sumDailyTargets = 0;
+        const dailyMap: Record<string, number> = {};
+
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || r.length === 0) continue;
+
+          const rawDate = r[dateIdx];
+          const rawDailyTarget = r[dailyTargetIdx];
+          const rawAccumTarget = targetAccumIdx !== -1 ? r[targetAccumIdx] : undefined;
+
+          if (rawDate !== undefined && rawDate !== null && String(rawDate).trim() !== "") {
+            const parsedDate = parseExcelDate(rawDate);
+            if (parsedDate) {
+              const dateStr = formatDateIso(parsedDate);
+              if (!firstDateStr) firstDateStr = dateStr;
+              lastDateStr = dateStr;
+
+              if (rawDailyTarget !== undefined && rawDailyTarget !== null && String(rawDailyTarget).trim() !== "") {
+                const parsedDaily = Number(rawDailyTarget);
+                if (!isNaN(parsedDaily)) {
+                  dailyMap[dateStr] = parsedDaily;
+                  sumDailyTargets += parsedDaily;
+                }
+              }
+
+              if (rawAccumTarget !== undefined && rawAccumTarget !== null && String(rawAccumTarget).trim() !== "") {
+                const parsedAccum = Number(rawAccumTarget);
+                if (!isNaN(parsedAccum)) {
+                  lastAccumTargetVal = parsedAccum;
+                }
+              }
+            }
+          }
+        }
+
+        if (!firstDateStr || !lastDateStr) {
+          reject(new Error("No valid dates found in the 'Date' column."));
+          return;
+        }
+
+        if (Object.keys(dailyMap).length === 0) {
+          reject(new Error("No valid target values found in the 'Daily Target' column."));
+          return;
+        }
+
+        const planName = file.name.replace(/\.[^.]+$/, "");
+        const finalTotalVideoTarget = lastAccumTargetVal > 0 ? lastAccumTargetVal : sumDailyTargets;
+
+        resolve({
+          name: planName,
+          totalVideoTarget: finalTotalVideoTarget,
+          startDate: firstDateStr,
+          deadline: lastDateStr,
+          dailyAccumulativeTargets: dailyMap,
+        });
+      } catch (err: any) {
+        reject(new Error(err?.message || "An error occurred during parsing."));
+      }
+    };
+    reader.onerror = () => reject(new Error("File reading failed."));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 
 interface FormState {
   name: string;
@@ -59,6 +194,11 @@ export function ProductionPlanView() {
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const [dailyAccumulativeTargets, setDailyAccumulativeTargets] = useState<Record<string, number> | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Dynamic lists of target categories & custom inputs for languages
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [customLanguageRowIndices, setCustomLanguageRowIndices] = useState<number[]>([]);
@@ -73,6 +213,7 @@ export function ProductionPlanView() {
     setLastSyncedKey(currentKey);
     const initialForm = toFormState(plan);
     setForm(initialForm);
+    setDailyAccumulativeTargets(plan?.dailyAccumulativeTargets ?? null);
     
     // Initialize active categories to those that have targets, or fallback to first category
     const active = Object.keys(initialForm.categoryTargets).filter(
@@ -80,6 +221,34 @@ export function ProductionPlanView() {
     );
     setActiveCategories(active.length > 0 ? active : [Object.keys(CATEGORY_TREE)[0]]);
   }
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportError(null);
+    try {
+      const parsed = await parseProductionPlanXlsx(file);
+      setForm((prev) => ({
+        ...prev,
+        name: parsed.name,
+        totalVideoTarget: String(parsed.totalVideoTarget),
+        startDate: parsed.startDate,
+        deadline: parsed.deadline,
+      }));
+      setDailyAccumulativeTargets(parsed.dailyAccumulativeTargets);
+    } catch (err: any) {
+      setImportError(err?.message || "Failed to parse the Excel file.");
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleClearImport = () => {
+    setDailyAccumulativeTargets(null);
+    setImportError(null);
+  };
 
   const setCategoryTarget = (category: string, value: string) => {
     setForm((prev) => ({ ...prev, categoryTargets: { ...prev.categoryTargets, [category]: value } }));
@@ -218,6 +387,7 @@ export function ProductionPlanView() {
       notes: form.notes.trim() || null,
       language_targets: languageTargets,
       category_targets: categoryTargets,
+      daily_accumulative_targets: dailyAccumulativeTargets,
     };
 
     const supabase = createClient();
@@ -262,6 +432,105 @@ export function ProductionPlanView() {
             Saved.
           </div>
         ) : null}
+
+        {/* Excel Import Notice and Action Panel */}
+        <div className="form-field-wide" style={{
+          background: "var(--glass-bg)",
+          borderTop: "1px solid var(--glass-border)",
+          borderRight: "1px solid var(--glass-border)",
+          borderBottom: "1px solid var(--glass-border)",
+          borderLeft: "3px solid var(--castleton)",
+          padding: "16px",
+          borderRadius: "12px",
+          marginBottom: "16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          gridColumn: "1 / -1"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+            <span style={{ fontSize: "18px", marginTop: "-2px" }}>⚠️</span>
+            <div style={{ fontSize: "13px", lineHeight: "1.5", color: "var(--text-main)" }}>
+              <strong style={{ color: "var(--castleton)" }}>Excel Import Notice:</strong> Please ensure your Excel spreadsheet follows a consistent layout. It must contain <strong>Date</strong> and <strong>Daily Target</strong> columns. Importing will automatically populate the Plan Name, Dates, Total Video Target, and Daily Pacing schedule.
+            </div>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
+            <button
+              type="button"
+              className="issue-submit-btn"
+              style={{
+                background: "var(--castleton-glow)",
+                border: "1px solid var(--castleton)",
+                color: "var(--castleton)",
+                height: "32px",
+                padding: "0 14px",
+                borderRadius: "8px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                boxShadow: "none"
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              {importing ? "Parsing..." : "Upload Excel Plan"}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept=".xlsx,.xls"
+              onChange={handleImport}
+            />
+
+            {dailyAccumulativeTargets ? (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+                <span style={{
+                  fontSize: "12px",
+                  color: "var(--castleton)",
+                  background: "var(--castleton-glow)",
+                  padding: "4px 8px",
+                  borderRadius: "6px",
+                  fontWeight: 600,
+                  border: "1px solid var(--castleton)"
+                }}>
+                  ✓ Pacing schedule loaded ({Object.keys(dailyAccumulativeTargets).length} dates)
+                </span>
+                <button
+                  type="button"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.08)",
+                    border: "1px solid rgba(239, 68, 68, 0.25)",
+                    color: "#dc2626",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    padding: "4px 8px",
+                    borderRadius: "6px"
+                  }}
+                  onClick={handleClearImport}
+                >
+                  Clear Import
+                </button>
+              </div>
+            ) : (
+              <span style={{ fontSize: "12px", color: "var(--ink-soft)" }}>
+                No imported pacing schedule active (falls back to daily target).
+              </span>
+            )}
+          </div>
+          {importError && (
+            <div style={{ color: "#dc2626", fontSize: "12px", fontWeight: 600 }}>
+              Error: {importError}
+            </div>
+          )}
+        </div>
 
         <label className="form-field form-field-wide">
           <span>Plan name</span>
