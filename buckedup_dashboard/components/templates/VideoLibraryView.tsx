@@ -191,6 +191,7 @@ export function VideoLibraryView({
   const handleCategoryChange = (value: string) => {
     setCurrentCategory(value);
     setCurrentSubcategory("all");
+    setGridFolder(null);
   };
 
   // Lead-only inline stage change from the list row (Lead has unrestricted
@@ -400,29 +401,39 @@ export function VideoLibraryView({
 
         <div className="library-body">
           {layout === "grid" ? (
-            gridFolder === null ? (
-              <CategoryFolderGrid
-                products={filteredProducts}
-                currentStatusFilter={currentStatusFilter}
-                rejectedOnly={rejectedOnly}
-                onOpenFolder={(category) => setGridFolder(category)}
-              />
+            gridFolder === null && currentCategory === "all" ? (
+              <div className="isolated-scroll" style={{ flex: 1 }}>
+                <CategoryFolderGrid
+                  products={filteredProducts}
+                  currentStatusFilter={currentStatusFilter}
+                  rejectedOnly={rejectedOnly}
+                  currentCategory={currentCategory}
+                  onOpenFolder={(category) => setGridFolder(category)}
+                />
+              </div>
             ) : (
-              <div>
-                <button
+              <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <div style={{ flexShrink: 0 }}>
+                  <button
                   type="button"
                   className="folder-back"
-                  onClick={() => setGridFolder(null)}
+                  onClick={() => {
+                    setGridFolder(null);
+                    setCurrentCategory("all");
+                  }}
                 >
                   ← All categories
-                </button>
-                <div className="section-heading section-heading-sm" style={{ margin: "8px 0 16px" }}>
-                  {gridFolder}
+                  </button>
+                  <div className="section-heading" style={{ fontSize: "28px", fontWeight: 800, margin: "12px 0 24px" }}>
+                    {currentCategory !== "all" ? currentCategory : gridFolder}
+                  </div>
                 </div>
-                <ProductThumbnailGrid
-                  products={filteredProducts.filter((p) => p.category === gridFolder)}
-                  onOpenModal={onOpenModal}
-                />
+                <div className="isolated-scroll" style={{ flex: 1 }}>
+                  <ProductThumbnailGrid
+                    products={filteredProducts.filter((p) => p.category === (currentCategory !== "all" ? currentCategory : gridFolder))}
+                    onOpenModal={onOpenModal}
+                  />
+                </div>
               </div>
             )
           ) : filteredProducts.length === 0 ? (
@@ -431,16 +442,19 @@ export function VideoLibraryView({
               appear here automatically once BuckedUp adds one.
             </div>
           ) : layout === "board" ? (
-            <KanbanBoard
-              products={filteredProducts}
-              issues={issues}
-              canMoveStage={canManageCatalog}
-              profileEmailById={profileEmailById}
-              onOpenModal={onOpenModal}
-              theme={theme}
-            />
+            <div className="isolated-scroll" style={{ flex: 1 }}>
+              <KanbanBoard
+                products={filteredProducts}
+                issues={issues}
+                canMoveStage={canManageCatalog}
+                profileEmailById={profileEmailById}
+                onOpenModal={onOpenModal}
+                theme={theme}
+              />
+            </div>
           ) : (
-            <div className="video-list">
+            <div className="isolated-scroll" style={{ flex: 1 }}>
+              <div className="video-list">
               {filteredProducts.map((product) => {
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
@@ -663,6 +677,7 @@ export function VideoLibraryView({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </div>

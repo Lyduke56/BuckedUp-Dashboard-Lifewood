@@ -10,6 +10,7 @@ interface CategoryFolderGridProps {
   products: Product[];
   currentStatusFilter: StatusFilter;
   rejectedOnly?: boolean;
+  currentCategory: string;
   onOpenFolder: (category: string) => void;
 }
 
@@ -29,10 +30,14 @@ const FILTER_COLORS: Record<StatusFilter, string> = {
 
 // Google-Drive-style top level of the Grid view: one folder tile per
 // category, with a live count from the (already-filtered) products.
-export function CategoryFolderGrid({ products, currentStatusFilter, rejectedOnly, onOpenFolder }: CategoryFolderGridProps) {
+export function CategoryFolderGrid({ products, currentStatusFilter, rejectedOnly, currentCategory, onOpenFolder }: CategoryFolderGridProps) {
+  const categoriesToRender = currentCategory && currentCategory !== "all" 
+    ? [currentCategory] 
+    : Object.keys(CATEGORY_TREE);
+
   return (
     <div className="folder-grid">
-      {Object.keys(CATEGORY_TREE).map((category) => {
+      {categoriesToRender.map((category) => {
         const count = categoryCountProducts(products, category);
         return (
           <button
