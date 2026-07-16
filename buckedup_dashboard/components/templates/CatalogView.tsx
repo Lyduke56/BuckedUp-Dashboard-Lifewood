@@ -31,9 +31,9 @@ function getLinkedProduct(catalogId: string, products: Product[]): Product | nul
 }
 
 const AIGC_BADGE: Record<AigcStatus, { label: string; cls: string }> = {
-  none: { label: "No Video", cls: "aigc-none" },
-  "in-progress": { label: "In Progress", cls: "aigc-progress" },
-  published: { label: "Published", cls: "aigc-published" },
+  none: { label: "No Video", cls: "bg-white/5 text-[var(--ink-soft)] border-white/10" },
+  "in-progress": { label: "In Progress", cls: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  published: { label: "Published", cls: "bg-[var(--castleton)]/10 text-[var(--castleton)] border-[var(--castleton)]/20" },
 };
 
 type AigcFilter = "all" | AigcStatus;
@@ -66,9 +66,10 @@ export function CatalogView({
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [aigcFilter, setAigcFilter] = useState<AigcFilter>("all");
   const [flagFilter, setFlagFilter] = useState<FlagFilter>("all");
+  const [availabilityFilter, setAvailabilityFilter] = useState<"active" | "inactive" | "all">("active");
   const [layout, setLayout] = useState<LayoutMode>("grid");
 
-  const itemsPerPage = layout === "grid" ? 40 : 10;
+  const itemsPerPage = 40;
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +86,7 @@ export function CatalogView({
   // eslint-disable-next-line
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, layout]);
+  }, [search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, availabilityFilter, layout]);
 
   // ── Modal state ──
   const [formModalMode, setFormModalMode] = useState<"add" | "edit" | null>(null);
@@ -109,9 +110,12 @@ export function CatalogView({
         if (flagFilter === "new" && !flag.includes("new")) return false;
         if (flagFilter === "clearance" && !flag.includes("clearance")) return false;
       }
+      if (availabilityFilter === "active" && !cp.isActive) return false;
+      if (availabilityFilter === "inactive" && cp.isActive) return false;
+
       return true;
     });
-  }, [catalog, search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, products]);
+  }, [catalog, search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, availabilityFilter, products]);
 
   // Pagination slice
   const paginatedFiltered = useMemo(() => {
@@ -243,7 +247,7 @@ export function CatalogView({
         </aside>
 
         {/* ── Right Content ── */}
-        <div className="flex-1 flex flex-col min-w-0 panel border-dashed max-h-[calc(100vh-2rem)]">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden panel border-dashed max-h-[calc(100vh-2rem)]">
           {/* Header section (Filters) */}
           <div className="p-5 flex flex-col xl:flex-row gap-4 items-center justify-between flex-shrink-0">
             <div className="flex-1 w-full max-w-md">
@@ -276,6 +280,17 @@ export function CatalogView({
                 <option value="bestseller">⭐ Best Seller</option>
                 <option value="new">🆕 New</option>
                 <option value="clearance">🏷 Clearance</option>
+              </select>
+
+              {/* Availability Filter */}
+              <select
+                className="filter-select text-xs h-9 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full px-3 text-[var(--text-main)] outline-none"
+                value={availabilityFilter}
+                onChange={(e) => setAvailabilityFilter(e.target.value as "active" | "inactive" | "all")}
+              >
+                <option value="active">Active Catalog</option>
+                <option value="all">All Products</option>
+                <option value="inactive">Inactive / Removed</option>
               </select>
 
               {/* Layout Toggle (Grid vs List) */}
@@ -430,7 +445,7 @@ export function CatalogView({
               />
             ) : (
               /* List view */
-              <div className="flex flex-col w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl overflow-hidden shadow-sm">
+              <div className="flex flex-col w-full shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl overflow-hidden shadow-sm">
                 <div className="flex items-center gap-4 px-5 py-2 text-[10px] font-bold text-[var(--ink-soft)] uppercase tracking-wider border-b border-[var(--glass-border)] bg-[rgba(0,0,0,0.02)] dark:bg-[rgba(255,255,255,0.02)]">
                   <span style={{ flex: 3 }}>Product</span>
                   <span style={{ flex: 2 }}>Category</span>
@@ -493,6 +508,7 @@ interface CardProps {
 
 function CatalogListRow({ product, aigcStatus, linkedProduct, isLead, onView, onEdit, onNavigateToLibrary }: CardProps) {
   const badge = AIGC_BADGE[aigcStatus];
+  const stageLabel = linkedProduct?.items?.[0]?.status || badge.label;
 
   return (
     <div className="flex items-center gap-4 px-5 py-1.5 border-b border-[var(--glass-border)] hover:bg-[var(--glass-hover)] transition-colors cursor-pointer group last:border-b-0" onClick={onView} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onView()}>
@@ -500,7 +516,7 @@ function CatalogListRow({ product, aigcStatus, linkedProduct, isLead, onView, on
         <div className="w-8 h-8 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 overflow-hidden">
           {product.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-cover" />
+            <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
             <Package size={14} className="text-[var(--ink-soft)] opacity-50" />
           )}
@@ -518,7 +534,11 @@ function CatalogListRow({ product, aigcStatus, linkedProduct, isLead, onView, on
         <span className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-main)]">{product.variantCount}</span>
       </div>
       <div style={{ flex: 1 }} className="flex justify-center">
-        <span className={`catalog-aigc-badge ${badge.cls} text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm`}>{badge.label}</span>
+        {aigcStatus !== "none" ? (
+          <span className={`catalog-aigc-badge ${badge.cls} text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm`}>{stageLabel}</span>
+        ) : (
+          <span className="text-[var(--ink-soft)] opacity-50 font-bold">—</span>
+        )}
       </div>
       <div style={{ flex: 1 }} className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
         {aigcStatus !== "none" && (
@@ -551,6 +571,7 @@ interface ModalProps {
 function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClose, onEdit, onNavigateToLibrary }: ModalProps) {
   const mounted = useMounted();
   const badge = AIGC_BADGE[aigcStatus];
+  const stageLabel = linkedProduct?.items?.[0]?.status || badge.label;
 
   if (!mounted) return null;
 
@@ -583,7 +604,7 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
             {product.thumbnailUrl ? (
               <div className="absolute inset-0 w-full h-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-contain p-6 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105" />
+                <img src={product.thumbnailUrl} alt={product.name} className="w-full h-full object-contain p-6 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105" referrerPolicy="no-referrer" />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-[var(--ink-soft)]">
@@ -594,7 +615,7 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
             {aigcStatus !== 'none' && (
               <div className="absolute top-4 left-4 z-10">
                 <span className={`catalog-aigc-badge ${badge.cls} text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/20`}>
-                  {badge.label}
+                  {stageLabel}
                 </span>
               </div>
             )}

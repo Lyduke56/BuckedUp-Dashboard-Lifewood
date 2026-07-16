@@ -22,6 +22,7 @@ export function ProductImage({ className, src, alt, ...props }: ProductImageProp
           alt={alt}
           className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
           loading="lazy"
+          referrerPolicy="no-referrer"
         />
       ) : (
         <div className="flex flex-col items-center justify-center w-full h-full p-4 opacity-20 grayscale transition-all duration-300 hover:opacity-40 hover:grayscale-0">

@@ -5059,9 +5059,6 @@ body.light .kanban-column {
 }
 
 .catalog-aigc-badge {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.03em;
