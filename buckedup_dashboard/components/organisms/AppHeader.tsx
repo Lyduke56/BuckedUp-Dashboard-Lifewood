@@ -17,7 +17,7 @@ export function AppHeader({
   onToggleTheme,
   onNotificationNavigate,
 }: AppHeaderProps) {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, role, loading: authLoading, signOut } = useAuth();
 
   return (
     <header className="app-header">
@@ -54,7 +54,24 @@ export function AppHeader({
         {authLoading ? null : user ? (
           <div className="auth-status" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <NotificationBell onNavigate={onNotificationNavigate} />
-            <span className="auth-email" style={{ fontSize: '12px', color: 'var(--header-text)', fontWeight: 600 }}>{user.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="auth-email" style={{ fontSize: '12px', color: 'var(--header-text)', fontWeight: 600 }}>{user.email}</span>
+              {role && (
+                <span style={{
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: role === 'admin' ? 'rgba(239, 68, 68, 0.15)' : role === 'lead' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                  color: role === 'admin' ? '#ef4444' : role === 'lead' ? '#f59e0b' : '#3b82f6',
+                  border: `1px solid ${role === 'admin' ? 'rgba(239, 68, 68, 0.3)' : role === 'lead' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
+                }}>
+                  {role}
+                </span>
+              )}
+            </div>
             <button type="button" className="header-btn" onClick={signOut} style={{
               background: 'var(--header-badge-bg, rgba(255,255,255,0.1))',
               border: '1px solid var(--header-badge-border, rgba(255,255,255,0.15))',
