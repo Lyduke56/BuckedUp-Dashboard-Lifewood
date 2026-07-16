@@ -1489,18 +1489,20 @@ a {
 /* ================= BUCKY — FLOATING ASSISTANT (admin only) ========== */
 .bucky-root {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
   z-index: 9998;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 14px;
+  width: 64px;
+  height: 64px;
 }
 
+.bucky-root.bottom-right { bottom: 40px; right: 40px; top: auto; left: auto; }
+.bucky-root.bottom-left { bottom: 40px; left: 40px; top: auto; right: auto; }
+.bucky-root.top-right { top: 40px; right: 40px; bottom: auto; left: auto; }
+.bucky-root.top-left { top: 40px; left: 40px; bottom: auto; right: auto; }
+
 .bucky-fab {
-  width: 56px;
-  height: 56px;
+  position: relative;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
@@ -1509,51 +1511,40 @@ a {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(255, 159, 28, 0.4);
+  box-shadow: 0 10px 30px rgba(255, 159, 28, 0.4), 0 0 0 1px inset rgba(255,255,255,0.2);
   transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
 }
 
 .bucky-fab:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 14px 36px rgba(255, 159, 28, 0.5);
+  box-shadow: 0 14px 40px rgba(255, 159, 28, 0.5), 0 0 0 1px inset rgba(255,255,255,0.3);
 }
 
 .bucky-panel {
-  width: 340px;
+  position: absolute;
+  width: 440px;
   max-width: calc(100vw - 48px);
-  height: 460px;
+  height: 600px;
   max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
-  /* Deliberately opaque, not var(--panel-bg) — see --panel-bg-opaque's
-     definition. backdrop-filter blur was tried first but isn't reliably
-     applied in every browser (confirmed not applying in testing), so
-     don't depend on it for legibility. */
   background: var(--panel-bg-opaque);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  animation: buckyIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  border: 1px solid var(--header-border);
+  box-shadow: var(--header-shadow);
 }
 
-@keyframes buckyIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+/* Panel absolute anchors based on root corner */
+.bucky-root.bottom-right .bucky-panel { bottom: calc(100% + 16px); right: 0; transform-origin: bottom right; }
+.bucky-root.bottom-left .bucky-panel { bottom: calc(100% + 16px); left: 0; transform-origin: bottom left; }
+.bucky-root.top-right .bucky-panel { top: calc(100% + 16px); right: 0; transform-origin: top right; }
+.bucky-root.top-left .bucky-panel { top: calc(100% + 16px); left: 0; transform-origin: top left; }
 
 .bucky-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg);
 }
@@ -1561,9 +1552,9 @@ a {
 .bucky-header-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
 }
 
@@ -1574,66 +1565,128 @@ a {
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  padding: 6px;
 }
 
 .bucky-close:hover {
   color: var(--text-main);
+  background: var(--glass-hover);
+  transform: rotate(90deg);
 }
 
 .bucky-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
-.bucky-msg {
-  max-width: 82%;
-  padding: 10px 13px;
-  border-radius: 14px;
-  font-size: 13px;
-  line-height: 1.5;
+.bucky-msg-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  animation: buckyMsgIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+}
+.bucky-msg-wrapper.user {
+  flex-direction: row-reverse;
 }
 
-.bucky-msg-bucky {
-  align-self: flex-start;
+@keyframes buckyMsgIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.bucky-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-main);
-  border-bottom-left-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.bucky-msg-wrapper.user .bucky-avatar {
+  background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
+  border: none;
+  color: #1a1207;
+}
+
+.bucky-msg {
+  max-width: 75%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.bucky-msg-bucky {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  border-top-left-radius: 4px;
 }
 
 .bucky-msg-user {
-  align-self: flex-end;
-  background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
-  color: #1a1207;
-  font-weight: 600;
-  border-bottom-right-radius: 4px;
+  background: var(--castleton);
+  border: 1px solid var(--castleton-glow);
+  color: #fff;
+  border-top-right-radius: 4px;
 }
 
 .bucky-msg-tool {
-  align-self: flex-start;
   background: transparent;
   border: 1px dashed var(--glass-border);
   color: var(--ink-soft);
-  font-size: 11.5px;
+  font-size: 12px;
   font-style: italic;
-  border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border-top-left-radius: 4px;
 }
 
-/* Confirm/cancel card for account-management actions — deliberately
-   louder than the other message styles (solid border, not dashed) since
-   it's the one place Bucky can actually change something. */
+/* Suggested prompts chips */
+.bucky-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 20px 16px 20px;
+}
+
+.bucky-chip {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.bucky-chip:hover {
+  background: var(--glass-hover);
+  transform: translateY(-2px);
+  border-color: var(--text-main);
+}
+
+/* Confirm/cancel card */
 .bucky-confirm {
-  align-self: flex-start;
   max-width: 92%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 12px;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
   background: var(--glass-bg);
   border: 1px solid var(--saffron);
   color: var(--text-main);
@@ -1644,120 +1697,150 @@ a {
 .bucky-confirm-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
 }
 
 .bucky-confirm-approve,
 .bucky-confirm-deny {
   border: none;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 12px;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .bucky-confirm-approve {
   background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
   color: #1a1207;
 }
+.bucky-confirm-approve:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 159, 28, 0.4);
+}
 
 .bucky-confirm-deny {
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  color: var(--ink-soft);
-}
-
-.bucky-confirm-deny:hover {
-  color: var(--text-main);
-}
-
-/* A collapsed <details> pill by default — the raw tool JSON is useful for
-   debugging but shouldn't dominate the chat when the real answer is the
-   text reply that follows it. */
-.bucky-tool-json {
-  align-self: flex-start;
-  max-width: 92%;
-  border-radius: 10px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--ink-soft);
 }
+.bucky-confirm-deny:hover {
+  color: var(--text-main);
+  background: var(--glass-hover);
+}
+
+.bucky-tool-json {
+  max-width: 92%;
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+  overflow: hidden;
+}
 
 .bucky-tool-json summary {
-  padding: 6px 12px;
-  font-size: 11px;
+  padding: 10px 14px;
+  font-size: 12px;
   font-style: italic;
   cursor: pointer;
   list-style: none;
 }
-
-.bucky-tool-json summary::-webkit-details-marker {
-  display: none;
-}
-
-.bucky-tool-json summary::before {
-  content: "▸ ";
-}
-
-.bucky-tool-json[open] summary::before {
-  content: "▾ ";
-}
-
+.bucky-tool-json summary::-webkit-details-marker { display: none; }
+.bucky-tool-json summary::before { content: "▸ "; }
+.bucky-tool-json[open] summary::before { content: "▾ "; }
 .bucky-tool-json pre {
   margin: 0;
-  padding: 0 12px 10px 12px;
-  max-height: 160px;
+  padding: 0 14px 14px 14px;
+  max-height: 180px;
   overflow: auto;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .bucky-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
+  padding: 16px 20px;
   border-top: 1px solid var(--glass-border);
   background: var(--glass-bg);
+  position: relative;
 }
 
 .bucky-input {
-  flex: 1;
+  width: 100%;
   font-family: var(--font-manrope), "Manrope", sans-serif;
-  font-size: 13px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
+  font-size: 14px;
+  padding: 14px 54px 14px 20px;
+  border-radius: 24px;
   background: var(--panel-bg);
+  border: 1px solid var(--glass-border);
   color: var(--text-main);
+  transition: all 0.3s ease;
   outline: none;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.bucky-input::placeholder {
+  color: var(--ink-soft);
 }
 
 .bucky-input:focus {
+  background: var(--modal-bg);
   border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.2), inset 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .bucky-send {
+  position: absolute;
+  right: 26px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  border: none;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
   color: #1a1207;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
   cursor: pointer;
-  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 2px 10px rgba(255, 159, 28, 0.3);
 }
 
 .bucky-send:disabled {
-  opacity: 0.5;
-  cursor: default;
+  background: var(--glass-hover);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.bucky-send:not(:disabled):hover {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 14px rgba(255, 159, 28, 0.5);
+}
+
+/* Typing Indicator */
+.bucky-typing {
+  display: flex;
+  gap: 5px;
+  padding: 6px 8px;
+}
+.bucky-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+.bucky-typing span:nth-child(1) { animation-delay: -0.32s; }
+.bucky-typing span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
 }
 
 /* ================= VIDEO LIBRARY — GRID VIEW (Drive-style) =========== */
