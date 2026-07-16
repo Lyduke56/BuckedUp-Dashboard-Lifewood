@@ -1,7 +1,7 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createClient } from "@/lib/supabase/server";
-import { createBuckyReadTools, createBuckyActionTools } from "@/lib/bucky/tools";
+import { createBuckyReadTools, createBuckyActionTools, createBuckyOperatorActionTools } from "@/lib/bucky/tools";
 import { buildSystemPrompt } from "@/lib/bucky/systemPrompt";
 import type { UserRole } from "@/lib/types";
 
@@ -31,8 +31,9 @@ export async function POST(request: Request) {
   // Bucky is reachable by any authenticated role now (admin/lead/operator)
   // — the 8 read tools already query through RLS, which is public-read on
   // every table they touch, so widening access exposes nothing new. What
-  // stays role-gated is the *action* tool set (see createBuckyActionTools):
-  // account-management tools are only ever handed to admins.
+  // stays role-gated is the *action* tool sets: account-management tools
+  // (createBuckyActionTools) are admin-only, work-execution tools
+  // (createBuckyOperatorActionTools) are operator-only.
   const supabase = await createClient();
   const {
     data: { user },
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
     tools: {
       ...createBuckyReadTools(supabase),
       ...createBuckyActionTools(supabase, request, role),
+      ...createBuckyOperatorActionTools(supabase, role, user.id),
     },
     // Account-management actions never run on the model's say-so alone —
     // the tool call only proposes the action; execute() only actually

@@ -68,6 +68,36 @@ function describeAction(toolName: string, input: unknown): string {
   }
 }
 
+// Human-readable summary of a tool's completed result, shown as the
+// <summary> of the collapsible output-available block. Read tools (list_*,
+// get_*) have no entry here and fall back to "Looked up {toolName}" —
+// accurate for them. Mutation tools that don't require approval (operator's
+// work-execution tools, see lib/bucky/tools.ts) get a past-tense summary
+// instead, since "Looked up submit_deliverable" reads oddly for something
+// that just *did* something rather than fetched data.
+function describeToolResult(toolName: string, input: unknown): string {
+  const params = (input ?? {}) as Record<string, unknown>;
+  const product = typeof params.rank === "number" ? `#${params.rank}` : "a product";
+  switch (toolName) {
+    case "report_issue": {
+      const severity = typeof params.severity === "string" ? params.severity : "medium";
+      return `Reported ${withArticle(severity)} issue on #${params.rank}`;
+    }
+    case "resolve_issue":
+      return "Resolved an issue";
+    case "claim_product":
+      return `Claimed ${product}`;
+    case "submit_deliverable":
+      return `Submitted a deliverable for ${product}`;
+    case "submit_video_for_review":
+      return `Submitted ${product} for review`;
+    case "set_video_version":
+      return `Set a new video version for ${product}`;
+    default:
+      return `Looked up ${toolName}`;
+  }
+}
+
 // Only auto-resubmit after an approval decision if something was actually
 // *approved* — a denial needs no further model round-trip (nothing ran,
 // nothing to report on), and the built-in
@@ -293,7 +323,7 @@ export function BuckyWidget() {
                     if (part.state === "output-available") {
                       return (
                         <details key={key} className="bucky-tool-json">
-                          <summary>Looked up {toolName}</summary>
+                          <summary>{describeToolResult(toolName, part.input)}</summary>
                           <pre>{JSON.stringify(part.output, null, 2)}</pre>
                         </details>
                       );
