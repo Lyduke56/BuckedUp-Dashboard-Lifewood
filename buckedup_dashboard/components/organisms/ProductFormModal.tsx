@@ -129,6 +129,11 @@ export function ProductFormModal({
     const effectiveKind = currentStatus === "Prompting" ? "text" : delKind;
     const file = delFileInputRef.current?.files?.[0] ?? null;
 
+    if (file && file.size > 25 * 1024 * 1024) {
+      setDelError("Deliverable file size must be less than 25MB.");
+      return;
+    }
+
     if (effectiveKind === "file" && !file) {
       setDelError("Choose a file to upload.");
       return;
@@ -232,6 +237,11 @@ export function ProductFormModal({
 
   const handleThumbnailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
+    if (file && file.size > 5 * 1024 * 1024) {
+      setError("Thumbnail file size must be less than 5MB.");
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+      return;
+    }
     setThumbnailFile(file);
     if (file) {
       const previewUrl = URL.createObjectURL(file);

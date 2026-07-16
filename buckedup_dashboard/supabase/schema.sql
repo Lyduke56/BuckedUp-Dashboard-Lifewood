@@ -199,8 +199,10 @@ begin
       or new.publish_date is distinct from old.publish_date
       or new.review_status is distinct from old.review_status
       or new.rejection_reason is distinct from old.rejection_reason
-      or new.status is distinct from old.status then
-      raise exception 'Operators may only change the video URL (and claim ownership on upload)';
+      or new.status is distinct from old.status
+      or new.thumbnail_url is distinct from old.thumbnail_url
+      or new.delivery_type is distinct from old.delivery_type then
+      raise exception 'Operators may only change the video URL (and claim ownership via owner_id)';
     end if;
     return new;
   end if;
