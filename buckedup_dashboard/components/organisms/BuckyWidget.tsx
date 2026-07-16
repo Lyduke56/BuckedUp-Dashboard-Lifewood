@@ -167,7 +167,7 @@ export function BuckyWidget() {
 
     let timeout: NodeJS.Timeout;
     const triggerFidget = () => {
-      const animations = [
+      const animations: any[] = [
         { rotate: [0, -8, 8, -5, 5, 0], transition: { duration: 1.2, ease: "easeInOut" } },
         { y: [0, -6, 0, -3, 0], transition: { duration: 1.2, ease: "easeInOut" } },
         { scale: [1, 1.08, 0.95, 1.04, 1], transition: { duration: 1.2, ease: "easeInOut" } },

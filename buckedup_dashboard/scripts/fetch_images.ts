@@ -53,7 +53,7 @@ async function main() {
           return;
         }
         
-        const imageUrl = await newPage.evaluate(() => {
+        let imageUrl = await newPage.evaluate(() => {
           const ogMeta = document.querySelector('meta[property="og:image"]');
           if (ogMeta && ogMeta.getAttribute('content')) return ogMeta.getAttribute('content');
           const twMeta = document.querySelector('meta[name="twitter:image"]');
@@ -63,6 +63,15 @@ async function main() {
         });
 
         if (imageUrl) {
+          if (imageUrl.includes('/cdn-cgi/image/')) {
+            const match = imageUrl.match(/\/cdn-cgi\/image\/[^\/]+\/(.+)/);
+            if (match && match[1]) {
+              const originalPath = decodeURIComponent(match[1]);
+              const base = imageUrl.startsWith('http') ? new URL(imageUrl).origin : 'https://www.buckedup.com';
+              imageUrl = `${base}/${originalPath}`;
+            }
+          }
+
           const fullImageUrl = imageUrl.startsWith('//') ? `https:${imageUrl}` : imageUrl;
           console.log(`--> Found image for ${product.name}: ${fullImageUrl}`);
           

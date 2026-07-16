@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Search, Plus, ExternalLink, ChevronRight, X, Edit2,
-  Video, Package, LayoutGrid, List, Star, Tag, Layers, ChevronLeft,
+  Video, Package, LayoutGrid, List, Star, Tag, Layers, ChevronLeft, Info
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useMounted } from "@/lib/useMounted";
@@ -628,7 +628,9 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1.5">
                 <div className="text-[10px] font-bold text-[var(--ink-soft)] uppercase tracking-wider">AIGC Video Status</div>
-                <Info size={12} className="text-[var(--ink-soft)] cursor-help" title="Indicates the current stage of this product's video in the AIGC generation pipeline." />
+                <span title="Indicates the current stage of this product's video in the AIGC generation pipeline.">
+                  <Info size={12} className="text-[var(--ink-soft)] cursor-help" />
+                </span>
               </div>
               <div className={`catalog-aigc-card ${badge.cls} p-3 rounded-lg border flex flex-col gap-2`}>
                 <span className="text-[10px] font-bold uppercase tracking-wider">{badge.label}</span>
