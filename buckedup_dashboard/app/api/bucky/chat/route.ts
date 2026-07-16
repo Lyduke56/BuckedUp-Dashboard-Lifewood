@@ -9,18 +9,18 @@ const VALID_ROLES: UserRole[] = ["admin", "lead", "operator"];
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
-// Free-tier model per the PM's budget constraint. Verified end-to-end
-// (auth guards, tool execution, and the tool-call-then-answer loop all
-// work) — the one open item is answer *quality* on this specific free
-// model, which can be terse (tightened the system prompt below to push
-// back on that). meta-llama/llama-3.3-70b-instruct:free is a documented,
-// untested-so-far alternative (its first live attempt hit a transient
-// upstream 429 from OpenRouter's free-tier routing, not a code issue) —
-// worth trying if this one's answers stay weak in real use.
-// OpenRouter's free daily quota is low until the account has $10+ in
-// lifetime purchases — if either model starts erroring/rate-limiting,
-// that's likely why.
+// Free-tier models per the PM's budget constraint. OpenRouter's free-tier
+// rate limits are governed per-model, not per-account (confirmed via their
+// own docs), so a fallback chain across distinct models is a real quota
+// multiplier, not just a reliability patch — if the primary model 429s or
+// errors before it starts responding, OpenRouter automatically retries the
+// next one in this list with zero extra code here. All three are confirmed
+// (as of this writing) to support tool-calling, which Bucky needs.
+// openrouter/free is a meta-model that randomly load-balances across
+// OpenRouter's whole free-model pool — kept last since you lose control
+// over which model answers (tone/quality varies turn to turn).
 const MODEL = "openai/gpt-oss-20b:free";
+const FALLBACK_MODELS = [MODEL, "meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"];
 
 export async function POST(request: Request) {
   // Same auth pattern as app/api/admin/create-user/route.ts: session check,
@@ -50,7 +50,16 @@ export async function POST(request: Request) {
   const { messages }: { messages: UIMessage[] } = await request.json();
 
   const result = streamText({
-    model: openrouter.chat(MODEL),
+    model: openrouter.chat(MODEL, {
+      models: FALLBACK_MODELS,
+      // Strips the hidden chain-of-thought/"analysis" channel server-side —
+      // a real API-level fix for the reasoning-leak issue this app was
+      // previously only papering over with a client-side regex filter
+      // (isLeakedReasoning in BuckyWidget.tsx, kept as a backstop since
+      // this isn't guaranteed to work on every backend serving these
+      // models).
+      reasoning: { exclude: true, effort: "low" },
+    }),
     system: buildSystemPrompt(role),
     messages: await convertToModelMessages(messages),
     tools: {
