@@ -44,6 +44,16 @@ export function Dashboard() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    // A small timeout ensures the new tab's content is painted before scrolling.
+    // Target window, documentElement, and body to cover CSS overflow edge cases (e.g. body height: 100%).
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.documentElement.scrollTo?.({ top: 0, behavior: "smooth" });
+      document.body.scrollTo?.({ top: 0, behavior: "smooth" });
+    }, 10);
+  }, [activeView]);
+
   const handleNotificationNavigate = (productName: string) => {
     setLibrarySearch(productName);
     setActiveView("library");
