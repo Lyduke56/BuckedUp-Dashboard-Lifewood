@@ -141,7 +141,7 @@ export function Dashboard() {
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />
-      {role === "admin" ? <BuckyWidget /> : null}
+      <BuckyWidget />
     </div>
   );
 }

@@ -90,11 +90,12 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
   );
 }
 
-// Admin-only assistant, wired to a real tool-calling backend
-// (app/api/bucky/chat/route.ts). Can answer questions about any dashboard
-// data and take three account-management actions (create/delete/change
-// role) — each requires an explicit confirm click here before it runs.
-// State resets on close/reload (no persisted chat history yet).
+// Available to every authenticated role, wired to a real tool-calling
+// backend (app/api/bucky/chat/route.ts). Can answer questions about any
+// dashboard data for anyone; admins additionally get three
+// account-management actions (create/delete/change role) — each requires
+// an explicit confirm click here before it runs. State resets on
+// close/reload (no persisted chat history yet).
 export function BuckyWidget() {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);

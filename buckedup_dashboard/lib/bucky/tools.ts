@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { createClient } from "@/lib/supabase/server";
 import { STATUS_ORDER, REVIEW_STATUS_ORDER } from "@/lib/data";
+import type { UserRole } from "@/lib/types";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -266,10 +267,11 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 
 const ROLE_SCHEMA = z.enum(["operator", "lead", "admin"]);
 
-// Admin-only account-management actions. Each is gated by `toolApproval`
-// (see app/api/bucky/chat/route.ts) — the model's tool call only
-// *proposes* the action; execute() below only actually runs once the
-// admin has clicked confirm in the chat UI.
+// Account-management actions. Each is gated by `toolApproval` (see
+// app/api/bucky/chat/route.ts) — the model's tool call only *proposes*
+// the action; execute() below only actually runs once the admin has
+// clicked confirm in the chat UI. (Role-gating for these lives in
+// createBuckyActionTools below, which wraps this builder.)
 //
 // create_user/delete_user deliberately call the exact same Route Handlers
 // the "Manage Users" admin UI uses (forwarding the caller's session
@@ -279,7 +281,7 @@ const ROLE_SCHEMA = z.enum(["operator", "lead", "admin"]);
 // copies drifting apart. change_role has no dedicated route (the UI does
 // a plain client-side update relying on RLS's admin-only policy), so it
 // does the same update directly through the session-scoped client here.
-export function createBuckyActionTools(supabase: SupabaseServerClient, request: Request) {
+function buildAdminActionTools(supabase: SupabaseServerClient, request: Request) {
   const origin = new URL(request.url).origin;
   const cookie = request.headers.get("cookie") ?? "";
 
@@ -346,4 +348,23 @@ export function createBuckyActionTools(supabase: SupabaseServerClient, request: 
         }),
     }),
   };
+}
+
+// Bucky is now reachable by lead/operator too (see route.ts), but the
+// tools above stay admin-exclusive — they're account governance, not
+// pipeline work. Returning {} for non-admins means the model is never
+// even given a schema for them, so it can't attempt to call one no matter
+// what it's asked — the tool map itself is the security boundary, not
+// prompt wording. (The type assertion below is compile-time only: the
+// runtime value genuinely has no keys for non-admins, which is what the
+// AI SDK actually iterates over — TS just can't express "same shape, but
+// conditionally absent" without either this or losing the literal key
+// names streamText's toolApproval needs.)
+export function createBuckyActionTools(
+  supabase: SupabaseServerClient,
+  request: Request,
+  role: UserRole,
+): ReturnType<typeof buildAdminActionTools> {
+  if (role !== "admin") return {} as ReturnType<typeof buildAdminActionTools>;
+  return buildAdminActionTools(supabase, request);
 }
