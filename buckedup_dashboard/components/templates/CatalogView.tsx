@@ -623,6 +623,42 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
 
           {/* Right Column: Details */}
           <div className="flex-1 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+            
+            {/* AIGC Production status */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="text-[10px] font-bold text-[var(--ink-soft)] uppercase tracking-wider">AIGC Video Status</div>
+                <Info size={12} className="text-[var(--ink-soft)] cursor-help" title="Indicates the current stage of this product's video in the AIGC generation pipeline." />
+              </div>
+              <div className={`catalog-aigc-card ${badge.cls} p-3 rounded-lg border flex flex-col gap-2`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider">{badge.label}</span>
+                {linkedProduct ? (
+                  <div className="flex flex-col gap-1 text-xs text-[var(--ink)]">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[var(--ink-soft)]">Stage</span>
+                      <span className="font-semibold text-[var(--text-main)]">{linkedProduct.items[0]?.status ?? "—"}</span>
+                    </div>
+                    {linkedProduct.reviewStatus && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[var(--ink-soft)]">Review</span>
+                        <span className="font-semibold text-[var(--text-main)]">{linkedProduct.reviewStatus}</span>
+                      </div>
+                    )}
+                    {linkedProduct.owner && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[var(--ink-soft)]">Operator</span>
+                        <span className="font-semibold text-[var(--text-main)]">{linkedProduct.owner}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--ink-soft)] m-0">
+                    No AIGC video has been requested for this product yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Meta */}
             <div className="flex flex-col gap-2.5">
               <div className="grid grid-cols-2 gap-2.5">
@@ -676,37 +712,6 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
               </div>
             )}
 
-            {/* AIGC Production status */}
-            <div className="flex flex-col gap-2">
-              <div className="text-[10px] font-bold text-[var(--ink-soft)] uppercase tracking-wider">AIGC Video Status</div>
-              <div className={`catalog-aigc-card ${badge.cls} p-3 rounded-lg border flex flex-col gap-2`}>
-                <span className="text-[10px] font-bold uppercase tracking-wider">{badge.label}</span>
-                {linkedProduct ? (
-                  <div className="flex flex-col gap-1 text-xs text-[var(--ink)]">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[var(--ink-soft)]">Stage</span>
-                      <span className="font-semibold text-[var(--text-main)]">{linkedProduct.items[0]?.status ?? "—"}</span>
-                    </div>
-                    {linkedProduct.reviewStatus && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-[var(--ink-soft)]">Review</span>
-                        <span className="font-semibold text-[var(--text-main)]">{linkedProduct.reviewStatus}</span>
-                      </div>
-                    )}
-                    {linkedProduct.owner && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-[var(--ink-soft)]">Operator</span>
-                        <span className="font-semibold text-[var(--text-main)]">{linkedProduct.owner}</span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-[var(--ink-soft)] m-0">
-                    No AIGC video has been requested for this product yet.
-                  </p>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
