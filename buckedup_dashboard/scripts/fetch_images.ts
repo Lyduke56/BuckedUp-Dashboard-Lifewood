@@ -14,49 +14,50 @@ async function main() {
   const products = JSON.parse(content);
 
   const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  
-  // Set a common user agent to help avoid basic blocks
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
   console.log(`Loaded ${products.length} products. Fetching images...`);
 
-  for (let i = 0; i < products.length; i++) {
-    const product = products[i];
-    if (product.link && !product.imageUrl) {
-      console.log(`Fetching image for: ${product.name}`);
-      try {
-        await page.goto(product.link, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        
-        const imageUrl = await page.evaluate(() => {
-          // Try og:image first
-          const ogMeta = document.querySelector('meta[property="og:image"]');
-          if (ogMeta && ogMeta.getAttribute('content')) {
-            return ogMeta.getAttribute('content');
-          }
-          // Fallback 1: twitter:image
-          const twMeta = document.querySelector('meta[name="twitter:image"]');
-          if (twMeta && twMeta.getAttribute('content')) {
-            return twMeta.getAttribute('content');
-          }
-          // Fallback 2: general product images
-          const img = document.querySelector('img.product-image, img.product-featured-img');
-          return img ? img.getAttribute('src') : null;
-        });
+  const concurrency = 3;
+  for (let i = 0; i < products.length; i += concurrency) {
+    const chunk = products.slice(i, i + concurrency);
+    
+    await Promise.all(chunk.map(async (product: any) => {
+      if (product.link && !product.imageUrl) {
+        console.log(`Fetching image for: ${product.name}`);
+        let newPage;
+        try {
+          newPage = await browser.newPage();
+          await newPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+          await newPage.goto(product.link, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          
+          const imageUrl = await newPage.evaluate(() => {
+            const ogMeta = document.querySelector('meta[property="og:image"]');
+            if (ogMeta && ogMeta.getAttribute('content')) return ogMeta.getAttribute('content');
+            const twMeta = document.querySelector('meta[name="twitter:image"]');
+            if (twMeta && twMeta.getAttribute('content')) return twMeta.getAttribute('content');
+            const img = document.querySelector('img.product-image, img.product-featured-img');
+            return img ? img.getAttribute('src') : null;
+          });
 
-        if (imageUrl) {
-          product.imageUrl = imageUrl.startsWith('//') ? `https:${imageUrl}` : imageUrl;
-          console.log(`--> Found image: ${product.imageUrl}`);
-        } else {
-          console.log(`--> No image found.`);
+          if (imageUrl) {
+            product.imageUrl = imageUrl.startsWith('//') ? `https:${imageUrl}` : imageUrl;
+            console.log(`--> Found image: ${product.imageUrl}`);
+          } else {
+            console.log(`--> No image found for ${product.name}`);
+          }
+        } catch (err: any) {
+          console.error(`--> Error (${product.name}): ${err.message}`);
+        } finally {
+          if (newPage) await newPage.close();
         }
-      } catch (err: any) {
-        console.error(`--> Error: ${err.message}`);
       }
-      
-      // small delay to be polite
-      await new Promise(r => setTimeout(r, 1000));
-    }
+    }));
+    
+    // Save incrementally
+    fs.writeFileSync(jsonPath, JSON.stringify(products, null, 2), 'utf-8');
+    console.log(`Saved progress (${Math.min(i + concurrency, products.length)}/${products.length})`);
+    
+    // Small delay between batches to be polite
+    await new Promise(r => setTimeout(r, 1000));
   }
 
   await browser.close();

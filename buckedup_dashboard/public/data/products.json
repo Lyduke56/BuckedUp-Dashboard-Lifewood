@@ -8,7 +8,8 @@
     "variantCount": "3",
     "price": "$54.99",
     "flag": "? Best Seller #17",
-    "link": "https://www.buckedup.com/shop/fat-burn-and-thermogenic/lfg-burn-thermogenic-pre-workout"
+    "link": "https://www.buckedup.com/shop/fat-burn-and-thermogenic/lfg-burn-thermogenic-pre-workout",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F12447-BU-LFG-RazzleDazzle-2023.09-01-1200px-01F.webp"
   },
   {
     "id": "4",
@@ -67,7 +68,8 @@
     "variantCount": "1",
     "price": "$54.99",
     "flag": "? Best Seller #16",
-    "link": "https://www.buckedup.com/shop/high-stimulant/bamf-black"
+    "link": "https://www.buckedup.com/shop/high-stimulant/bamf-black",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F2894-WHO-BAMF-BLACK-WelcometoMiami-30srv-01.webp"
   },
   {
     "id": "10",
@@ -78,7 +80,8 @@
     "variantCount": "4",
     "price": "$49.99 (Normal $69.99)",
     "flag": "? Best Seller #19",
-    "link": "https://www.buckedup.com/shop/high-stimulant/black-ant-pre-workout"
+    "link": "https://www.buckedup.com/shop/high-stimulant/black-ant-pre-workout",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F14768-WHO-BlackAnt-Grape-20srv-46oz-01.webp"
   },
   {
     "id": "11",
@@ -89,7 +92,8 @@
     "variantCount": "6",
     "price": "$20.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/high-stimulant/pre-workout-candy-10-serv"
+    "link": "https://www.buckedup.com/shop/high-stimulant/pre-workout-candy-10-serv",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F7582-BU-BuckedUp-Candy-CherryCandy-10serv-2023.09-01-1200px-01F.webp"
   },
   {
     "id": "12",
@@ -100,7 +104,8 @@
     "variantCount": "1",
     "price": "$34.99 (Normal $54.99)",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/high-stimulant/last-chance-bamf"
+    "link": "https://www.buckedup.com/shop/high-stimulant/last-chance-bamf",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1082-WHO-BAMF--NewYear-TartCandy-30srv-24-11-01-1200px-01F_medium.webp"
   },
   {
     "id": "13",
@@ -111,7 +116,8 @@
     "variantCount": "1",
     "price": "$59.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/high-stimulant/mother-bucker-swole-whip"
+    "link": "https://www.buckedup.com/shop/high-stimulant/mother-bucker-swole-whip",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2198-WHO-MotherBucker-SwoleWhip-20srv-25-04-00-01_medium.webp"
   },
   {
     "id": "14",
@@ -122,7 +128,8 @@
     "variantCount": "2",
     "price": "$54.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/high-stimulant/black-woke-af-high-stimulant"
+    "link": "https://www.buckedup.com/shop/high-stimulant/black-woke-af-high-stimulant",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F1786-WHO-WokeAF-BLACK-SetsontheBeach-30srv-01.webp"
   },
   {
     "id": "15",
@@ -133,7 +140,8 @@
     "variantCount": "1",
     "price": "$54.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/high-stimulant/woke-af-pre-workout-swole-whip"
+    "link": "https://www.buckedup.com/shop/high-stimulant/woke-af-pre-workout-swole-whip",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2194-WHO-WokeAF-SwoleWhip-30srv-25-03-02-01_medium.webp"
   },
   {
     "id": "17",
@@ -144,7 +152,8 @@
     "variantCount": "8",
     "price": "$8.99 - $39.99",
     "flag": "? Best Seller #2  �  NEW",
-    "link": "https://www.buckedup.com/shop/energy-supplements/pwr-buck-caffeine-energy-pouches-nicotine-free"
+    "link": "https://www.buckedup.com/shop/energy-supplements/pwr-buck-caffeine-energy-pouches-nicotine-free",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F18050-buckedup-pwr-buck-energy-pouches-blue-raz-20-count.webp"
   },
   {
     "id": "19",
@@ -155,7 +164,8 @@
     "variantCount": "2",
     "price": "$49.99",
     "flag": "? Best Seller #11",
-    "link": "https://www.buckedup.com/shop/standard-stim/black-pre-workout/rainbow-rush"
+    "link": "https://www.buckedup.com/shop/standard-stim/black-pre-workout/rainbow-rush",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F1781-WHO-BU-Pre-BLACK-RainbowRush-30srv-01.webp"
   },
   {
     "id": "20",
@@ -166,7 +176,8 @@
     "variantCount": "11",
     "price": "$49.99",
     "flag": "? Best Seller #12",
-    "link": "https://www.buckedup.com/shop/standard-stim/pre-workout-supplement/miami"
+    "link": "https://www.buckedup.com/shop/standard-stim/pre-workout-supplement/miami",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F785-buckedup-rp-1.webp"
   },
   {
     "id": "21",
@@ -177,7 +188,8 @@
     "variantCount": "5",
     "price": "$49.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/standard-stim/Bucked-Up-Pre-Workout-Limited-Time-Flavors/dragon-fruit-lemonade"
+    "link": "https://www.buckedup.com/shop/standard-stim/Bucked-Up-Pre-Workout-Limited-Time-Flavors/dragon-fruit-lemonade",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F18020-WHO-BU-Pre--Summer2026-DragonFruitLemonade-30srv-01.webp"
   },
   {
     "id": "23",
@@ -188,7 +200,8 @@
     "variantCount": "6",
     "price": "$45.99",
     "flag": "? Best Seller #18",
-    "link": "https://www.buckedup.com/shop/stim-free-and-pump/bucked-up-pump-ocalypse"
+    "link": "https://www.buckedup.com/shop/stim-free-and-pump/bucked-up-pump-ocalypse",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9829-buckedup-image%20%2859%29.webp"
   },
   {
     "id": "24",
@@ -199,7 +212,8 @@
     "variantCount": "1",
     "price": "$17.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/stim-free-and-pump/das-labs-beta-alanine"
+    "link": "https://www.buckedup.com/shop/stim-free-and-pump/das-labs-beta-alanine",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F196-BU-BETA%20ALANINE-2023.09-00-1200px-01F.webp"
   },
   {
     "id": "25",
@@ -210,7 +224,8 @@
     "variantCount": "5",
     "price": "$49.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/stim-free-and-pump/stim-free-supplement"
+    "link": "https://www.buckedup.com/shop/stim-free-and-pump/stim-free-supplement",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F570-1010181_WHO--BU-Pre-Zero-PinkLemonade-30srv-25.01-03-01.png"
   },
   {
     "id": "26",
@@ -221,7 +236,8 @@
     "variantCount": "1",
     "price": "$19.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/stim-free-and-pump/l-citrulline-capsules"
+    "link": "https://www.buckedup.com/shop/stim-free-and-pump/l-citrulline-capsules",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1367-BUP%20ES%20L-Citrulline%20%28750%20MG%20X%202%29%28120%20CAP%29-1200px-01F.webp"
   },
   {
     "id": "29",
@@ -232,7 +248,8 @@
     "variantCount": "4",
     "price": "$99.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/energy-drinks/two-case-custom-protein-energy-bundle"
+    "link": "https://www.buckedup.com/shop/energy-drinks/two-case-custom-protein-energy-bundle",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2277-2%20Case%20GIF%20%282%29.gif"
   },
   {
     "id": "30",
@@ -243,7 +260,8 @@
     "variantCount": "2",
     "price": "$79.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/energy-drinks/babe-energy-drinks"
+    "link": "https://www.buckedup.com/shop/energy-drinks/babe-energy-drinks",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2014-1022329_1022328_3161230_3161229_babe-energy-2-case-render_medium.webp"
   },
   {
     "id": "31",
@@ -254,7 +272,8 @@
     "variantCount": "15",
     "price": "$79.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/energy-drinks/energy-case-web"
+    "link": "https://www.buckedup.com/shop/energy-drinks/energy-case-web",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1002-frame_1_2x.webp"
   },
   {
     "id": "32",
@@ -265,7 +284,8 @@
     "variantCount": "4",
     "price": "$47.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/energy-drinks/bucked-up-mini-energy-drink-7oz"
+    "link": "https://www.buckedup.com/shop/energy-drinks/bucked-up-mini-energy-drink-7oz",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F15804-WHO-BU_Energy--SoFi-RocketPop-1srv-7_5oz-Art-25.12-00-01.webp"
   },
   {
     "id": "33",
@@ -276,7 +296,8 @@
     "variantCount": "5",
     "price": "$39.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/energy-drinks/bucked-up-refreshers"
+    "link": "https://www.buckedup.com/shop/energy-drinks/bucked-up-refreshers",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F17283-WHO-RTD-BU_Refresher-DD_StrawberryAcai-1srv-12oz-01.webp"
   },
   {
     "id": "35",
@@ -287,7 +308,8 @@
     "variantCount": "4",
     "price": "$39.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/hydration-drinks/drive-hydration"
+    "link": "https://www.buckedup.com/shop/hydration-drinks/drive-hydration",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F16421-WHO-DriveRTD-Grape-1srv-16oz-01.webp"
   },
   {
     "id": "37",
@@ -298,7 +320,8 @@
     "variantCount": "4",
     "price": "$5.99",
     "flag": "? Best Seller #1  �  NEW",
-    "link": "https://www.buckedup.com/shop/proteins/protein-popcorn"
+    "link": "https://www.buckedup.com/shop/proteins/protein-popcorn",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F17674-4000002_WHO-ProteinPopcorn-KettleCorn-60g-01.webp"
   },
   {
     "id": "38",
@@ -309,7 +332,8 @@
     "variantCount": "1",
     "price": "$41.99",
     "flag": "? Best Seller #8",
-    "link": "https://www.buckedup.com/shop/proteins/bucked-up-collagen-peptides"
+    "link": "https://www.buckedup.com/shop/proteins/bucked-up-collagen-peptides",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F279-BU-Collagen%20Peptides-2023.09-00-1200px-01F.webp"
   },
   {
     "id": "39",
@@ -320,7 +344,8 @@
     "variantCount": "5",
     "price": "$57.99",
     "flag": "? Best Seller #20",
-    "link": "https://www.buckedup.com/shop/proteins/buck-feed-original-protein"
+    "link": "https://www.buckedup.com/shop/proteins/buck-feed-original-protein",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F3821-1151105_WHO_BuckFeed_OG_SwoleWhip_30srv_250300_01_300DPI-20250617.webp"
   },
   {
     "id": "40",
@@ -331,7 +356,8 @@
     "variantCount": "2",
     "price": "$41.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/proteins/babe-collagen"
+    "link": "https://www.buckedup.com/shop/proteins/babe-collagen",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8702-WHO-Babe-Collagen-Chocolate-30srv-01.webp"
   },
   {
     "id": "41",
@@ -342,7 +368,8 @@
     "variantCount": "1",
     "price": "$68.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/proteins/buck-feed-protein"
+    "link": "https://www.buckedup.com/shop/proteins/buck-feed-protein",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F752-WHO-BuckFeed-AN-Chocolate-30srv-25-03-02-01.webp"
   },
   {
     "id": "42",
@@ -353,7 +380,8 @@
     "variantCount": "8",
     "price": "$119.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/proteins/carbonated-protein-soda"
+    "link": "https://www.buckedup.com/shop/proteins/carbonated-protein-soda",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2006-bucked-up-protein-drinks-banana-pineapple-orange-cream-24-cans-.webp"
   },
   {
     "id": "45",
@@ -386,7 +414,8 @@
     "variantCount": "5",
     "price": "$29.99",
     "flag": "? Best Seller #6",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-monohydrate"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-monohydrate",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F11951-404832%20-%20BUP%20ES%20Creatine%20Monohydrate%20%28250%20GM%29%20%5B20%20OZ%5D%20%5B3.125%20X%2011.00%5D%20%5BREV%2002%5D%5BO%5D-2024.06-00-1200px-01F.webp"
   },
   {
     "id": "49",
@@ -397,7 +426,8 @@
     "variantCount": "6",
     "price": "$31.99",
     "flag": "? Best Seller #10  �  NEW",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-candy"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-candy",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F16609-WHO-CreatineCandy--Valentines2026-VarietyPack-24srv-01.webp"
   },
   {
     "id": "50",
@@ -408,7 +438,8 @@
     "variantCount": "1",
     "price": "$73.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/bucked-up-all-bulk-no-bloat"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/bucked-up-all-bulk-no-bloat",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9828-BU-ALLBULKNOBLOAT-SwoleWhip-2023.09-01-1200px-01F.webp"
   },
   {
     "id": "51",
@@ -419,7 +450,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/babe-creatine-capsules-for-women"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/babe-creatine-capsules-for-women",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2105-WHO-Babe-CreatineHCL-60srv-01-V2.webp"
   },
   {
     "id": "52",
@@ -430,7 +462,8 @@
     "variantCount": "1",
     "price": "$73.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/buck-build-creatine-glutamine"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/buck-build-creatine-glutamine",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F946-BU-BuckBuild-Unflavored-2023.03-03_01-F.png"
   },
   {
     "id": "53",
@@ -441,7 +474,8 @@
     "variantCount": "1",
     "price": "$31.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-candy-clearance"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-candy-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F17275-WHO-CreatineCandy--Valentines2026-VarietyPack-24srv-01.webp"
   },
   {
     "id": "54",
@@ -452,7 +486,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-hcl-capsules"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/creatine-hcl-capsules",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2112-WHO-ES-CreatineHCl-60srv-24.10-00-1200px-0001.webp"
   },
   {
     "id": "55",
@@ -463,7 +498,8 @@
     "variantCount": "1",
     "price": "$34.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/bucked-six-point-creatine"
+    "link": "https://www.buckedup.com/shop/performance-supplements-creatine/bucked-six-point-creatine",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F93-BU-6_PT_CREATINE-RED-2023.09-01-1200px-01F.webp"
   },
   {
     "id": "58",
@@ -474,7 +510,8 @@
     "variantCount": "1",
     "price": "$57.99",
     "flag": "? Best Seller #3  �  NEW",
-    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/flow-nitric-oxide-adrenal-support-supplement"
+    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/flow-nitric-oxide-adrenal-support-supplement",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2887-WHO-Flow-Capsules-60srv-250cc-Bottle-01.webp"
   },
   {
     "id": "59",
@@ -485,7 +522,8 @@
     "variantCount": "1",
     "price": "$17.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/himalayan-salt-bucked-up"
+    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/himalayan-salt-bucked-up",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F673-BU-HIMALAYAN%20ROCK%20SALT-2023.08-01-1000px-03R.png0003.webp"
   },
   {
     "id": "60",
@@ -496,7 +534,8 @@
     "variantCount": "1",
     "price": "$26.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/bucked-up-peak-o2-advanced-mushroom-blend"
+    "link": "https://www.buckedup.com/shop/antioxidants-and-specialty/bucked-up-peak-o2-advanced-mushroom-blend",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2477-WHO-ES-Peak02-60srv-12oz--25-03-08-01.webp"
   },
   {
     "id": "62",
@@ -507,7 +546,8 @@
     "variantCount": "2",
     "price": "$41.99",
     "flag": "? Best Seller #9",
-    "link": "https://www.buckedup.com/shop/greens/bucked-up-organic-greens"
+    "link": "https://www.buckedup.com/shop/greens/bucked-up-organic-greens",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F1511-BU-GREENS-MixedBerry-2023.08-01-1000px-04B.png0001.webp"
   },
   {
     "id": "64",
@@ -518,7 +558,8 @@
     "variantCount": "1",
     "price": "$69.99",
     "flag": "? Best Seller #4",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/rut-testosterone-booster-supplement"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/rut-testosterone-booster-supplement",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F123-BU-RUT-Bottle-Label-2024.02-00-1200px-01F.webp"
   },
   {
     "id": "65",
@@ -529,7 +570,8 @@
     "variantCount": "1",
     "price": "$59.99",
     "flag": "? Best Seller #5",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/buck-naked"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/buck-naked",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1275-WHO-BuckNaked-30srv-90cap--Bottle-01_medium.webp"
   },
   {
     "id": "66",
@@ -551,7 +593,8 @@
     "variantCount": "1",
     "price": "$26.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/das-labs-cla-240-softgels-1000-mg-total-liquid-sfg-800-mg-cla-sfg"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/das-labs-cla-240-softgels-1000-mg-total-liquid-sfg-800-mg-cla-sfg",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F197-BU-CLA-2023.08-01-1000px-04B.png0001.webp"
   },
   {
     "id": "68",
@@ -562,7 +605,8 @@
     "variantCount": "2",
     "price": "$36.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/colostrum-supplement"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/colostrum-supplement",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F11773-WHO-ES-Colostrum-Unflavored-30srv-8oz-24.07-01-1200px-01F.webp"
   },
   {
     "id": "69",
@@ -573,7 +617,8 @@
     "variantCount": "1",
     "price": "$31.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/flex-bone-and-joint"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/flex-bone-and-joint",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1325-BU-Support-Bottle-Flex-2024.02-00-1200px-01F.webp"
   },
   {
     "id": "70",
@@ -584,7 +629,8 @@
     "variantCount": "1",
     "price": "$45.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/heat-fat-burner"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/heat-fat-burner",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F498-BU-HEAT-Him-BOTTLE-2024.05-00-1200px-01F.webp"
   },
   {
     "id": "71",
@@ -595,7 +641,8 @@
     "variantCount": "2",
     "price": "$26.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/das-labs-l-glutamine"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/das-labs-l-glutamine",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F198-BU-L-GLUTAMINE-2023.09-00-1200px-01F.webp"
   },
   {
     "id": "72",
@@ -606,7 +653,8 @@
     "variantCount": "1",
     "price": "$17.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/es-n-acetyl-l-cysteine"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/es-n-acetyl-l-cysteine",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1191-BUP%20ES%20N-Acetyl%20L-Cysteine%20%28NAC%29%20%28600%20MG%29-%28120%20CAP%29-1200px-01F.webp"
   },
   {
     "id": "73",
@@ -617,7 +665,8 @@
     "variantCount": "1",
     "price": "$12.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/yohimbine-hci"
+    "link": "https://www.buckedup.com/shop/vitamins-and-wellness/yohimbine-hci",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F674-BUP%20Yohimbine%20HCl-2023.08-01-1000px-02L.webp0001.webp"
   },
   {
     "id": "75",
@@ -628,7 +677,8 @@
     "variantCount": "1",
     "price": "$31.99",
     "flag": "? Best Seller #7",
-    "link": "https://www.buckedup.com/shop/multivitamins/bucked-stag-vitamin"
+    "link": "https://www.buckedup.com/shop/multivitamins/bucked-stag-vitamin",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F95-WHO-Stag-30srv-Bottle-01_medium.webp"
   },
   {
     "id": "76",
@@ -639,7 +689,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/multivitamins/babe-daily-womens-multivitamin"
+    "link": "https://www.buckedup.com/shop/multivitamins/babe-daily-womens-multivitamin",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2937-babe-daily-multivitamin-buckedup-60-capsules-30-servings.webp"
   },
   {
     "id": "78",
@@ -650,7 +701,8 @@
     "variantCount": "1",
     "price": "$20.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/omegas-and-healthy-fats/das-labs-fish-oil"
+    "link": "https://www.buckedup.com/shop/omegas-and-healthy-fats/das-labs-fish-oil",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F193-BU-SUPPORT-FishOil-2023.08-01-1000px-03R.png0001.webp"
   },
   {
     "id": "81",
@@ -661,7 +713,8 @@
     "variantCount": "5",
     "price": "$36.99",
     "flag": "? Best Seller #21",
-    "link": "https://www.buckedup.com/shop/bcaas/original-bcaa-2-1-1"
+    "link": "https://www.buckedup.com/shop/bcaas/original-bcaa-2-1-1",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F1646-buckedup-image-peach-ring.webp"
   },
   {
     "id": "82",
@@ -672,7 +725,8 @@
     "variantCount": "4",
     "price": "$45.99",
     "flag": "? Best Seller #22",
-    "link": "https://www.buckedup.com/shop/bcaas/bcaa-racked"
+    "link": "https://www.buckedup.com/shop/bcaas/bcaa-racked",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8613-buckedup-racked-bcaa-intra-workout-rocket-pop-1.webp"
   },
   {
     "id": "84",
@@ -683,7 +737,8 @@
     "variantCount": "4",
     "price": "$36.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/eaas/Essentials-Amino-Acids"
+    "link": "https://www.buckedup.com/shop/eaas/Essentials-Amino-Acids",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F12052-WH-EAA-Mandarin-30srv-24.08-00-1200px-01F.webp"
   },
   {
     "id": "87",
@@ -694,7 +749,8 @@
     "variantCount": "2",
     "price": "$149.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/deer-antler-spray/deer-antler-spray-90-day-supply"
+    "link": "https://www.buckedup.com/shop/deer-antler-spray/deer-antler-spray-90-day-supply",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F3069-BU-DAS-DeerAntlerSpray-Mens-Stack%203%20Bottles-2023.08-00-1000px-01F.png0001.png0002.png0001.webp"
   },
   {
     "id": "88",
@@ -716,7 +772,8 @@
     "variantCount": "1",
     "price": "$125.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/babe-hormone-health-stack"
+    "link": "https://www.buckedup.com/stacks/babe-hormone-health-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9827-BabeHormoneSupport_1404101_1405101_1402101_1402136_07%201.webp"
   },
   {
     "id": "92",
@@ -727,7 +784,8 @@
     "variantCount": "",
     "price": "$129.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/babe-wellness-stack"
+    "link": "https://www.buckedup.com/stacks/babe-wellness-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1353-BabeWellnessStack_1406199_1402101_1402136_140314701%203_medium.webp"
   },
   {
     "id": "93",
@@ -738,7 +796,8 @@
     "variantCount": "",
     "price": "$106.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/babe-workout-stack"
+    "link": "https://www.buckedup.com/stacks/babe-workout-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1352-babe-buckedup-pre-workout-bundle-variety-flavors-boost-shaker.webp"
   },
   {
     "id": "94",
@@ -749,7 +808,8 @@
     "variantCount": "19",
     "price": "$143.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/beginner-stack"
+    "link": "https://www.buckedup.com/stacks/beginner-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F589-BU-BEGINNER%20STACK-2023.09-00-1200px.webp"
   },
   {
     "id": "95",
@@ -771,7 +831,8 @@
     "variantCount": "17",
     "price": "$137.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/fat-loss-biohack"
+    "link": "https://www.buckedup.com/stacks/fat-loss-biohack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1051-Fat%20Loss%20Biohack%20Stack-HIM-2023.09-00-1200px.webp"
   },
   {
     "id": "97",
@@ -782,7 +843,8 @@
     "variantCount": "",
     "price": "$232.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/muscle-building-bio-hack"
+    "link": "https://www.buckedup.com/stacks/muscle-building-bio-hack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1057-Muscle%20Building%20Biohack%20Stack-2023.09-00.webp"
   },
   {
     "id": "98",
@@ -793,7 +855,8 @@
     "variantCount": "",
     "price": "$312.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/muscle-building-pro-stack"
+    "link": "https://www.buckedup.com/stacks/muscle-building-pro-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1056-Muscle%20Building%20Pro%20Stack-2023.09-00.webp"
   },
   {
     "id": "99",
@@ -804,7 +867,8 @@
     "variantCount": "",
     "price": "$115.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/muscle-building-starter-stack"
+    "link": "https://www.buckedup.com/stacks/muscle-building-starter-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1055-Muscle%20Building%20Starter%20Stack-2023.09-00.webp"
   },
   {
     "id": "100",
@@ -815,7 +879,8 @@
     "variantCount": "1",
     "price": "$132.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/vital-wellness-stack"
+    "link": "https://www.buckedup.com/stacks/vital-wellness-stack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8409-buckedup-essentials-bundle-greens-creatine-collagen-stag.webp"
   },
   {
     "id": "101",
@@ -826,7 +891,8 @@
     "variantCount": "8",
     "price": "$240.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/weight-loss-pro"
+    "link": "https://www.buckedup.com/stacks/weight-loss-pro",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1050-Weight%20Loss%20Pro%20Stack-HIM-2023.09-00.webp"
   },
   {
     "id": "102",
@@ -837,7 +903,8 @@
     "variantCount": "11",
     "price": "$99.99",
     "flag": "",
-    "link": "https://www.buckedup.com/stacks/weight-loss-starter"
+    "link": "https://www.buckedup.com/stacks/weight-loss-starter",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1048-Weight%20Loss%20Starter%20Stack-2023.09-00.webp"
   },
   {
     "id": "105",
@@ -848,7 +915,8 @@
     "variantCount": "1",
     "price": "$45.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-balance"
+    "link": "https://www.buckedup.com/shop/babe/babe-balance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1124-WHO-Babe-Balance-30srv-90cap--01-V2.webp"
   },
   {
     "id": "106",
@@ -859,7 +927,8 @@
     "variantCount": "1",
     "price": "$59.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/bikini-babe"
+    "link": "https://www.buckedup.com/shop/babe/bikini-babe",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1455-WHO-Babe-Bikini-30srv-90cap--01.webp"
   },
   {
     "id": "107",
@@ -870,7 +939,8 @@
     "variantCount": "6",
     "price": "$52.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-boost"
+    "link": "https://www.buckedup.com/shop/babe/babe-boost",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8710-WHO-Babe-Boost-BlackCherry-30srv-01.webp"
   },
   {
     "id": "108",
@@ -881,7 +951,8 @@
     "variantCount": "6",
     "price": "$57.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-club-crewneck-sweater"
+    "link": "https://www.buckedup.com/shop/babe/babe-club-crewneck-sweater",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F10703-Apparel%2010-4-2024-69.webp"
   },
   {
     "id": "109",
@@ -892,7 +963,8 @@
     "variantCount": "3",
     "price": "$41.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-club-sweat-shorts"
+    "link": "https://www.buckedup.com/shop/babe/babe-club-sweat-shorts",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F15239-5000965_EndlessSummer_20250722_720787803814831838.webp"
   },
   {
     "id": "110",
@@ -903,7 +975,8 @@
     "variantCount": "8",
     "price": "$31.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-compression-shorts"
+    "link": "https://www.buckedup.com/shop/babe/babe-compression-shorts",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F15285-5001546_BlackBabeCompressionBikerShorts_20251002_BabeApparel-5.webp"
   },
   {
     "id": "111",
@@ -914,7 +987,8 @@
     "variantCount": "7",
     "price": "$34.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/shop/babe/babe-compression-sports-bra"
+    "link": "https://www.buckedup.com/shop/babe/babe-compression-sports-bra",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F17858-5002030_W-BabeCompressionSportsBra-Black_20260226_Feb26ApparelShoot-2_medium.webp"
   },
   {
     "id": "112",
@@ -925,7 +999,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-insulated-steel-shaker-bottle"
+    "link": "https://www.buckedup.com/shop/babe/babe-insulated-steel-shaker-bottle",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F2694-9013111_StainlessSteelShaker-Babe_20260105_StainlessSteelShakers-1.webp"
   },
   {
     "id": "113",
@@ -936,7 +1011,8 @@
     "variantCount": "1",
     "price": "$45.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-love"
+    "link": "https://www.buckedup.com/shop/babe/babe-love",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1123-WHO-Babe-Love-30srv-60cap--01-V2.webp"
   },
   {
     "id": "114",
@@ -947,7 +1023,8 @@
     "variantCount": "1",
     "price": "$41.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-greens"
+    "link": "https://www.buckedup.com/shop/babe/babe-greens",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8709-WHO-Babe-Greens-OrangeSunrise-30srv-01.webp"
   },
   {
     "id": "115",
@@ -958,7 +1035,8 @@
     "variantCount": "5",
     "price": "$49.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-pre-workout-supplement"
+    "link": "https://www.buckedup.com/shop/babe/babe-pre-workout-supplement",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F14919-1WHO-Babe-Pre-PeachMango-30srv-01.webp"
   },
   {
     "id": "116",
@@ -969,7 +1047,8 @@
     "variantCount": "5",
     "price": "$41.99",
     "flag": "NEW",
-    "link": "https://www.buckedup.com/babe/Babe-Ribbed-Lounge-Pants"
+    "link": "https://www.buckedup.com/babe/Babe-Ribbed-Lounge-Pants",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F17334-5001785_W-BabeRibbedLoungePants-Brown_20260226_Feb26ApparelShoot-2.webp"
   },
   {
     "id": "117",
@@ -980,7 +1059,8 @@
     "variantCount": "3",
     "price": "$26.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/Babe-Ribbed-Lounge-T-Shirt"
+    "link": "https://www.buckedup.com/shop/babe/Babe-Ribbed-Lounge-T-Shirt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F12708-Babe-Ribbed-Lounge-Shirt_Black_1-Front.jpg"
   },
   {
     "id": "118",
@@ -991,7 +1071,8 @@
     "variantCount": "1",
     "price": "$8.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/babe/babe-shaker"
+    "link": "https://www.buckedup.com/shop/babe/babe-shaker",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1184-shaker-1-1200x1200.webp"
   },
   {
     "id": "121",
@@ -1002,7 +1083,8 @@
     "variantCount": "1",
     "price": "$13.99 (was $20.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/4-inch-elite-leather-belt"
+    "link": "https://www.buckedup.com/last-chance/4-inch-elite-leather-belt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9091-Four%20Inch%20EliteLifting%20Belt-3-%28Compressify.io%29.webp"
   },
   {
     "id": "122",
@@ -1013,7 +1095,8 @@
     "variantCount": "2",
     "price": "$32.99 (was $48.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/4-inch-leather-padded-lifting-belt"
+    "link": "https://www.buckedup.com/last-chance/4-inch-leather-padded-lifting-belt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9098-Four%20Inch%20Leather%20Padded%20Lifting%20Belt-3-%28Compressify.io%29.webp"
   },
   {
     "id": "123",
@@ -1024,7 +1107,8 @@
     "variantCount": "2",
     "price": "$32.99 (was $48.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/6-inch-foam-dual-function-belt"
+    "link": "https://www.buckedup.com/last-chance/6-inch-foam-dual-function-belt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9105-Six%20Inch%20Foam%20Dual%20Function%20Belt%20-5-%28Compressify.io%29.webp"
   },
   {
     "id": "124",
@@ -1035,7 +1119,8 @@
     "variantCount": "9",
     "price": "$29.99 (was $45.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/athletic-shorts"
+    "link": "https://www.buckedup.com/last-chance/athletic-shorts",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F7823-image%20%281%29.png"
   },
   {
     "id": "125",
@@ -1046,7 +1131,8 @@
     "variantCount": "1",
     "price": "$19.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/babe-booty-band-set-clearance"
+    "link": "https://www.buckedup.com/last-chance/babe-booty-band-set-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1356-Babe%20Booty%20Bands-1.webp"
   },
   {
     "id": "126",
@@ -1057,7 +1143,8 @@
     "variantCount": "10",
     "price": "$36.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/6-inch-bike-shorts"
+    "link": "https://www.buckedup.com/last-chance/6-inch-bike-shorts",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F18066-DSC09402.jpg"
   },
   {
     "id": "127",
@@ -1068,7 +1155,8 @@
     "variantCount": "1",
     "price": "$26.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/original-baseball-hat"
+    "link": "https://www.buckedup.com/last-chance/original-baseball-hat",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F14866-5000953_EndlessSummer_20250722_872.webp"
   },
   {
     "id": "128",
@@ -1079,7 +1167,8 @@
     "variantCount": "1",
     "price": "$7.99 (was $11.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/booty-bands-set"
+    "link": "https://www.buckedup.com/last-chance/booty-bands-set",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9841-535-frame_25.1696438364.webp"
   },
   {
     "id": "129",
@@ -1090,7 +1179,8 @@
     "variantCount": "1",
     "price": "$39.99 (was $62.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/brain-gainz"
+    "link": "https://www.buckedup.com/shop/last-chance/brain-gainz",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1130-BU-Support-Nootropic-BOX-BrainGainz-2023.09-00-1200px.webp"
   },
   {
     "id": "130",
@@ -1101,7 +1191,8 @@
     "variantCount": "1",
     "price": "$25.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/bu-baseball-cap"
+    "link": "https://www.buckedup.com/last-chance/bu-baseball-cap",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F14870-BU_Baseball_Hat_Blue_5000957_EndlessSummer_20250722_867.webp"
   },
   {
     "id": "131",
@@ -1112,7 +1203,8 @@
     "variantCount": "1",
     "price": "$7.99 (was $11.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/bucked-up-frother"
+    "link": "https://www.buckedup.com/last-chance/bucked-up-frother",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1760-Bucked%20Up%20Frother%20-%20Front.webp"
   },
   {
     "id": "132",
@@ -1123,7 +1215,8 @@
     "variantCount": "1",
     "price": "$8.49 (was $12.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/bucked-up-logo-sticker-1576706422"
+    "link": "https://www.buckedup.com/last-chance/bucked-up-logo-sticker-1576706422",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F2121-1582053798_Bucked-Up-10x8-Red.jpg"
   },
   {
     "id": "133",
@@ -1134,7 +1227,8 @@
     "variantCount": "1",
     "price": "$4.99 (was $6.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/cinch-bag"
+    "link": "https://www.buckedup.com/last-chance/cinch-bag",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F78-Cinch-Bag.jpg"
   },
   {
     "id": "134",
@@ -1145,7 +1239,8 @@
     "variantCount": "1",
     "price": "$18.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/classic-crew-socks"
+    "link": "https://www.buckedup.com/last-chance/classic-crew-socks",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1492-Apparel%20-%20STUDIO%20-%20BUCK%20TO%20SCHOOL-1.webp"
   },
   {
     "id": "135",
@@ -1156,7 +1251,8 @@
     "variantCount": "2",
     "price": "$16.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/classic-no-show-socks-3-pack"
+    "link": "https://www.buckedup.com/last-chance/classic-no-show-socks-3-pack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F10649-6.webp"
   },
   {
     "id": "136",
@@ -1167,7 +1263,8 @@
     "variantCount": "5",
     "price": "$24.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/cropped-fitted-tee"
+    "link": "https://www.buckedup.com/shop/last-chance/cropped-fitted-tee",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F6536-Cropped%20Tee%208.webp"
   },
   {
     "id": "137",
@@ -1178,7 +1275,8 @@
     "variantCount": "6",
     "price": "$30.99 (was $46.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/cross-over-leggings"
+    "link": "https://www.buckedup.com/last-chance/cross-over-leggings",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F6541-Crossvover%20Leggings%206.webp"
   },
   {
     "id": "138",
@@ -1189,7 +1287,8 @@
     "variantCount": "6",
     "price": "$49.99 (was $57.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/mens-curved-hem-hoodie"
+    "link": "https://www.buckedup.com/shop/last-chance/mens-curved-hem-hoodie",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F3862-cropped%20hoodie%205.webp"
   },
   {
     "id": "139",
@@ -1200,7 +1299,8 @@
     "variantCount": "1",
     "price": "$52.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance?product_id=1378"
+    "link": "https://www.buckedup.com/shop/last-chance?product_id=1378",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1378-BU-DAS-DeerAntlerSpray-Womens-Bottle%2BBox-2023.08-00-1200px.webp"
   },
   {
     "id": "140",
@@ -1211,7 +1311,8 @@
     "variantCount": "6",
     "price": "$31.99 (was $36.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/faster-stronger-better-t-shirt"
+    "link": "https://www.buckedup.com/shop/last-chance/faster-stronger-better-t-shirt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F14127-5000578_SummerNights_20250602_MSide.webp"
   },
   {
     "id": "141",
@@ -1222,7 +1323,8 @@
     "variantCount": "1",
     "price": "$25.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/freedom-trucker-hat"
+    "link": "https://www.buckedup.com/last-chance/freedom-trucker-hat",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F12198-upload_img_products_1899-FlagLogo_BlackCamo_Dynamic.webp"
   },
   {
     "id": "142",
@@ -1233,7 +1335,8 @@
     "variantCount": "6",
     "price": "$38.99 (was $57.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/Full-Zip-Windbreaker"
+    "link": "https://www.buckedup.com/shop/last-chance/Full-Zip-Windbreaker",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F13129-BULightZip_Blue_FrontZip.webp"
   },
   {
     "id": "143",
@@ -1244,7 +1347,8 @@
     "variantCount": "8",
     "price": "$41.99",
     "flag": "NEW  �  CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/heavyweight-pump-cover-clearance"
+    "link": "https://www.buckedup.com/shop/last-chance/heavyweight-pump-cover-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F15173-5001323_StealthModeApparel_20250827_1296.webp"
   },
   {
     "id": "144",
@@ -1255,7 +1359,8 @@
     "variantCount": "7",
     "price": "$27.99 (was $41.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/lined-golf-mock-polo"
+    "link": "https://www.buckedup.com/shop/last-chance/lined-golf-mock-polo",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8067-5112512_ApparelReshootMens_20250730_1035.webp"
   },
   {
     "id": "145",
@@ -1266,7 +1371,8 @@
     "variantCount": "6",
     "price": "$34.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/bucked-up-liner-shorts-clearance"
+    "link": "https://www.buckedup.com/last-chance/bucked-up-liner-shorts-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F2914-Liner%20Shorts-1.webp"
   },
   {
     "id": "146",
@@ -1277,7 +1383,8 @@
     "variantCount": "7",
     "price": "$26.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/buck-beater"
+    "link": "https://www.buckedup.com/shop/last-chance/buck-beater",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9546-Buck%20Beater-1.webp"
   },
   {
     "id": "147",
@@ -1288,7 +1395,8 @@
     "variantCount": "2",
     "price": "$10.99 (was $15.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/microfiber-gym-towel"
+    "link": "https://www.buckedup.com/last-chance/microfiber-gym-towel",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9768-Black%20Towel%20Front.jpg"
   },
   {
     "id": "148",
@@ -1299,7 +1407,8 @@
     "variantCount": "8",
     "price": "$36.99 (was $45.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/momentum-7-inch-shorts"
+    "link": "https://www.buckedup.com/last-chance/momentum-7-inch-shorts",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F6982-5518552_MomentumShort_20250707_626.webp"
   },
   {
     "id": "149",
@@ -1310,7 +1419,8 @@
     "variantCount": "7",
     "price": "$21.99 (was $31.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/movement-tank"
+    "link": "https://www.buckedup.com/shop/last-chance/movement-tank",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F7441-Movement%20Tank-1.webp"
   },
   {
     "id": "150",
@@ -1321,7 +1431,8 @@
     "variantCount": "8",
     "price": "$24.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/one-more-set-t-shirt"
+    "link": "https://www.buckedup.com/shop/last-chance/one-more-set-t-shirt",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1485-one-more-set-t-shirt-brown-back.webp"
   },
   {
     "id": "151",
@@ -1332,7 +1443,8 @@
     "variantCount": "1",
     "price": "$4.99 (was $8.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/perfect-shaker-20oz"
+    "link": "https://www.buckedup.com/shop/last-chance/perfect-shaker-20oz",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F7509-frame_1000006315.webp"
   },
   {
     "id": "152",
@@ -1343,7 +1455,8 @@
     "variantCount": "1",
     "price": "$10.99 (was $15.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/performance-towels"
+    "link": "https://www.buckedup.com/last-chance/performance-towels",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F546-1613069664_Group%201%20%284%29.jpg"
   },
   {
     "id": "153",
@@ -1354,7 +1467,8 @@
     "variantCount": "1",
     "price": "$8.99 (was $13.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/resistance-bands"
+    "link": "https://www.buckedup.com/last-chance/resistance-bands",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F232-Band-600px.webp"
   },
   {
     "id": "154",
@@ -1365,7 +1479,8 @@
     "variantCount": "1",
     "price": "$36.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/waterproof-buck-golf-hat"
+    "link": "https://www.buckedup.com/last-chance/waterproof-buck-golf-hat",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F10286-upload_img_products_1927-BuckLogoGolf_Salmon_Dynamic.webp"
   },
   {
     "id": "155",
@@ -1376,7 +1491,8 @@
     "variantCount": "1",
     "price": "$13.99 (was $20.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/resistance-band-loop-set"
+    "link": "https://www.buckedup.com/last-chance/resistance-band-loop-set",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F233-1534944505_leg-bands-group-2.jpg"
   },
   {
     "id": "156",
@@ -1387,7 +1503,8 @@
     "variantCount": "1",
     "price": "$25.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/richardson-white-trucker-hat"
+    "link": "https://www.buckedup.com/last-chance/richardson-white-trucker-hat",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8666-BuckLogoPanel_BlackWhite_Dynamic.webp"
   },
   {
     "id": "157",
@@ -1398,7 +1515,8 @@
     "variantCount": "6",
     "price": "$41.99",
     "flag": "NEW  �  CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/rise-like-a-buck-clearance"
+    "link": "https://www.buckedup.com/shop/last-chance/rise-like-a-buck-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9596-Studio%20apparel-94.webp"
   },
   {
     "id": "158",
@@ -1409,7 +1527,8 @@
     "variantCount": "1",
     "price": "$5.99 (was $9.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/30-pack-shaker-soap-refill"
+    "link": "https://www.buckedup.com/last-chance/30-pack-shaker-soap-refill",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F322-1569350854_shaker-soap-3.jpg"
   },
   {
     "id": "159",
@@ -1420,7 +1539,8 @@
     "variantCount": "9",
     "price": "$49.99 (was $62.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/bucked-up-sweatpants"
+    "link": "https://www.buckedup.com/last-chance/bucked-up-sweatpants",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F2352-Apparel%20Reshoot-313.webp"
   },
   {
     "id": "160",
@@ -1431,7 +1551,8 @@
     "variantCount": "8",
     "price": "$36.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/women-square-neck-tank"
+    "link": "https://www.buckedup.com/shop/last-chance/women-square-neck-tank",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9489-4-18-24%20apparel-105.webp"
   },
   {
     "id": "161",
@@ -1442,7 +1563,8 @@
     "variantCount": "6",
     "price": "$27.99",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/staple-leggings"
+    "link": "https://www.buckedup.com/last-chance/staple-leggings",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9416-4-18-24%20apparel-94.webp"
   },
   {
     "id": "162",
@@ -1453,7 +1575,8 @@
     "variantCount": "1",
     "price": "$29.99 (was $31.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/swirl-foam-trucker"
+    "link": "https://www.buckedup.com/last-chance/swirl-foam-trucker",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F5720-BUSwirl_Red_Dynamic.jpg"
   },
   {
     "id": "163",
@@ -1464,7 +1587,8 @@
     "variantCount": "7",
     "price": "$34.99 (was $52.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/women-workout-jacket"
+    "link": "https://www.buckedup.com/last-chance/women-workout-jacket",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9463-4-18-24%20apparel-43.webp"
   },
   {
     "id": "164",
@@ -1475,7 +1599,8 @@
     "variantCount": "6",
     "price": "$49.99 (was $52.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/last-chance/women-zip-hoodie"
+    "link": "https://www.buckedup.com/last-chance/women-zip-hoodie",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F9538-4-18-24%20apparel-82.webp"
   },
   {
     "id": "165",
@@ -1486,7 +1611,8 @@
     "variantCount": "6",
     "price": "$17.99 (was $26.99)",
     "flag": "CLEARANCE",
-    "link": "https://www.buckedup.com/shop/last-chance/y-back-stringer-clearance"
+    "link": "https://www.buckedup.com/shop/last-chance/y-back-stringer-clearance",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F13050-8654-y_back_stringer_tank_men_4.1699490717.webp"
   },
   {
     "id": "168",
@@ -1497,7 +1623,8 @@
     "variantCount": "1",
     "price": "$15.99 $23.99",
     "flag": "",
-    "link": "https://www.buckedup.com/apparel-and-gear-clearance?product_id=1208"
+    "link": "https://www.buckedup.com/apparel-and-gear-clearance?product_id=1208",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1208-Comp%20Ankle%20Strap-1-%28Compressify.io%29.webp"
   },
   {
     "id": "170",
@@ -1508,7 +1635,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/army-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/army-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/Army-Duck-Camo-BuckedUp-Pullover-Hoodie-1.jpg?v=1766001110&width=1024"
   },
   {
     "id": "171",
@@ -1519,7 +1647,8 @@
     "variantCount": "6",
     "price": "$54.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/army-duck-camo-with-classic-buckedup-logo-leggings"
+    "link": "https://buckedupapparel.com/collections/new-products/products/army-duck-camo-with-classic-buckedup-logo-leggings",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/IMG_0650.jpg?v=1743022590&width=1024"
   },
   {
     "id": "172",
@@ -1530,7 +1659,8 @@
     "variantCount": "1",
     "price": "$189.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/blackbuck-products-deer-stand-power-bank-with-solar-panel"
+    "link": "https://buckedupapparel.com/collections/new-products/products/blackbuck-products-deer-stand-power-bank-with-solar-panel",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/Blackbuck-Products-Deer-Stand-Power-Bank3.jpg?v=1768847115&width=1024"
   },
   {
     "id": "173",
@@ -1541,7 +1671,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buck-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buck-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/1687559052539483167_2048.jpg?v=1741835735&width=1024"
   },
   {
     "id": "174",
@@ -1552,7 +1683,8 @@
     "variantCount": "1",
     "price": "$24.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-american-beach-towel"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-american-beach-towel",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/6815229418403671557_2048.jpg?v=1767882426&width=1024"
   },
   {
     "id": "175",
@@ -1563,7 +1695,8 @@
     "variantCount": "1",
     "price": "$24.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-floridca-beach-towel"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-floridca-beach-towel",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/14383329118923206837_2048.jpg?v=1769044904&width=1024"
   },
   {
     "id": "176",
@@ -1574,7 +1707,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-tactical-pocket-knife"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-tactical-pocket-knife",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/1DC26CDF-7210-46A1-B673-08D062E54E95.jpg?v=1763479393&width=1024"
   },
   {
     "id": "177",
@@ -1585,7 +1719,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-tactical-pocket-knife-1"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-tactical-pocket-knife-1",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/2A8CB6D5-FB43-4365-986C-AD45A68ABCB3.jpg?v=1765310458&width=1024"
   },
   {
     "id": "178",
@@ -1596,7 +1731,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/untitled-nov18_09-39"
+    "link": "https://buckedupapparel.com/collections/new-products/products/untitled-nov18_09-39",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/3488D04C-A582-402C-8A5E-C363E6E21388.jpg?v=1763479298&width=1024"
   },
   {
     "id": "179",
@@ -1607,7 +1743,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-ups-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-ups-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/4545137601560146160_2048.jpg?v=1767895586&width=1024"
   },
   {
     "id": "180",
@@ -1618,7 +1755,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-7-panel-hi-profile-cream-camo-with-tan-mesh-snapback"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-7-panel-hi-profile-cream-camo-with-tan-mesh-snapback",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/IMG-4517.heic?v=1763498697&width=1024"
   },
   {
     "id": "181",
@@ -1629,7 +1767,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-7-panel-hi-profile-cream-camo-with-tan-mesh-snapback-2"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-7-panel-hi-profile-cream-camo-with-tan-mesh-snapback-2",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/839FC839-A224-48C9-BF86-6BD6AF4C3813.jpg?v=1765464514&width=1024"
   },
   {
     "id": "182",
@@ -1640,7 +1779,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-cream-duck-camo-with-tan-mesh-snapback"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-cream-duck-camo-with-tan-mesh-snapback",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/49D0B1C0-4532-4A24-ADDA-790301A9FAED.jpg?v=1773504644&width=1024"
   },
   {
     "id": "183",
@@ -1651,7 +1791,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-mutlicam-camo-with-brown-mesh-snapback-2"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-mutlicam-camo-with-brown-mesh-snapback-2",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/IMG-4521.heic?v=1763498256&width=1024"
   },
   {
     "id": "184",
@@ -1662,7 +1803,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-white-duck-camo-with-white-mesh-snapback"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-white-duck-camo-with-white-mesh-snapback",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/77953A54-1D65-415F-AB30-E5EB5060ED96.jpg?v=1773504360&width=1024"
   },
   {
     "id": "185",
@@ -1673,7 +1815,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-mutlicam-camo-with-brown-mesh-snapback-1"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-mutlicam-camo-with-brown-mesh-snapback-1",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/IMG-4519.heic?v=1763498028&width=1024"
   },
   {
     "id": "186",
@@ -1684,7 +1827,8 @@
     "variantCount": "1",
     "price": "$32.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-white-duck-camo-with-tan-mesh-snapback"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-leather-patch-white-duck-camo-with-tan-mesh-snapback",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/C33C0E11-A948-4951-AA99-582649C77D2E.jpg?v=1773440587&width=1024"
   },
   {
     "id": "187",
@@ -1695,7 +1839,8 @@
     "variantCount": "13",
     "price": "$49.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-nasrack-in-white-letters-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-nasrack-in-white-letters-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11214411135320090374_2048.jpg?v=1771345791&width=1024"
   },
   {
     "id": "188",
@@ -1706,7 +1851,8 @@
     "variantCount": "13",
     "price": "$49.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-shit-yea-in-white-letters-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/buckedup-shit-yea-in-white-letters-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/2573868445290832097_2048.jpg?v=1771351463&width=1024"
   },
   {
     "id": "189",
@@ -1717,7 +1863,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/carbon-fiber-buckedup-wallet-with-rfi-blocking"
+    "link": "https://buckedupapparel.com/collections/new-products/products/carbon-fiber-buckedup-wallet-with-rfi-blocking",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/D7CA1089-529D-4852-90DB-0C93BD3AC755.jpg?v=1763998857&width=1024"
   },
   {
     "id": "190",
@@ -1728,7 +1875,8 @@
     "variantCount": "7",
     "price": "$34.88",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/crop-top-hes-back-in-the-woods-again"
+    "link": "https://buckedupapparel.com/collections/new-products/products/crop-top-hes-back-in-the-woods-again",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/12875664506467047778_2048.jpg?v=1768859109&width=1024"
   },
   {
     "id": "191",
@@ -1739,7 +1887,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/duck-americamo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/duck-americamo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/248901798520337391_2048.jpg?v=1760904344&width=1024"
   },
   {
     "id": "192",
@@ -1750,7 +1899,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/duck-cutie-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/duck-cutie-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/DuckHuntressCamoBuckedUpPulloverHoodie2.jpg?v=1763077169&width=1024"
   },
   {
     "id": "193",
@@ -1761,7 +1911,8 @@
     "variantCount": "6",
     "price": "$54.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/duck-cutie-camo-with-classic-buckedup-logo-leggings"
+    "link": "https://buckedupapparel.com/collections/new-products/products/duck-cutie-camo-with-classic-buckedup-logo-leggings",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/huntress-legging.jpg?v=1763166418&width=1024"
   },
   {
     "id": "194",
@@ -1772,7 +1923,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/ghost-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/ghost-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/7185908957846126214_2048.jpg?v=1760904238&width=1024"
   },
   {
     "id": "195",
@@ -1783,7 +1935,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/girly-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/girly-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/868326045615570210_2048.jpg?v=1741835529&width=1024"
   },
   {
     "id": "196",
@@ -1794,7 +1947,8 @@
     "variantCount": "9",
     "price": "from $24.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/hunt-24-7-ghost-camo-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/hunt-24-7-ghost-camo-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/15760016360651126183_2048.jpg?v=1761179335&width=1024"
   },
   {
     "id": "197",
@@ -1805,7 +1959,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/hunter-green-buckedup-wallet-with-rfi-blocking"
+    "link": "https://buckedupapparel.com/collections/new-products/products/hunter-green-buckedup-wallet-with-rfi-blocking",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/43CD785A-D08B-4A45-ACD8-EA25B7B3628C.jpg?v=1763998857&width=1024"
   },
   {
     "id": "198",
@@ -1816,7 +1971,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/pink-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/pink-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11103411589246351675_2048.jpg?v=1741835568&width=1024"
   },
   {
     "id": "199",
@@ -1827,7 +1983,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/busch-buckedup-hunting-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/busch-buckedup-hunting-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/70887675464816828_2048.jpg?v=1760626367&width=1024"
   },
   {
     "id": "200",
@@ -1838,7 +1995,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-blue-jeans-buckedup-logo"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-blue-jeans-buckedup-logo",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/3805091629960751251_2048.jpg?v=1760641765&width=1024"
   },
   {
     "id": "201",
@@ -1849,7 +2007,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-buck-camo-buckedup-logo-1"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-buck-camo-buckedup-logo-1",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11216008381648986157_2048.jpg?v=1760635524&width=1024"
   },
   {
     "id": "202",
@@ -1860,7 +2019,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-georgia-clay-buckedup-logo"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-black-with-georgia-clay-buckedup-logo",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/17542182171564263166_2048.jpg?v=1760994894&width=1024"
   },
   {
     "id": "203",
@@ -1871,7 +2031,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-always-in-rut-in-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-always-in-rut-in-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/10510048154238874930_2048.jpg?v=1772556993&width=1024"
   },
   {
     "id": "204",
@@ -1882,7 +2043,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-buckweiser-redneck-softstyle-t-shirt-1"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-buckweiser-redneck-softstyle-t-shirt-1",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/9283163232795108394_2048.jpg?v=1767881865&width=1024"
   },
   {
     "id": "205",
@@ -1893,7 +2055,8 @@
     "variantCount": "15",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-short-sleeve-buckedup-baby-buck-down-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-short-sleeve-buckedup-baby-buck-down-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/16982066465078972652_2048.jpg?v=1768774364&width=1024"
   },
   {
     "id": "206",
@@ -1904,7 +2067,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-backstrap-its-whats-for-supper-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-backstrap-its-whats-for-supper-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11005827286263796923_2048.jpg?v=1760628339&width=1024"
   },
   {
     "id": "207",
@@ -1915,7 +2079,8 @@
     "variantCount": "15",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-big-buck-down-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-big-buck-down-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/9908200347076067551_2048.jpg?v=1768774116&width=1024"
   },
   {
     "id": "208",
@@ -1926,7 +2091,8 @@
     "variantCount": "15",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-button-buck-down-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-button-buck-down-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/4967407513498189907_2048.jpg?v=1768774471&width=1024"
   },
   {
     "id": "209",
@@ -1937,7 +2103,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-camp-bitch-duck-buck-camo-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-camp-bitch-duck-buck-camo-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/2614927687018808036_2048.jpg?v=1760835923&width=1024"
   },
   {
     "id": "210",
@@ -1948,7 +2115,8 @@
     "variantCount": "10",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-camp-bitch-duck-cutie-camo-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-camp-bitch-duck-cutie-camo-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/9983780324687311046_2048.jpg?v=1760835542&width=1024"
   },
   {
     "id": "211",
@@ -1959,7 +2127,8 @@
     "variantCount": "11",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-deer-police-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-deer-police-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/deer-police-2.jpg?v=1762872519&width=1024"
   },
   {
     "id": "212",
@@ -1970,7 +2139,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/14653013285866049962_2048.jpg?v=1760662060&width=1024"
   },
   {
     "id": "213",
@@ -1981,7 +2151,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-army-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-army-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/trunp-army-camo.jpg?v=1762905953&width=1024"
   },
   {
     "id": "214",
@@ -1992,7 +2163,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-black-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-black-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/15073485064781980891_2048.jpg?v=1760663981&width=1024"
   },
   {
     "id": "215",
@@ -2003,7 +2175,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-girly-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-girly-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/1294628665025676394_2048.jpg?v=1760665619&width=1024"
   },
   {
     "id": "216",
@@ -2014,7 +2187,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-cutie-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-cutie-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/trump-hurtess.jpg?v=1762906085&width=1024"
   },
   {
     "id": "217",
@@ -2025,7 +2199,8 @@
     "variantCount": "10",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-pink-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-pink-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/10621972235613192071_2048.jpg?v=1760664992&width=1024"
   },
   {
     "id": "218",
@@ -2036,7 +2211,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-swanp-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-swanp-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11657799080486074879_2048.jpg?v=1760664381&width=1024"
   },
   {
     "id": "219",
@@ -2047,7 +2223,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-teal-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-teal-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/8130551951625759664_2048.jpg?v=1760665217&width=1024"
   },
   {
     "id": "220",
@@ -2058,7 +2235,8 @@
     "variantCount": "10",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-white-camo-trump-45-47-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-duck-white-camo-trump-45-47-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/6577788994625366584_2048.jpg?v=1760663346&width=1024"
   },
   {
     "id": "221",
@@ -2069,7 +2247,8 @@
     "variantCount": "14",
     "price": "from $26.25",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hes-back-in-black-letters-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hes-back-in-black-letters-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/14861750286727958082_2048.jpg?v=1771291698&width=1024"
   },
   {
     "id": "222",
@@ -2080,7 +2259,8 @@
     "variantCount": "14",
     "price": "from $26.25",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hes-back-in-white-letters-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hes-back-in-white-letters-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/8288000902601732415_2048.jpg?v=1771343980&width=1024"
   },
   {
     "id": "223",
@@ -2091,7 +2271,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hog-sniper-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hog-sniper-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/IMG_6536-22.jpg?v=1762794071&width=1024"
   },
   {
     "id": "224",
@@ -2102,7 +2283,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hunt-to-eat-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-hunt-to-eat-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/8271854062688066636_2048.jpg?v=1760634559&width=1024"
   },
   {
     "id": "225",
@@ -2113,7 +2295,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-i-let-the-dogs-out-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-i-let-the-dogs-out-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/dogs-out-2.jpg?v=1762876264&width=1024"
   },
   {
     "id": "226",
@@ -2124,7 +2307,8 @@
     "variantCount": "9",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-rookie-aka-gut-shot-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-rookie-aka-gut-shot-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/16904413152889164654_2048.jpg?v=1760631498&width=1024"
   },
   {
     "id": "227",
@@ -2135,7 +2319,8 @@
     "variantCount": "10",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-short-sleeve-buckedup-nasrack-in-white-letters-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-short-sleeve-buckedup-nasrack-in-white-letters-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/4712026083857600820_2048.jpg?v=1771291163&width=1024"
   },
   {
     "id": "228",
@@ -2146,7 +2331,8 @@
     "variantCount": "15",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-nation-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-nation-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/9472943348573604576_2048.jpg?v=1768506771&width=1024"
   },
   {
     "id": "229",
@@ -2157,7 +2343,8 @@
     "variantCount": "10",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-shit-yea-in-white-letters-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-shit-yea-in-white-letters-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/7230221067238824285_2048.jpg?v=1770502480&width=1024"
   },
   {
     "id": "230",
@@ -2168,7 +2355,8 @@
     "variantCount": "11",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-shit-yea-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-shit-yea-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/13017209207186080427_2048.jpg?v=1768853090&width=1024"
   },
   {
     "id": "231",
@@ -2179,7 +2367,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-venison-its-whats-for-supper-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-buckedup-venison-its-whats-for-supper-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/5793057382819571154_2048.jpg?v=1760630746&width=1024"
   },
   {
     "id": "232",
@@ -2190,7 +2379,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/naturellyt-hunting-deer-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/naturellyt-hunting-deer-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/2588720281871720245_2048.jpg?v=1760626564&width=1024"
   },
   {
     "id": "233",
@@ -2201,7 +2391,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-navy-blue-gill-buckedup-hunting-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-navy-blue-gill-buckedup-hunting-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/14230897846776195197_2048.jpg?v=1760634822&width=1024"
   },
   {
     "id": "234",
@@ -2212,7 +2403,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-orange-blue-gill-buckedup-hunting-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-orange-blue-gill-buckedup-hunting-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/3367051386737627246_2048.jpg?v=1760630864&width=1024"
   },
   {
     "id": "235",
@@ -2223,7 +2415,8 @@
     "variantCount": "7",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-white-natural-hunter-logo-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-white-natural-hunter-logo-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/11393506673924350683_2048.jpg?v=1760634576&width=1024"
   },
   {
     "id": "236",
@@ -2234,7 +2427,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-with-white-buc-edup-buckedup-logo-softstyle-t-shirt"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-with-white-buc-edup-buckedup-logo-softstyle-t-shirt",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/7019767428658255373_2048.jpg?v=1761062931&width=1024"
   },
   {
     "id": "237",
@@ -2245,7 +2439,8 @@
     "variantCount": "8",
     "price": "from $26.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-woody-buckedup-logo-t-shirt-1"
+    "link": "https://buckedupapparel.com/collections/new-products/products/short-sleeve-woody-buckedup-logo-t-shirt-1",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/15487566914184370457_2048.jpg?v=1760641703&width=1024"
   },
   {
     "id": "238",
@@ -2256,7 +2451,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-pink-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/copy-of-pink-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/16060555645686951945_2048.jpg?v=1741837094&width=1024"
   },
   {
     "id": "239",
@@ -2267,7 +2463,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/teal-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/teal-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/Teal-Duck-Camo-BuckedUp-Pullover-Hoodie.jpg?v=1744476843&width=1024"
   },
   {
     "id": "240",
@@ -2278,7 +2475,8 @@
     "variantCount": "6",
     "price": "from $69.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/white-duck-camo-buckedup-pullover-hoodie"
+    "link": "https://buckedupapparel.com/collections/new-products/products/white-duck-camo-buckedup-pullover-hoodie",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/15669189248865678630_2048.jpg?v=1760904161&width=1024"
   },
   {
     "id": "241",
@@ -2289,7 +2487,8 @@
     "variantCount": "1",
     "price": "$29.99",
     "flag": "",
-    "link": "https://buckedupapparel.com/collections/new-products/products/wooden-buckedup-wallet-with-rfi-blocking"
+    "link": "https://buckedupapparel.com/collections/new-products/products/wooden-buckedup-wallet-with-rfi-blocking",
+    "imageUrl": "http://buckedupapparel.com/cdn/shop/files/43E37FD7-B3C7-446C-9A4D-FA2DDD4D54E2.jpg?v=1763997103&width=1024"
   },
   {
     "id": "243",
@@ -2300,7 +2499,8 @@
     "variantCount": "2",
     "price": "$62.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/bags-and-bookbags/buckedup-backpack"
+    "link": "https://www.buckedup.com/shop/bags-and-bookbags/buckedup-backpack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F16802-5001808_BuckedUpBackpack-Cream_20251229_BackpackApparelPhotos-1.webp"
   },
   {
     "id": "244",
@@ -2311,7 +2511,8 @@
     "variantCount": "",
     "price": "$36.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/bags-and-bookbags/bucked-up-duffel-bag"
+    "link": "https://www.buckedup.com/shop/bags-and-bookbags/bucked-up-duffel-bag",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F227-1533147130_BU-DUFFLE-01-front.webp"
   },
   {
     "id": "245",
@@ -2322,7 +2523,8 @@
     "variantCount": "2",
     "price": "$57.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/bags-and-bookbags/puffer-tote-bag"
+    "link": "https://www.buckedup.com/shop/bags-and-bookbags/puffer-tote-bag",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F8605-Puffer%20Tote%20Bag-1%20%281%29.jpg"
   },
   {
     "id": "247",
@@ -2333,7 +2535,8 @@
     "variantCount": "3",
     "price": "$12.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/accessories/energy-crew-sock-single-pack"
+    "link": "https://www.buckedup.com/shop/accessories/energy-crew-sock-single-pack",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F13452-EnergySocks_Grey_Feet.webp"
   },
   {
     "id": "248",
@@ -2344,7 +2547,8 @@
     "variantCount": "1",
     "price": "$2.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/accessories/bucked-up-keychain"
+    "link": "https://www.buckedup.com/shop/accessories/bucked-up-keychain",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F142-1512587473_BU-keychain-back-02.jpg"
   },
   {
     "id": "249",
@@ -2355,7 +2559,8 @@
     "variantCount": "1",
     "price": "$1.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/accessories/bucked-up-wristbands"
+    "link": "https://www.buckedup.com/shop/accessories/bucked-up-wristbands",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F143-1512587763_BU-bracelets-01.jpg"
   },
   {
     "id": "251",
@@ -2366,7 +2571,8 @@
     "variantCount": "",
     "price": "$15.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/fitness-gear?product_id=1208"
+    "link": "https://www.buckedup.com/shop/fitness-gear?product_id=1208",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1208-Comp%20Ankle%20Strap-1-%28Compressify.io%29.webp"
   },
   {
     "id": "252",
@@ -2377,7 +2583,8 @@
     "variantCount": "1",
     "price": "$7.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/fitness-gear/bucked-up-gym-towel"
+    "link": "https://www.buckedup.com/shop/fitness-gear/bucked-up-gym-towel",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F465-1593469511_Bucked-Up-Hand-Towel.jpg"
   },
   {
     "id": "253",
@@ -2388,7 +2595,8 @@
     "variantCount": "",
     "price": "$20.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/fitness-gear/bucked-up-jump-ropes"
+    "link": "https://www.buckedup.com/shop/fitness-gear/bucked-up-jump-ropes",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F527-1605805165_Jump%20Rope%20Coiled.jpg"
   },
   {
     "id": "254",
@@ -2399,7 +2607,8 @@
     "variantCount": "",
     "price": "$34.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/fitness-gear/leather-lifting-grips"
+    "link": "https://www.buckedup.com/shop/fitness-gear/leather-lifting-grips",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2F1199-Leather%20Lifting%20Grip%20-%20Unisex-1-%28Compressify.io%29.webp"
   },
   {
     "id": "256",
@@ -2410,7 +2619,8 @@
     "variantCount": "4",
     "price": "$34.99",
     "flag": "",
-    "link": "https://www.buckedup.com/shop/hats-and-headwear/5-panel-mid-profile-baseball-cap"
+    "link": "https://www.buckedup.com/shop/hats-and-headwear/5-panel-mid-profile-baseball-cap",
+    "imageUrl": "https://www.buckedup.com/cdn-cgi/image/width=1200,format=auto,quality=85/public/upload%2Fimg%2Fproducts%2Foptions%2Fvalues%2F3903-upload_img_products_1886-BuckLogoBaseball_Cream_Dynamic.webp"
   },
   {
     "id": "257",
