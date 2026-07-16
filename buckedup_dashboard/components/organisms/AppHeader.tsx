@@ -64,9 +64,9 @@ export function AppHeader({
                   letterSpacing: '0.05em',
                   padding: '2px 6px',
                   borderRadius: '4px',
-                  background: role === 'admin' ? 'rgba(239, 68, 68, 0.15)' : role === 'lead' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                  color: role === 'admin' ? '#ef4444' : role === 'lead' ? '#f59e0b' : '#3b82f6',
-                  border: `1px solid ${role === 'admin' ? 'rgba(239, 68, 68, 0.3)' : role === 'lead' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
+                  background: role === 'admin' ? 'rgba(6, 182, 212, 0.15)' : role === 'lead' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(132, 204, 22, 0.15)',
+                  color: role === 'admin' ? '#06b6d4' : role === 'lead' ? '#eab308' : '#84cc16',
+                  border: `1px solid ${role === 'admin' ? 'rgba(6, 182, 212, 0.3)' : role === 'lead' ? 'rgba(234, 179, 8, 0.3)' : 'rgba(132, 204, 22, 0.3)'}`
                 }}>
                   {role}
                 </span>

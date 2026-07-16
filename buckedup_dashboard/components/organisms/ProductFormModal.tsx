@@ -98,7 +98,7 @@ export function ProductFormModal({
   const { user, role } = useAuth();
   const { currentByKey } = useStageDeliverables();
   const isOperator = role === "operator";
-  const canEditThumbnail = mode === "add" || isOperator;
+  const canEditThumbnail = !isOperator;
 
   const currentStatus = product ? product.items[0].status : null;
   const currentDeliverable = product && currentStatus ? (currentByKey.get(`${product.id}:${currentStatus}`) ?? null) : null;
@@ -614,7 +614,7 @@ export function ProductFormModal({
                   <img src={thumbnailPreview} alt="Thumbnail preview" className="thumbnail-preview-image" />
                 ) : (
                   <div className="thumbnail-placeholder-icon">
-                    <span>Click to add thumbnail</span>
+                    <span>{!canEditThumbnail ? "No thumbnail" : "Click to add thumbnail"}</span>
                   </div>
                 )}
               </div>
