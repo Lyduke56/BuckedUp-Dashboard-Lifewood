@@ -43,7 +43,7 @@ export function CategoryFolderGrid({ products, currentStatusFilter, rejectedOnly
             style={{ "--folder-accent": categoryColor(category) } as CSSProperties}
           >
             <div className="folder-tile-icon">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
               </svg>
             </div>

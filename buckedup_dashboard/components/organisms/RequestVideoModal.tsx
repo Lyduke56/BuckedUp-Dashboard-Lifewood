@@ -148,18 +148,18 @@ export function RequestVideoModal({
               <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
                 Select Product from Catalog *
               </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-soft)]" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="relative sm:col-span-2">
                   <input
-                    className="form-input w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
+                    className="form-input w-full pl-3.5 pr-9 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                     placeholder="Search catalog product by name..."
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
                   />
+                  <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-soft)] pointer-events-none" />
                 </div>
                 <select
-                  className="form-select w-full sm:w-48 px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
+                  className="form-select w-full px-3.5 py-2.5 rounded-xl bg-[#0e1512] border border-white/10 text-white text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                 >
@@ -186,11 +186,10 @@ export function RequestVideoModal({
                       <div
                         key={p.id}
                         onClick={() => setSelectedCatalogId(p.id)}
-                        className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
-                          isSelected
-                            ? "bg-[var(--castleton)]/20 border-[var(--castleton)] text-white"
-                            : "bg-white/[0.02] border-transparent hover:bg-white/5 text-white"
-                        }`}
+                        className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${isSelected
+                          ? "bg-[var(--castleton)]/20 border-[var(--castleton)] text-white"
+                          : "bg-white/[0.02] border-transparent hover:bg-white/5 text-white"
+                          }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-11 h-11 rounded-lg bg-black/40 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
