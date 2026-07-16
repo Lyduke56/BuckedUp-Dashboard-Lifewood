@@ -2,10 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Send, X } from "lucide-react";
+import { Bot, Send, X, User, Loader2 } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
+import { motion, useDragControls, useMotionValue, animate, type PanInfo, AnimatePresence, useAnimation } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 const GREETING =
   "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
@@ -96,6 +98,23 @@ export function BuckyWidget() {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [corner, setCorner] = useState("bottom-right");
+  const dragControls = useDragControls();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const iconControls = useAnimation();
+
+  const handleDragEnd = (_event: any, info: PanInfo) => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const isTop = info.point.y < cy;
+    const isLeft = info.point.x < cx;
+    setCorner(`${isTop ? "top" : "bottom"}-${isLeft ? "left" : "right"}`);
+    
+    animate(x, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
+    animate(y, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
+  };
+
   const { messages, sendMessage, status, addToolApprovalResponse } = useChat({
     transport: new DefaultChatTransport({ api: "/api/bucky/chat" }),
     // Auto-resubmit once the admin has approved every pending approval in
@@ -113,14 +132,79 @@ export function BuckyWidget() {
     sendMessage({ text });
   };
 
+  const busy = status === "submitted" || status === "streaming";
+  const prevBusy = useRef(busy);
+  const [hasUnread, setHasUnread] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setHasUnread(false);
+      // Wait a tick for the panel to finish animating open before scrolling
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, status]);
+
+  useEffect(() => {
+    if (prevBusy.current && !busy && !open) {
+      setHasUnread(true);
+    }
+    prevBusy.current = busy;
+  }, [busy, open]);
+
+  useEffect(() => {
+    if (open || busy || hasUnread) {
+      iconControls.stop();
+      iconControls.set({ rotate: 0, scale: 1, y: 0, x: 0 });
+      return;
+    }
+
+    let timeout: NodeJS.Timeout;
+    const triggerFidget = () => {
+      const animations = [
+        { rotate: [0, -8, 8, -5, 5, 0], transition: { duration: 1.2, ease: "easeInOut" } },
+        { y: [0, -6, 0, -3, 0], transition: { duration: 1.2, ease: "easeInOut" } },
+        { scale: [1, 1.08, 0.95, 1.04, 1], transition: { duration: 1.2, ease: "easeInOut" } },
+      ];
+      const anim = animations[Math.floor(Math.random() * animations.length)];
+      iconControls.start(anim);
+      
+      timeout = setTimeout(triggerFidget, Math.random() * 5000 + 4000);
+    };
+
+    timeout = setTimeout(triggerFidget, 2500);
+    return () => clearTimeout(timeout);
+  }, [open, busy, hasUnread, iconControls]);
+
   if (!mounted) return null;
 
-  const busy = status === "submitted" || status === "streaming";
-
   return createPortal(
-    <div className="bucky-root">
-      {open ? (
-        <div className="bucky-panel" role="dialog" aria-label="Bucky assistant">
+    <motion.div
+      layout
+      drag
+      dragControls={dragControls}
+      dragListener={false}
+      style={{ x, y }}
+      onDragEnd={handleDragEnd}
+      className={`bucky-root ${corner}`}
+    >
+      <AnimatePresence>
+        {open ? (
+          <motion.div 
+            className="bucky-panel" 
+            role="dialog" 
+            aria-label="Bucky assistant"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+          >
           <div className="bucky-header">
             <div className="bucky-header-title">
               <Bot size={18} />
@@ -137,7 +221,12 @@ export function BuckyWidget() {
           </div>
 
           <div className="bucky-messages">
-            <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+            <div className="bucky-msg-wrapper bucky">
+              <div className="bucky-avatar">
+                <Bot size={16} />
+              </div>
+              <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+            </div>
 
             {messages.map((message) =>
               message.parts.map((part, partIndex) => {
@@ -146,12 +235,15 @@ export function BuckyWidget() {
                   if (message.role === "assistant" && isLeakedReasoning(part.text)) {
                     return null;
                   }
+                  const isUser = message.role === "user";
                   return (
-                    <div
-                      key={key}
-                      className={`bucky-msg bucky-msg-${message.role === "user" ? "user" : "bucky"}`}
-                    >
-                      {renderInlineMarkdown(part.text)}
+                    <div key={key} className={`bucky-msg-wrapper ${isUser ? "user" : "bucky"}`}>
+                      <div className="bucky-avatar">
+                        {isUser ? <User size={16} /> : <Bot size={16} />}
+                      </div>
+                      <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
+                        {renderInlineMarkdown(part.text)}
+                      </div>
                     </div>
                   );
                 }
@@ -217,11 +309,32 @@ export function BuckyWidget() {
               }),
             )}
 
-            {busy ? <div className="bucky-msg-tool">Bucky is thinking…</div> : null}
+            {busy ? (
+              <div className="bucky-msg-wrapper bucky">
+                <div className="bucky-avatar">
+                  <Bot size={16} />
+                </div>
+                <div className="bucky-msg bucky-msg-bucky bucky-typing">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            ) : null}
             {status === "error" ? (
               <div className="bucky-msg-tool">Something went wrong — try again.</div>
             ) : null}
+            <div ref={messagesEndRef} />
           </div>
+
+          {messages.length === 0 && !busy ? (
+            <div className="bucky-suggestions">
+              <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "What's in production?" })}>
+                What&apos;s in production?
+              </button>
+              <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "Are there any open issues?" })}>
+                Open issues?
+              </button>
+            </div>
+          ) : null}
 
           <form className="bucky-input-row" onSubmit={send}>
             <input
@@ -241,18 +354,49 @@ export function BuckyWidget() {
               <Send size={15} />
             </button>
           </form>
-        </div>
-      ) : null}
+        </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-      <button
+      <motion.button
         type="button"
         className="bucky-fab"
+        animate={iconControls}
+        whileHover={{ y: -4, scale: 1.05 }}
+        onPointerDown={(e) => dragControls.start(e)}
         onClick={() => setOpen((prev) => !prev)}
         aria-label={open ? "Close Bucky" : "Open Bucky"}
       >
-        {open ? <X size={22} /> : <Bot size={22} />}
-      </button>
-    </div>,
+        <AnimatePresence>
+          {hasUnread && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 rounded-full z-10 shadow-[0_0_8px_rgba(239,68,68,0.8)] border-2 border-[rgba(255,159,28,1)]"
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          {open ? (
+            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <X size={22} />
+            </motion.div>
+          ) : busy ? (
+            <motion.div key="busy" className="flex items-center gap-[3px]" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0 }} />
+              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.15 }} />
+              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} />
+            </motion.div>
+          ) : (
+            <motion.div key="bot" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Bot size={22} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
+    </motion.div>,
     document.body,
   );
 }
