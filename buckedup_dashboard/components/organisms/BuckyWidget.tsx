@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Bot, Send, X, User, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
@@ -110,7 +111,7 @@ export function BuckyWidget() {
     const isTop = info.point.y < cy;
     const isLeft = info.point.x < cx;
     setCorner(`${isTop ? "top" : "bottom"}-${isLeft ? "left" : "right"}`);
-    
+
     animate(x, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
     animate(y, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
   };
@@ -124,18 +125,22 @@ export function BuckyWidget() {
     sendAutomaticallyWhen: shouldAutoResubmitAfterApproval,
   });
 
-  const send = (event: FormEvent) => {
-    event.preventDefault();
-    const text = draft.trim();
-    if (!text) return;
-    setDraft("");
-    sendMessage({ text });
-  };
-
   const busy = status === "submitted" || status === "streaming";
   const prevBusy = useRef(busy);
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const send = (event?: FormEvent) => {
+    if (event) event.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+    setDraft("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    sendMessage({ text });
+  };
 
   useEffect(() => {
     if (open) {
@@ -174,7 +179,7 @@ export function BuckyWidget() {
       ];
       const anim = animations[Math.floor(Math.random() * animations.length)];
       iconControls.start(anim);
-      
+
       timeout = setTimeout(triggerFidget, Math.random() * 5000 + 4000);
     };
 
@@ -196,177 +201,200 @@ export function BuckyWidget() {
     >
       <AnimatePresence>
         {open ? (
-          <motion.div 
-            className="bucky-panel" 
-            role="dialog" 
+          <motion.div
+            className="bucky-panel"
+            role="dialog"
             aria-label="Bucky assistant"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
           >
-          <div className="bucky-header">
-            <div className="bucky-header-title">
-              <Bot size={18} />
-              Bucky
-            </div>
-            <button
-              type="button"
-              className="bucky-close"
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div className="bucky-messages">
-            <div className="bucky-msg-wrapper bucky">
-              <div className="bucky-avatar">
-                <Bot size={16} />
+            <div className="bucky-header">
+              <div className="bucky-header-title">
+                <Bot size={18} />
+                Bucky
               </div>
-              <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+              <button
+                type="button"
+                className="bucky-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
             </div>
 
-            {messages.map((message) =>
-              message.parts.map((part, partIndex) => {
-                const key = `${message.id}-${partIndex}`;
-                if (part.type === "text") {
-                  if (message.role === "assistant" && isLeakedReasoning(part.text)) {
-                    return null;
-                  }
-                  const isUser = message.role === "user";
-                  return (
-                    <div key={key} className={`bucky-msg-wrapper ${isUser ? "user" : "bucky"}`}>
-                      <div className="bucky-avatar">
-                        {isUser ? <User size={16} /> : <Bot size={16} />}
-                      </div>
-                      <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
-                        {renderInlineMarkdown(part.text)}
-                      </div>
-                    </div>
-                  );
-                }
-                if (isToolUIPart(part)) {
-                  const toolName =
-                    part.type === "dynamic-tool" ? part.toolName : part.type.slice("tool-".length);
-                  if (part.state === "approval-requested") {
+            <div className="bucky-messages">
+              <div className="bucky-msg-wrapper bucky">
+                <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
+                  <Image src="/bucky_default.svg" width={32} height={32} alt="Bucky" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />
+                </div>
+                <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
+              </div>
+
+              {messages.map((message) =>
+                message.parts.map((part, partIndex) => {
+                  const key = `${message.id}-${partIndex}`;
+                  if (part.type === "text") {
+                    if (message.role === "assistant" && isLeakedReasoning(part.text)) {
+                      return null;
+                    }
+                    const isUser = message.role === "user";
                     return (
-                      <div key={key} className="bucky-confirm">
-                        <div>{describeAction(toolName, part.input)}</div>
-                        <div className="bucky-confirm-actions">
-                          <button
-                            type="button"
-                            className="bucky-confirm-deny"
-                            onClick={() =>
-                              addToolApprovalResponse({ id: part.approval.id, approved: false })
-                            }
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            className="bucky-confirm-approve"
-                            onClick={() =>
-                              addToolApprovalResponse({ id: part.approval.id, approved: true })
-                            }
-                          >
-                            Confirm
-                          </button>
+                      <div key={key} className={`bucky-msg-wrapper ${isUser ? "user" : "bucky"}`}>
+                        <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
+                          {isUser ? <User size={16} /> : <Image src="/bucky_default.svg" width={32} height={32} alt="Bucky" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />}
+                        </div>
+                        <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
+                          {renderInlineMarkdown(part.text)}
                         </div>
                       </div>
                     );
                   }
-                  if (part.state === "approval-responded") {
+                  if (isToolUIPart(part)) {
+                    const toolName =
+                      part.type === "dynamic-tool" ? part.toolName : part.type.slice("tool-".length);
+                    if (part.state === "approval-requested") {
+                      return (
+                        <div key={key} className="bucky-confirm">
+                          <div>{describeAction(toolName, part.input)}</div>
+                          <div className="bucky-confirm-actions">
+                            <button
+                              type="button"
+                              className="bucky-confirm-deny"
+                              onClick={() =>
+                                addToolApprovalResponse({ id: part.approval.id, approved: false })
+                              }
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              className="bucky-confirm-approve"
+                              onClick={() =>
+                                addToolApprovalResponse({ id: part.approval.id, approved: true })
+                              }
+                            >
+                              Confirm
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    if (part.state === "approval-responded") {
+                      return (
+                        <div key={key} className="bucky-msg-tool">
+                          {part.approval.approved ? "Confirmed" : "Cancelled"} — {describeAction(toolName, part.input)}
+                        </div>
+                      );
+                    }
+                    if (part.state === "output-available") {
+                      return (
+                        <details key={key} className="bucky-tool-json">
+                          <summary>Looked up {toolName}</summary>
+                          <pre>{JSON.stringify(part.output, null, 2)}</pre>
+                        </details>
+                      );
+                    }
+                    if (part.state === "output-error") {
+                      return (
+                        <div key={key} className="bucky-msg-tool">
+                          {toolName} failed: {part.errorText}
+                        </div>
+                      );
+                    }
                     return (
                       <div key={key} className="bucky-msg-tool">
-                        {part.approval.approved ? "Confirmed" : "Cancelled"} — {describeAction(toolName, part.input)}
+                        Checking {toolName}…
                       </div>
                     );
                   }
-                  if (part.state === "output-available") {
-                    return (
-                      <details key={key} className="bucky-tool-json">
-                        <summary>Looked up {toolName}</summary>
-                        <pre>{JSON.stringify(part.output, null, 2)}</pre>
-                      </details>
-                    );
-                  }
-                  if (part.state === "output-error") {
-                    return (
-                      <div key={key} className="bucky-msg-tool">
-                        {toolName} failed: {part.errorText}
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={key} className="bucky-msg-tool">
-                      Checking {toolName}…
-                    </div>
-                  );
-                }
-                return null;
-              }),
-            )}
+                  return null;
+                }),
+              )}
 
-            {busy ? (
-              <div className="bucky-msg-wrapper bucky">
-                <div className="bucky-avatar">
-                  <Bot size={16} />
+              {busy ? (
+                <div className="bucky-msg-wrapper bucky">
+                  <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
+                    <motion.div animate={{ y: [0, -1, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full">
+                      <Image src="/bucky_loading.svg" width={32} height={32} alt="Bucky Loading" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />
+                    </motion.div>
+                  </div>
+                  <div className="bucky-msg bucky-msg-bucky bucky-typing">
+                    <span></span><span></span><span></span>
+                  </div>
                 </div>
-                <div className="bucky-msg bucky-msg-bucky bucky-typing">
-                  <span></span><span></span><span></span>
-                </div>
+              ) : null}
+              {status === "error" ? (
+                <div className="bucky-msg-tool">Something went wrong — try again.</div>
+              ) : null}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {messages.length === 0 && !busy ? (
+              <div className="bucky-suggestions">
+                <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "What's in production?" })}>
+                  What&apos;s in production?
+                </button>
+                <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "Are there any open issues?" })}>
+                  Open issues?
+                </button>
               </div>
             ) : null}
-            {status === "error" ? (
-              <div className="bucky-msg-tool">Something went wrong — try again.</div>
-            ) : null}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {messages.length === 0 && !busy ? (
-            <div className="bucky-suggestions">
-              <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "What's in production?" })}>
-                What&apos;s in production?
+            <form className="bucky-input-row" onSubmit={send}>
+              <textarea
+                ref={textareaRef}
+                className="bucky-input"
+                placeholder="Ask Bucky…"
+                value={draft}
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+                onChange={(event) => {
+                  setDraft(event.target.value);
+                  event.target.style.height = 'auto';
+                  event.target.style.height = `${event.target.scrollHeight}px`;
+                }}
+                disabled={busy}
+              />
+              <button
+                type="submit"
+                className="bucky-send"
+                aria-label="Send"
+                disabled={!draft.trim() || busy}
+              >
+                <Send size={15} />
               </button>
-              <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "Are there any open issues?" })}>
-                Open issues?
-              </button>
-            </div>
-          ) : null}
-
-          <form className="bucky-input-row" onSubmit={send}>
-            <input
-              type="text"
-              className="bucky-input"
-              placeholder="Ask Bucky…"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              disabled={busy}
-            />
-            <button
-              type="submit"
-              className="bucky-send"
-              aria-label="Send"
-              disabled={!draft.trim() || busy}
-            >
-              <Send size={15} />
-            </button>
-          </form>
-        </motion.div>
+            </form>
+          </motion.div>
         ) : null}
       </AnimatePresence>
 
       <motion.button
         type="button"
         className="bucky-fab"
+        style={{ background: 'transparent', boxShadow: 'none', border: 'none' }}
         animate={iconControls}
         whileHover={{ y: -4, scale: 1.05 }}
         onPointerDown={(e) => dragControls.start(e)}
         onClick={() => setOpen((prev) => !prev)}
         aria-label={open ? "Close Bucky" : "Open Bucky"}
       >
+        <div 
+          className="absolute inset-[-6px] rounded-full border-[3px] border-transparent border-t-[var(--saffron)] border-l-[var(--saffron)] opacity-80 pointer-events-none animate-spin"
+          style={{ animationDuration: busy ? '3s' : '12s' }}
+        />
+        <div 
+          className="absolute inset-[-12px] rounded-full border-[2px] border-dashed border-[var(--saffron)] opacity-40 pointer-events-none animate-[spin_1s_linear_infinite_reverse]"
+          style={{ animationDuration: busy ? '8s' : '24s' }}
+        />
+
         <AnimatePresence>
           {hasUnread && (
             <motion.div
@@ -380,18 +408,18 @@ export function BuckyWidget() {
 
         <AnimatePresence mode="wait">
           {open ? (
-            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <X size={22} />
+            <motion.div key="close" className="w-full h-full relative pointer-events-none" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Image src="/bucky_query.svg" alt="Bucky Query" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           ) : busy ? (
-            <motion.div key="busy" className="flex items-center gap-[3px]" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0 }} />
-              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.15 }} />
-              <motion.div className="w-1.5 h-1.5 bg-current rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} />
+            <motion.div key="busy" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full absolute inset-0">
+                <Image src="/bucky_loading.svg" alt="Bucky Loading" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+              </motion.div>
             </motion.div>
           ) : (
-            <motion.div key="bot" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Bot size={22} />
+            <motion.div key="bot" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Image src="/bucky_default.svg" alt="Bucky Default" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           )}
         </AnimatePresence>
