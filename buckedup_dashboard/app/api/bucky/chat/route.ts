@@ -1,7 +1,12 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createClient } from "@/lib/supabase/server";
-import { createBuckyReadTools, createBuckyActionTools, createBuckyOperatorActionTools } from "@/lib/bucky/tools";
+import {
+  createBuckyReadTools,
+  createBuckyActionTools,
+  createBuckyOperatorActionTools,
+  createBuckyLeadActionTools,
+} from "@/lib/bucky/tools";
 import { buildSystemPrompt } from "@/lib/bucky/systemPrompt";
 import type { UserRole } from "@/lib/types";
 
@@ -33,7 +38,8 @@ export async function POST(request: Request) {
   // every table they touch, so widening access exposes nothing new. What
   // stays role-gated is the *action* tool sets: account-management tools
   // (createBuckyActionTools) are admin-only, work-execution tools
-  // (createBuckyOperatorActionTools) are operator-only.
+  // (createBuckyOperatorActionTools) are operator-only, pipeline-management
+  // tools (createBuckyLeadActionTools) are lead-only.
   const supabase = await createClient();
   const {
     data: { user },
@@ -67,18 +73,23 @@ export async function POST(request: Request) {
       ...createBuckyReadTools(supabase),
       ...createBuckyActionTools(supabase, request, role),
       ...createBuckyOperatorActionTools(supabase, role, user.id),
+      ...createBuckyLeadActionTools(supabase, role),
     },
-    // Account-management actions never run on the model's say-so alone —
-    // the tool call only proposes the action; execute() only actually
-    // runs once the admin confirms in the chat UI (BuckyWidget renders
-    // the approval-requested state as a confirm/cancel card). Read tools
-    // are absent from this map, which defaults them to no approval
-    // needed. Harmless to list here even for non-admins — those tools
-    // simply won't exist in the map for them (see createBuckyActionTools).
+    // Mutating actions never run on the model's say-so alone — the tool
+    // call only proposes the action; execute() only actually runs once the
+    // caller confirms in the chat UI (BuckyWidget renders the
+    // approval-requested state as a confirm/cancel card). Read tools and
+    // the operator's own work-execution tools are absent from this map,
+    // which defaults them to no approval needed. Harmless to list entries
+    // here even for roles without a given tool — those tools simply won't
+    // exist in the map for them (see the corresponding createBucky*Tools).
     toolApproval: {
       create_user: "user-approval",
       delete_user: "user-approval",
       change_role: "user-approval",
+      move_product_stage: "user-approval",
+      review_deliverable: "user-approval",
+      review_video: "user-approval",
     },
     // Default stopWhen is isStepCount(1) — the model would call a tool and
     // the stream would end right there, with no natural-language answer

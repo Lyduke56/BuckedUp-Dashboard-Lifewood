@@ -369,13 +369,29 @@ export function createBuckyActionTools(
   return buildAdminActionTools(supabase, request);
 }
 
-// Shared by every operator tool below that locates a product by rank or id
-// — mirrors get_product's same-shaped params so the model can reuse
-// whichever it already has from a prior read-tool call.
+// Shared by every product-locating tool below (operator's and lead's) —
+// mirrors get_product's same-shaped params so the model can reuse whichever
+// it already has from a prior read-tool call.
 const PRODUCT_LOCATOR_SHAPE = {
   rank: z.number().int().optional().describe("The product's rank number."),
   id: z.string().uuid().optional().describe("The product's id, if already known."),
 };
+
+// Shared by every tool below that locates a product by rank or id. Hoisted
+// to module scope (rather than a per-builder closure) since both the
+// operator and lead action-tool builders need it.
+async function resolveProductId(
+  supabase: SupabaseServerClient,
+  rank: number | undefined,
+  id: string | undefined,
+): Promise<{ id: string } | { error: string }> {
+  if (!rank && !id) return { error: "Provide either rank or id." };
+  if (id) return { id };
+  const { data, error } = await supabase.from("products").select("id").eq("rank", rank as number).maybeSingle();
+  if (error) return { error: error.message };
+  if (!data) return { error: "No product found." };
+  return { id: data.id };
+}
 
 // Operator's own work-execution tools. None of these require toolApproval
 // (see route.ts) — they're the operator doing their own routine, self-scoped
@@ -384,18 +400,6 @@ const PRODUCT_LOCATOR_SHAPE = {
 // goes through the caller's own session client (RLS-enforced), same as the
 // read tools — no service-role client here either.
 function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string) {
-  async function resolveProductId(
-    rank: number | undefined,
-    id: string | undefined,
-  ): Promise<{ id: string } | { error: string }> {
-    if (!rank && !id) return { error: "Provide either rank or id." };
-    if (id) return { id };
-    const { data, error } = await supabase.from("products").select("id").eq("rank", rank as number).maybeSingle();
-    if (error) return { error: error.message };
-    if (!data) return { error: "No product found." };
-    return { id: data.id };
-  }
-
   return {
     report_issue: tool({
       description: "Report a new issue against a product. Runs immediately, no confirmation needed.",
@@ -513,7 +517,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
       inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
       execute: ({ rank, id }) =>
         safe(async () => {
-          const resolved = await resolveProductId(rank, id);
+          const resolved = await resolveProductId(supabase, rank, id);
           if ("error" in resolved) return resolved;
           const { error } = await supabase.rpc("submit_video_for_review", { p_product_id: resolved.id });
           if (error) return { error: error.message };
@@ -531,7 +535,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
       }),
       execute: ({ rank, id, videoUrl, note }) =>
         safe(async () => {
-          const resolved = await resolveProductId(rank, id);
+          const resolved = await resolveProductId(supabase, rank, id);
           if ("error" in resolved) return resolved;
           const { error } = await supabase.rpc("set_current_video_version", {
             p_product_id: resolved.id,
@@ -555,4 +559,134 @@ export function createBuckyOperatorActionTools(
 ): ReturnType<typeof buildOperatorActionTools> {
   if (role !== "operator") return {} as ReturnType<typeof buildOperatorActionTools>;
   return buildOperatorActionTools(supabase, userId);
+}
+
+const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
+
+// Lead's pipeline-management tools. All three require toolApproval (see
+// route.ts) — team-visible workflow changes, not self-scoped routine work
+// like the operator tools above. Every write goes through the caller's own
+// session client (RLS-enforced) — lead's real DB permissions are the actual
+// authority here, this just gives chat access to what the UI already
+// allows. This builder grows across future sub-phases (product/catalog CRUD,
+// plan edits) the same way buildOperatorActionTools did — one role, one
+// builder, tools added incrementally.
+function buildLeadActionTools(supabase: SupabaseServerClient) {
+  return {
+    move_product_stage: tool({
+      description:
+        "Directly set a product's pipeline stage to any of the 7 stages, bypassing normal review. Prefer review_deliverable or review_video when actually reviewing a submission — use this for corrections or exceptions. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        ...PRODUCT_LOCATOR_SHAPE,
+        newStatus: z.enum(STATUS_ORDER as [string, ...string[]]),
+      }),
+      execute: ({ rank, id, newStatus }) =>
+        safe(async () => {
+          if (!rank && !id) return { error: "Provide either rank or id." };
+          let query = supabase.from("products").select("id, name, status");
+          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+          const { data: product, error } = await query.maybeSingle();
+          if (error) return { error: error.message };
+          if (!product) return { error: "No product found." };
+          if (product.status === newStatus) {
+            return { noop: true, message: `${product.name} is already in ${newStatus}.` };
+          }
+          const { error: updateError } = await supabase
+            .from("products")
+            .update({ status: newStatus })
+            .eq("id", product.id);
+          if (updateError) return { error: updateError.message };
+          return { moved: true, product: product.name, from: product.status, to: newStatus };
+        }),
+    }),
+
+    review_deliverable: tool({
+      description:
+        "Accept or reject the current pending deliverable for a product's document stage (Storyboarding/Scripting/Prompting). Accepting advances the product to the next stage. A note is required when rejecting. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        ...PRODUCT_LOCATOR_SHAPE,
+        decision: z.enum(["accepted", "rejected"]),
+        note: z.string().optional(),
+      }),
+      execute: ({ rank, id, decision, note }) =>
+        safe(async () => {
+          if (!rank && !id) return { error: "Provide either rank or id." };
+          let query = supabase.from("products").select("id, name, status");
+          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+          const { data: product, error } = await query.maybeSingle();
+          if (error) return { error: error.message };
+          if (!product) return { error: "No product found." };
+          if (!DOC_STAGES.includes(product.status as (typeof DOC_STAGES)[number])) {
+            return {
+              error: `${product.name} is currently in "${product.status}" — deliverable review only applies to Storyboarding, Scripting, or Prompting.`,
+            };
+          }
+          if (decision === "rejected" && !note) {
+            return { error: "A note is required when rejecting a deliverable." };
+          }
+          const { data: deliverable, error: deliverableError } = await supabase
+            .from("stage_deliverables")
+            .select("id")
+            .eq("product_id", product.id)
+            .eq("stage", product.status)
+            .eq("is_current", true)
+            .maybeSingle();
+          if (deliverableError) return { error: deliverableError.message };
+          if (!deliverable) {
+            return { error: `No pending deliverable found for ${product.name} in ${product.status}.` };
+          }
+          const { error: rpcError } = await supabase.rpc("review_stage_deliverable", {
+            p_deliverable_id: deliverable.id,
+            p_decision: decision,
+            p_note: note ?? null,
+          });
+          if (rpcError) return { error: rpcError.message };
+          return { reviewed: true, product: product.name, stage: product.status, decision };
+        }),
+    }),
+
+    review_video: tool({
+      description:
+        "Accept or reject a product's submitted video. Accepting PUBLISHES it (sets its stage to Published) — this is the single most consequential action available. Only works for a product currently In Review. A note is required when rejecting. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        ...PRODUCT_LOCATOR_SHAPE,
+        decision: z.enum(["accepted", "rejected"]),
+        note: z.string().optional(),
+      }),
+      execute: ({ rank, id, decision, note }) =>
+        safe(async () => {
+          if (!rank && !id) return { error: "Provide either rank or id." };
+          let query = supabase.from("products").select("id, name, status");
+          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+          const { data: product, error } = await query.maybeSingle();
+          if (error) return { error: error.message };
+          if (!product) return { error: "No product found." };
+          if (product.status !== "In Review") {
+            return { error: `${product.name} hasn't been submitted for review yet (currently "${product.status}").` };
+          }
+          if (decision === "rejected" && !note) {
+            return { error: "A note is required when rejecting a video." };
+          }
+          const { error: updateError } = await supabase
+            .from("products")
+            .update(
+              decision === "accepted"
+                ? { review_status: "Accepted", rejection_reason: null, status: "Published" }
+                : { review_status: "Rejected", rejection_reason: note, status: "Editing" },
+            )
+            .eq("id", product.id);
+          if (updateError) return { error: updateError.message };
+          return { reviewed: true, product: product.name, decision };
+        }),
+    }),
+  };
+}
+
+// Same role-gate-returns-{} pattern as the operator/admin builders above.
+export function createBuckyLeadActionTools(
+  supabase: SupabaseServerClient,
+  role: UserRole,
+): ReturnType<typeof buildLeadActionTools> {
+  if (role !== "lead") return {} as ReturnType<typeof buildLeadActionTools>;
+  return buildLeadActionTools(supabase);
 }

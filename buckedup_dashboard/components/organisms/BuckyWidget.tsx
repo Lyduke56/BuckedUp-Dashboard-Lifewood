@@ -56,6 +56,7 @@ function withArticle(word: unknown): string {
 
 function describeAction(toolName: string, input: unknown): string {
   const params = (input ?? {}) as Record<string, unknown>;
+  const product = params.rank != null ? `#${params.rank}` : String(params.id ?? "that product");
   switch (toolName) {
     case "create_user":
       return `Create ${withArticle(params.role)} account for ${params.email}?`;
@@ -63,6 +64,16 @@ function describeAction(toolName: string, input: unknown): string {
       return `Delete ${params.email}'s account? This can't be undone.`;
     case "change_role":
       return `Change ${params.email}'s role to ${params.role}?`;
+    case "move_product_stage":
+      return `Move ${product} to ${params.newStatus}?`;
+    case "review_deliverable":
+      return params.decision === "accepted"
+        ? `Accept the deliverable for ${product}?`
+        : `Reject the deliverable for ${product}?`;
+    case "review_video":
+      return params.decision === "accepted"
+        ? `Accept and PUBLISH ${product}? This makes it publicly live.`
+        : `Reject ${product}'s video back to Editing?`;
     default:
       return `Run ${toolName}?`;
   }
@@ -93,6 +104,20 @@ function describeToolResult(toolName: string, input: unknown): string {
       return `Submitted ${product} for review`;
     case "set_video_version":
       return `Set a new video version for ${product}`;
+    case "create_user":
+      return `Created ${withArticle(typeof params.role === "string" ? params.role : "user")} account`;
+    case "delete_user":
+      return "Deleted a user account";
+    case "change_role":
+      return `Changed a user's role to ${params.role}`;
+    case "move_product_stage":
+      return `Moved ${product} to ${typeof params.newStatus === "string" ? params.newStatus : "a new stage"}`;
+    case "review_deliverable":
+      return params.decision === "accepted"
+        ? `Accepted the deliverable for ${product}`
+        : `Rejected the deliverable for ${product}`;
+    case "review_video":
+      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Editing`;
     default:
       return `Looked up ${toolName}`;
   }
@@ -122,10 +147,13 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 
 // Available to every authenticated role, wired to a real tool-calling
 // backend (app/api/bucky/chat/route.ts). Can answer questions about any
-// dashboard data for anyone; admins additionally get three
-// account-management actions (create/delete/change role) — each requires
-// an explicit confirm click here before it runs. State resets on
-// close/reload (no persisted chat history yet).
+// dashboard data for anyone. Admins additionally get three
+// account-management actions (create/delete/change role); operators get six
+// self-scoped work-execution tools that run immediately; leads get three
+// pipeline-management tools (move stage, review deliverable, review video) —
+// account-management and pipeline-management actions require an explicit
+// confirm click here before they run, work-execution tools don't. State
+// resets on close/reload (no persisted chat history yet).
 export function BuckyWidget() {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
