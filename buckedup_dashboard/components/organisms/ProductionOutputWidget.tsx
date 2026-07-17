@@ -56,7 +56,7 @@ export function ProductionOutputWidget() {
     );
   }
 
-  const userProducts = (role === "lead" || role === "operator") 
+  const userProducts = role === "operator"
     ? products.filter(p => p.ownerId === user?.id)
     : products;
 

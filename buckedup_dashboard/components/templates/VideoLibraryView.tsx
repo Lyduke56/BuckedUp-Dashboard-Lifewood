@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { List, LayoutGrid, Kanban } from "lucide-react";
 import { PageHeader } from "@/components/molecules/PageHeader";
@@ -149,6 +149,15 @@ export function VideoLibraryView({
   const { profiles } = useProfiles();
   const { currentByKey } = useStageDeliverables();
   const isAuthenticated = !!user;
+
+  // Default "My Items" to ON for operators so they see their own work first.
+  const mineOnlyInitRef = useRef(false);
+  useEffect(() => {
+    if (role === "operator" && !mineOnlyInitRef.current) {
+      mineOnlyInitRef.current = true;
+      setMineOnly(true);
+    }
+  }, [role]);
   // Lead: full catalog access (add/edit/delete products, move stage via
   // ProductFormModal's Stage field) plus reviewing submitted deliverables.
   // Operator: execution-only — submits the deliverable for the current
