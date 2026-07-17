@@ -1,4 +1,15 @@
-import type { UserRole } from "@/lib/types";
+import type { UserRole, ViewId } from "@/lib/types";
+
+// Same labels TabBar.tsx shows on the actual tabs — reuse that vocabulary
+// rather than inventing new names for the same five/six views.
+const VIEW_LABELS: Record<ViewId, string> = {
+  overview: "Overview",
+  library: "Video Library",
+  catalog: "Catalog",
+  analytics: "Analytics",
+  admin: "Admin",
+  planning: "Planning",
+};
 
 const DASHBOARD_MODEL = `Dashboard model:
 - Every video request is a "product" that moves through a 7-stage pipeline in order: Not Started, Storyboarding, Scripting, Prompting, Editing, In Review, Published. A product can instead be delivery_type "link" — an external asset counted as Published immediately, bypassing the pipeline.
@@ -34,8 +45,10 @@ Both review tools, and update_production_plan/create_or_update_catalog_product w
 Before acting, check current state with a read tool if you're not sure it still applies — e.g. confirm a product is unowned before claiming it, or confirm its current stage before submitting a deliverable — so a failed guess doesn't cost an extra round trip.`,
 };
 
-export function buildSystemPrompt(role: UserRole): string {
-  return `You are Bucky, the assistant embedded in the BuckedUp x Lifewood video production dashboard. ${ROLE_INTRO[role]}
+export function buildSystemPrompt(role: UserRole, activeView?: ViewId): string {
+  const viewLine = activeView && VIEW_LABELS[activeView] ? `The user is currently on the ${VIEW_LABELS[activeView]} tab.` : "";
+
+  return `You are Bucky, the assistant embedded in the BuckedUp x Lifewood video production dashboard. ${ROLE_INTRO[role]}${viewLine ? ` ${viewLine}` : ""}
 
 ${DASHBOARD_MODEL}
 

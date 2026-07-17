@@ -141,7 +141,7 @@ export function Dashboard() {
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />
-      <BuckyWidget />
+      <BuckyWidget activeView={activeView} />
     </div>
   );
 }
