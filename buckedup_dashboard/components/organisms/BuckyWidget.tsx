@@ -74,6 +74,14 @@ function describeAction(toolName: string, input: unknown): string {
       return params.decision === "accepted"
         ? `Accept and PUBLISH ${product}? This makes it publicly live.`
         : `Reject ${product}'s video back to Editing?`;
+    case "create_product":
+      return typeof params.name === "string"
+        ? `Create a new product "${params.name}"?`
+        : params.catalogProductId
+          ? "Create a new product from the selected catalog item?"
+          : "Create a new product?";
+    case "delete_product":
+      return `Delete ${product}? This can't be undone and removes all its issues, deliverables, and version history.`;
     default:
       return `Run ${toolName}?`;
   }
@@ -118,6 +126,10 @@ function describeToolResult(toolName: string, input: unknown): string {
         : `Rejected the deliverable for ${product}`;
     case "review_video":
       return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Editing`;
+    case "create_product":
+      return typeof params.name === "string" ? `Created "${params.name}"` : "Created a new product";
+    case "delete_product":
+      return `Deleted ${product}`;
     default:
       return `Looked up ${toolName}`;
   }

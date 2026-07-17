@@ -90,6 +90,8 @@ export async function POST(request: Request) {
       move_product_stage: "user-approval",
       review_deliverable: "user-approval",
       review_video: "user-approval",
+      create_product: "user-approval",
+      delete_product: "user-approval",
     },
     // Default stopWhen is isStepCount(1) — the model would call a tool and
     // the stream would end right there, with no natural-language answer

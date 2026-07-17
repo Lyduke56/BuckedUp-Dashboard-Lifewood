@@ -679,6 +679,127 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
           return { reviewed: true, product: product.name, decision };
         }),
     }),
+
+    create_product: tool({
+      description:
+        "Create a new product in the video pipeline. Either source it from a BuckedUp catalog item (catalogProductId — its name/category/subcategory/productUrl are used automatically, don't also pass conflicting values) or provide name/category/subcategory directly. Rank is auto-assigned if omitted. Set deliveryType to 'link' with a videoUrl for an external asset that's immediately Published, bypassing the pipeline. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        catalogProductId: z
+          .string()
+          .uuid()
+          .optional()
+          .describe("Source from this BuckedUp catalog item — its name/category/subcategory/productUrl are used automatically."),
+        name: z.string().optional().describe("Required unless catalogProductId is given."),
+        category: z.string().optional().describe("Required unless catalogProductId is given."),
+        subcategory: z.string().optional().describe("Required unless catalogProductId is given."),
+        language: z.string().default("English"),
+        contentType: z.string().optional(),
+        contentAngle: z.string().optional(),
+        productUrl: z.string().optional().describe("Ignored if catalogProductId is given."),
+        ownerEmail: z.string().email().optional(),
+        publishDate: z.string().optional().describe("YYYY-MM-DD"),
+        deliveryType: z.enum(["pipeline", "link"]).default("pipeline"),
+        videoUrl: z.string().url().optional().describe("Required when deliveryType is 'link'."),
+        rank: z.number().int().optional().describe("Defaults to the next available rank if omitted."),
+      }),
+      execute: (params) =>
+        safe(async () => {
+          const { catalogProductId, ownerEmail, deliveryType, videoUrl, rank, publishDate, language, contentType, contentAngle } =
+            params;
+          let { name, category, subcategory, productUrl } = params;
+
+          if (!catalogProductId && (!name || !category || !subcategory)) {
+            return { error: "Provide catalogProductId, or name, category, and subcategory directly." };
+          }
+          if (deliveryType === "link" && !videoUrl) {
+            return { error: "videoUrl is required when deliveryType is 'link'." };
+          }
+
+          if (catalogProductId) {
+            const { data: catalogProduct, error: catalogError } = await supabase
+              .from("catalog_products")
+              .select("name, category, subcategory, product_url")
+              .eq("id", catalogProductId)
+              .maybeSingle();
+            if (catalogError) return { error: catalogError.message };
+            if (!catalogProduct) return { error: "No catalog product found with that id." };
+            name = catalogProduct.name;
+            category = catalogProduct.category;
+            subcategory = catalogProduct.subcategory;
+            productUrl = catalogProduct.product_url ?? undefined;
+          }
+
+          let ownerId: string | undefined;
+          let ownerDisplay: string | undefined;
+          if (ownerEmail) {
+            const { data: ownerProfile, error: ownerError } = await supabase
+              .from("profiles")
+              .select("id, email")
+              .eq("email", ownerEmail)
+              .maybeSingle();
+            if (ownerError) return { error: ownerError.message };
+            if (!ownerProfile) return { error: `No account found for ${ownerEmail}.` };
+            ownerId = ownerProfile.id;
+            ownerDisplay = ownerProfile.email;
+          }
+
+          let finalRank = rank;
+          if (!finalRank) {
+            const { data: maxRankRow, error: rankError } = await supabase
+              .from("products")
+              .select("rank")
+              .order("rank", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (rankError) return { error: rankError.message };
+            finalRank = (maxRankRow?.rank ?? 0) + 1;
+          }
+
+          const status = deliveryType === "link" ? "Published" : "Not Started";
+
+          const { data: created, error: insertError } = await supabase
+            .from("products")
+            .insert({
+              rank: finalRank,
+              name,
+              category,
+              subcategory,
+              content_type: contentType ?? null,
+              language,
+              product_url: productUrl ?? null,
+              content_angle: contentAngle ?? null,
+              owner_id: ownerId ?? null,
+              owner: ownerDisplay ?? null,
+              publish_date: publishDate ?? null,
+              status,
+              delivery_type: deliveryType,
+              video_url: deliveryType === "link" ? videoUrl : null,
+              catalog_product_id: catalogProductId ?? null,
+            })
+            .select("id, rank, name")
+            .single();
+          if (insertError) return { error: insertError.message };
+          return { created: true, product: created };
+        }),
+    }),
+
+    delete_product: tool({
+      description:
+        "Delete a product. This is irreversible and cascades to its issues, deliverables, video versions, and status history. Requires confirmation before it runs.",
+      inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
+      execute: ({ rank, id }) =>
+        safe(async () => {
+          if (!rank && !id) return { error: "Provide either rank or id." };
+          let query = supabase.from("products").select("id, name");
+          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+          const { data: product, error } = await query.maybeSingle();
+          if (error) return { error: error.message };
+          if (!product) return { error: "No product found." };
+          const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
+          if (deleteError) return { error: deleteError.message };
+          return { deleted: true, product: product.name };
+        }),
+    }),
   };
 }
 
