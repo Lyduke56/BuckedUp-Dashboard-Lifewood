@@ -1,7 +1,22 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { STATUS_ORDER, REVIEW_STATUS_ORDER } from "@/lib/data";
-import { safe, type SupabaseServerClient } from "./shared";
+import type { IssueSeverity, IssueStatus, DeliverableDecision } from "@/lib/types";
+import { safe, DOC_STAGES, type SupabaseServerClient } from "./shared";
+
+// "In production" / actively-worked-on stages — the 5 middle stages,
+// excluding both Not Started (not begun) and Published (already
+// finished). Shared by get_production_breakdown and
+// get_ownership_breakdown so both agree on the same definition of
+// "active" by construction, not by two copy-pasted filters staying in
+// sync by hand.
+// Explicit type annotation matters here: without it, TS narrows the Set's
+// element type down to just the 5 literals that survive the filter, which
+// then makes .has() reject a full STATUS_ORDER member (e.g. "Not Started")
+// as a type error at every call site below.
+const ACTIVE_STAGES: Set<(typeof STATUS_ORDER)[number]> = new Set(
+  STATUS_ORDER.filter((s) => s !== "Not Started" && s !== "Published"),
+);
 
 // Every tool below queries through the caller's own session client (passed
 // in from the route handler, which already verified the caller is an
@@ -68,7 +83,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 
     get_daily_production: tool({
       description:
-        "Get production output (videos entering each stage, videos published, broken down by category/language) for today or a range of recent days. Use for 'what was today's production', 'how many published this week'.",
+        "Get production output (videos entering each stage, videos published, broken down by category/language) for today or a range of recent days. The returned stageEntries counts stage-entry EVENTS within this date range, not current occupancy — for 'how many are in each stage right now', use get_production_breakdown instead. Use this for 'what was today's production', 'how many published this week'.",
       inputSchema: z.object({
         days: z
           .number()
@@ -90,12 +105,12 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           if (error) return { error: error.message };
 
           type Row = { status: string; entered_at: string; products: { category: string; language: string } | { category: string; language: string }[] | null };
-          const byStage: Record<string, number> = {};
+          const stageEntries: Record<string, number> = {};
           const publishedByCategory: Record<string, number> = {};
           const publishedByLanguage: Record<string, number> = {};
           let published = 0;
           for (const row of (data as unknown as Row[]) ?? []) {
-            byStage[row.status] = (byStage[row.status] ?? 0) + 1;
+            stageEntries[row.status] = (stageEntries[row.status] ?? 0) + 1;
             if (row.status === "Published") {
               published += 1;
               const product = Array.isArray(row.products) ? row.products[0] : row.products;
@@ -105,13 +120,13 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
               }
             }
           }
-          return { rangeDays: days, published, byStage, publishedByCategory, publishedByLanguage };
+          return { rangeDays: days, published, stageEntries, publishedByCategory, publishedByLanguage };
         }),
     }),
 
     get_analytics_summary: tool({
       description:
-        "Get an overall statistics summary: stage funnel counts, review-status distribution, rejection rate by category, and progress against the active production plan's targets. Use for 'give me a summary/statistics'.",
+        "Get an overall statistics summary: stage funnel counts (stageFunnel is CUMULATIVE — count of products at or past each stage, not currently sitting in it — for current occupancy use get_production_breakdown instead), review-status distribution, rejection rate by category, and progress against the active production plan's targets. Use for 'give me a summary/statistics'.",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -196,6 +211,80 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
         }),
     }),
 
+    // Same pre-computed-answer pattern as get_production_breakdown — "how
+    // many open issues" / "which product has the most" both require real
+    // counting and grouping across every issue row, exactly the
+    // arithmetic the free-tier model is unreliable at doing by hand from
+    // list_issues' raw rows.
+    get_issue_summary: tool({
+      description:
+        "Get a pre-computed summary of reported issues: total open, a breakdown by severity (open only), and which products have the most open issues, including a ready-to-use markdown table. Use this for 'how many open issues', 'severity breakdown', or 'which product has the most issues' — the counting is already done for you, don't call list_issues and count by hand.",
+      inputSchema: z.object({}),
+      execute: () =>
+        safe(async () => {
+          const { data, error } = await supabase
+            .from("issues")
+            .select("severity, status, product_id, products(rank, name)");
+          if (error) return { error: error.message };
+
+          // Supabase's embedded-relation return shape for a to-one FK is
+          // an object normally, but can come back as a single-element
+          // array depending on the query planner — same defensive
+          // handling as get_daily_production's Row type above.
+          type Row = {
+            severity: IssueSeverity;
+            status: IssueStatus;
+            product_id: string;
+            products: { rank: number; name: string } | { rank: number; name: string }[] | null;
+          };
+
+          const bySeverity: Record<IssueSeverity, number> = { high: 0, medium: 0, low: 0 };
+          let totalOpen = 0;
+          let totalResolved = 0;
+          const offenderCounts = new Map<string, { rank: number; name: string; openIssues: number }>();
+
+          for (const row of (data as unknown as Row[]) ?? []) {
+            if (row.status === "resolved") {
+              totalResolved += 1;
+              continue;
+            }
+            totalOpen += 1;
+            bySeverity[row.severity] += 1;
+            const product = Array.isArray(row.products) ? row.products[0] : row.products;
+            if (product) {
+              const entry = offenderCounts.get(row.product_id) ?? { rank: product.rank, name: product.name, openIssues: 0 };
+              entry.openIssues += 1;
+              offenderCounts.set(row.product_id, entry);
+            }
+          }
+
+          const topOffenders = Array.from(offenderCounts.values())
+            .sort((a, b) => b.openIssues - a.openIssues || a.rank - b.rank)
+            .slice(0, 5);
+
+          const severityTable = [
+            "| Severity | Open |",
+            "|---|---|",
+            `| High | ${bySeverity.high} |`,
+            `| Medium | ${bySeverity.medium} |`,
+            `| Low | ${bySeverity.low} |`,
+          ].join("\n");
+
+          const offendersTable =
+            topOffenders.length > 0
+              ? [
+                  "| Rank | Product | Open Issues |",
+                  "|---|---|---|",
+                  ...topOffenders.map((o) => `| ${o.rank} | ${o.name} | ${o.openIssues} |`),
+                ].join("\n")
+              : "No open issues on any product.";
+
+          const markdownTable = `**By severity (open only)**\n${severityTable}\n\n**Top offenders**\n${offendersTable}`;
+
+          return { totalOpen, totalResolved, bySeverity, topOffenders, markdownTable };
+        }),
+    }),
+
     list_stage_deliverables: tool({
       description: "List QA/QC stage-deliverable submissions (Storyboarding/Scripting/Prompting), optionally filtered by stage or review decision.",
       inputSchema: z.object({
@@ -216,6 +305,50 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           const { data, error } = await query;
           if (error) return { error: error.message };
           return { deliverables: data };
+        }),
+    }),
+
+    // Same pre-computed-answer pattern as get_production_breakdown — a
+    // stage x decision cross-tab requires real grouping across every
+    // current deliverable row, not something to hand-tally from
+    // list_stage_deliverables' raw rows.
+    get_deliverable_summary: tool({
+      description:
+        "Get a pre-computed breakdown of current stage-deliverable submissions by stage and review decision (pending/accepted/rejected), including total pending and a ready-to-use markdown table. Use this for 'how many deliverables are pending', 'what's waiting on review in each stage' — don't call list_stage_deliverables and count by hand.",
+      inputSchema: z.object({}),
+      execute: () =>
+        safe(async () => {
+          const { data, error } = await supabase
+            .from("stage_deliverables")
+            .select("stage, decision")
+            .eq("is_current", true);
+          if (error) return { error: error.message };
+          const rows = data ?? [];
+
+          const byStageAndDecision = Object.fromEntries(
+            DOC_STAGES.map((stage) => [stage, { pending: 0, accepted: 0, rejected: 0 }]),
+          ) as Record<(typeof DOC_STAGES)[number], Record<DeliverableDecision, number>>;
+
+          for (const row of rows) {
+            const stage = row.stage as (typeof DOC_STAGES)[number];
+            const decision = row.decision as DeliverableDecision;
+            if (byStageAndDecision[stage]) {
+              byStageAndDecision[stage][decision] = (byStageAndDecision[stage][decision] ?? 0) + 1;
+            }
+          }
+
+          const totalPending = DOC_STAGES.reduce((sum, stage) => sum + byStageAndDecision[stage].pending, 0);
+
+          const markdownTable = [
+            "| Stage | Pending | Accepted | Rejected |",
+            "|---|---|---|---|",
+            ...DOC_STAGES.map(
+              (stage) =>
+                `| ${stage} | ${byStageAndDecision[stage].pending} | ${byStageAndDecision[stage].accepted} | ${byStageAndDecision[stage].rejected} |`,
+            ),
+          ].join("\n");
+
+          return { byStageAndDecision, totalPending, markdownTable };
         }),
     }),
 
@@ -269,10 +402,10 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             byStage[row.status] = (byStage[row.status] ?? 0) + 1;
           }
 
-          const inProductionStages = STATUS_ORDER.filter(
-            (s) => s !== "Not Started" && s !== "Published",
+          const inProduction = STATUS_ORDER.filter((s) => ACTIVE_STAGES.has(s)).reduce(
+            (sum, s) => sum + (byStage[s] ?? 0),
+            0,
           );
-          const inProduction = inProductionStages.reduce((sum, s) => sum + (byStage[s] ?? 0), 0);
 
           const markdownTable = [
             "| Stage | Count |",
@@ -281,6 +414,69 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           ].join("\n");
 
           return { byStage, inProduction, total: rows.length, markdownTable };
+        }),
+    }),
+
+    // Two parallel queries (products, profiles), joined in plain
+    // TypeScript via a Map, rather than an embedded profiles(...)
+    // relation off products — products has exactly one FK to profiles
+    // (owner_id) so an embed would technically work, but a plain
+    // id->email Map keeps the join visible/debuggable here instead of
+    // living inside PostgREST's embed syntax.
+    //
+    // Grouped by owner_id, not the `owner` display-text column — `owner`
+    // is legacy, pre-auth "Sheet-era" data that the current claim/assign
+    // flow (claim_product, the product edit form) never writes to;
+    // owner_id is the only field that's actually kept current, and it's
+    // what every DB trigger (notifications, ownership checks) already
+    // keys off. A product can still show a legacy owner *name* elsewhere
+    // while counting as unclaimed here — that's correct, not a bug.
+    get_ownership_breakdown: tool({
+      description:
+        "Get a pre-computed breakdown of product ownership: total products owned and currently-active-in-pipeline count per operator, plus how many products are unclaimed, including a ready-to-use markdown table. Use this for 'how much does each operator own', 'who owns the most', or 'how many are unclaimed' — don't call list_products and count by hand.",
+      inputSchema: z.object({}),
+      execute: () =>
+        safe(async () => {
+          const [{ data: products, error: productsError }, { data: profiles, error: profilesError }] = await Promise.all([
+            supabase.from("products").select("owner_id, status"),
+            supabase.from("profiles").select("id, email"),
+          ]);
+          if (productsError) return { error: productsError.message };
+          if (profilesError) return { error: profilesError.message };
+
+          const emailById = new Map((profiles ?? []).map((p) => [p.id, p.email]));
+
+          const counts = new Map<string, { totalOwned: number; activeInPipeline: number }>();
+          let unclaimed = 0;
+          let unclaimedActive = 0;
+          for (const p of products ?? []) {
+            const isActive = ACTIVE_STAGES.has(p.status as (typeof STATUS_ORDER)[number]);
+            if (!p.owner_id) {
+              unclaimed += 1;
+              if (isActive) unclaimedActive += 1;
+              continue;
+            }
+            const entry = counts.get(p.owner_id) ?? { totalOwned: 0, activeInPipeline: 0 };
+            entry.totalOwned += 1;
+            if (isActive) entry.activeInPipeline += 1;
+            counts.set(p.owner_id, entry);
+          }
+
+          const byOperator = Array.from(counts.entries())
+            // "Unknown user" is effectively unreachable — owner_id is
+            // FK-constrained to profiles at all times, not just on
+            // delete — kept only as a defensive fallback.
+            .map(([ownerId, c]) => ({ ownerId, email: emailById.get(ownerId) ?? "Unknown user", ...c }))
+            .sort((a, b) => b.totalOwned - a.totalOwned || a.email.localeCompare(b.email));
+
+          const markdownTable = [
+            "| Owner | Total Owned | Active in Pipeline |",
+            "|---|---|---|",
+            ...byOperator.map((o) => `| ${o.email} | ${o.totalOwned} | ${o.activeInPipeline} |`),
+            `| Unclaimed | ${unclaimed} | ${unclaimedActive} |`,
+          ].join("\n");
+
+          return { byOperator, unclaimed, unclaimedActive, totalProducts: (products ?? []).length, markdownTable };
         }),
     }),
 

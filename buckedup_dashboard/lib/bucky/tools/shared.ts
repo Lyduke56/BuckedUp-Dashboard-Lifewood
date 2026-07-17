@@ -31,6 +31,13 @@ export function escapeIlikePattern(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
+// The three document/text pipeline stages that get a lead-reviewed
+// deliverable (Storyboarding/Scripting/Prompting) — the Editing->Published
+// leg uses video_versions instead, not this table (see schema.sql).
+// Shared by lead.ts (review_deliverable's stage validation) and read.ts
+// (get_deliverable_summary's stage x decision breakdown).
+export const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
+
 // Shared by every product-locating tool below (operator's and lead's) —
 // mirrors get_product's same-shaped params so the model can reuse whichever
 // it already has from a prior read-tool call.

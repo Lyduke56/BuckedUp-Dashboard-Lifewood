@@ -2,9 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { STATUS_ORDER } from "@/lib/data";
 import type { UserRole } from "@/lib/types";
-import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, escapeIlikePattern, type SupabaseServerClient } from "./shared";
-
-const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
+import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, escapeIlikePattern, DOC_STAGES, type SupabaseServerClient } from "./shared";
 
 // Lead's pipeline-management tools. Most require toolApproval (see
 // route.ts) — team-visible workflow changes, not self-scoped routine work

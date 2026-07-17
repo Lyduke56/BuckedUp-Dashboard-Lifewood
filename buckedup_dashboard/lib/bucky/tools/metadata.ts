@@ -36,6 +36,9 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   list_users: { mutating: false, approval: "none" },
   get_production_breakdown: { mutating: false, approval: "none" },
   list_catalog_products: { mutating: false, approval: "none" },
+  get_issue_summary: { mutating: false, approval: "none" },
+  get_deliverable_summary: { mutating: false, approval: "none" },
+  get_ownership_breakdown: { mutating: false, approval: "none" },
   // admin (governance)
   create_user: { mutating: true, approval: "user-approval" },
   delete_user: { mutating: true, approval: "user-approval" },
