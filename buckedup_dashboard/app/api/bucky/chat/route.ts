@@ -11,6 +11,7 @@ import {
   type AnyBuckyToolName,
 } from "@/lib/bucky/tools";
 import { buildSystemPrompt, type BuckyCatalogContext, type BuckyProductContext } from "@/lib/bucky/systemPrompt";
+import { checkAndRecordRateLimit } from "@/lib/bucky/rateLimit";
 import type { UserRole, ViewId } from "@/lib/types";
 
 const VALID_ROLES: UserRole[] = ["admin", "lead", "operator"];
@@ -55,6 +56,17 @@ export async function POST(request: Request) {
   const role = profile?.role as UserRole | undefined;
   if (!role || !VALID_ROLES.includes(role)) {
     return new Response(JSON.stringify({ error: "No valid role for this account" }), { status: 403 });
+  }
+
+  // Rejected as cheaply as possible — before the request body is even
+  // parsed. See lib/bucky/rateLimit.ts for why this is DB-backed rather
+  // than an in-memory counter.
+  const rateLimitOk = await checkAndRecordRateLimit(supabase, user.id);
+  if (!rateLimitOk) {
+    return new Response(
+      JSON.stringify({ error: "You're sending messages too quickly — wait a moment and try again." }),
+      { status: 429 },
+    );
   }
 
   const {

@@ -698,6 +698,30 @@ create policy "Own inserts" on bucky_audit_log for insert
 create policy "Admin read" on bucky_audit_log for select
   using (get_my_role() = 'admin');
 
+-- Backs Bucky's chat rate limit (lib/bucky/rateLimit.ts) — one row per
+-- chat request (every message, not just mutating tool calls, since even a
+-- read-only question costs real usage against the manager's $5-capped
+-- OpenRouter key). Self-cleaning by construction: the rate-limit check
+-- deletes a user's own rows older than the rolling window before ever
+-- counting them, so this table never holds more than a handful of rows
+-- per currently-active user — no separate cleanup job needed.
+create table bucky_rate_limit_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+create index bucky_rate_limit_log_user_created_idx
+  on bucky_rate_limit_log (user_id, created_at desc);
+
+alter table bucky_rate_limit_log enable row level security;
+
+create policy "Own select" on bucky_rate_limit_log for select
+  using (user_id = auth.uid());
+create policy "Own insert" on bucky_rate_limit_log for insert
+  with check (user_id = auth.uid());
+create policy "Own delete" on bucky_rate_limit_log for delete
+  using (user_id = auth.uid());
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
