@@ -1,10 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useState, useEffect, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Particles } from "@/components/atoms/Particles";
+
+const BACKGROUND_IMAGES = [
+  "/login_images/Gemini_Generated_Image_7h0und7h0und7h0u.png",
+  "/login_images/Gemini_Generated_Image_afqsssafqsssafqs.png",
+  "/login_images/Gemini_Generated_Image_aqpz3aaqpz3aaqpz.png",
+  "/login_images/Gemini_Generated_Image_z1emn4z1emn4z1em.png",
+];
 
 const MailIcon = () => (
   <svg
@@ -75,6 +82,14 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % BACKGROUND_IMAGES.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, []);
 
   const displayError =
     error ??
@@ -105,6 +120,33 @@ function LoginForm() {
 
   return (
     <div className="login-shell">
+      {/* Background Slideshow Layer */}
+      <div
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ zIndex: 0 }}
+      >
+        {BACKGROUND_IMAGES.map((src, index) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-[3000ms] ease-in-out"
+            style={{
+              opacity: index === currentImageIndex ? 0.69 : 0,
+              filter: "brightness(0.7) contrast(1.1) saturate(0.6)",
+            }}
+          />
+        ))}
+        {/* Dark space green overlay to blend the images and preserve the space green theme */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle at center, rgba(4, 16, 12, 0.2) 0%, rgba(2, 7, 5, 0.75) 100%)",
+            mixBlendMode: "multiply",
+          }}
+        />
+      </div>
+
       {/* Interactive Particles layer */}
       <Particles
         className="absolute inset-0 z-0 bg-transparent"

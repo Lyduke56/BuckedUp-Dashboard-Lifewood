@@ -660,17 +660,17 @@ export function BuckyWidget({
         <AnimatePresence mode="wait">
           {open ? (
             <motion.div key="close" className="w-full h-full relative pointer-events-none" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Image src="/bucky_query.svg" alt="Bucky Query" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+              <Image src="/bucky_query.svg" alt="Bucky Query" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           ) : busy ? (
             <motion.div key="busy" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
               <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full absolute inset-0">
-                <Image src="/bucky_loading.svg" alt="Bucky Loading" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+                <Image src="/bucky_loading.svg" alt="Bucky Loading" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
               </motion.div>
             </motion.div>
           ) : (
             <motion.div key="bot" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Image src="/bucky_default.svg" alt="Bucky Default" width={64} height={64} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+              <Image src="/bucky_default.svg" alt="Bucky Default" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           )}
         </AnimatePresence>
