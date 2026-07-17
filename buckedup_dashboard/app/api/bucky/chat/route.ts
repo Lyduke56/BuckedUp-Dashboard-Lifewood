@@ -1,5 +1,5 @@
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createOpenRouter, type OpenRouterUsageAccounting } from "@openrouter/ai-sdk-provider";
 import { createClient } from "@/lib/supabase/server";
 import {
   createBuckyReadTools,
@@ -76,6 +76,9 @@ export async function POST(request: Request) {
       // this isn't guaranteed to work on every backend serving these
       // models).
       reasoning: { exclude: true, effort: "low" },
+      // Asks OpenRouter to include real token/cost accounting on the
+      // response so onFinish below can log it — see the comment there.
+      usage: { include: true },
     }),
     system: buildSystemPrompt(role, activeView, currentProduct, currentCatalogProduct),
     messages: await convertToModelMessages(messages),
@@ -111,6 +114,28 @@ export async function POST(request: Request) {
     // using the result. Allow a few steps so it can call a tool then
     // actually respond.
     stopWhen: stepCountIs(5),
+    // The manager's OpenRouter key has a hard $5 cap and an explicit ask to
+    // avoid unnecessary/expensive model use — every configured fallback
+    // model is :free-suffixed, so cost should always read 0 here. Logging
+    // it (and which model actually answered, since the fallback chain can
+    // pick something other than MODEL) is a cheap audit trail proving
+    // that, and a tripwire if a fallback ever silently lands on something
+    // billable. console.warn (not .log) when cost is nonzero so that
+    // stands out from routine free-tier noise.
+    onFinish: ({ usage, providerMetadata, response }) => {
+      const openrouterUsage = providerMetadata?.openrouter?.usage as OpenRouterUsageAccounting | undefined;
+      const cost = openrouterUsage?.cost;
+      const log = cost ? console.warn : console.log;
+      log("[bucky-usage]", {
+        userId: user.id,
+        role,
+        model: response.modelId,
+        promptTokens: usage.inputTokens,
+        completionTokens: usage.outputTokens,
+        totalTokens: usage.totalTokens,
+        cost: cost ?? 0,
+      });
+    },
   });
 
   return result.toUIMessageStreamResponse({
