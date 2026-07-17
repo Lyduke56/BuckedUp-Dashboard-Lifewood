@@ -1659,6 +1659,25 @@ a {
   background: var(--glass-hover);
 }
 
+/* Confirm bar for the header's clear-conversation button — same visual
+   language as .bucky-confirm (the tool-approval card) for consistency,
+   but a full-width toolbar-style bar rather than a chat-bubble shape,
+   since it's triggered from the header, not part of the message flow. */
+.bucky-clear-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 20px 16px 20px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .bucky-messages {
   flex: 1;
   overflow-y: auto;
@@ -1666,6 +1685,19 @@ a {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* flex-direction: column here is purely for stacking + gap — no child
+   should ever grow or shrink. Without this, the CSS flexbox spec's
+   automatic-minimum-size rule kicks in: a flex item's minimum height only
+   respects its content when overflow is visible, and .bucky-tool-json
+   sets overflow: hidden — so once total message height exceeds the
+   panel's visible area, the flex algorithm compresses that item toward 0
+   instead of just letting .bucky-messages scroll (its actual job). Real
+   markdown tables made this far easier to trigger, since a rendered table
+   is much taller than the raw text it replaced. */
+.bucky-messages > * {
+  flex-shrink: 0;
 }
 
 .bucky-msg-wrapper {
@@ -1725,6 +1757,110 @@ a {
   border: 1px solid var(--glass-border);
   color: var(--text-main);
   border-top-left-radius: 4px;
+  /* Wider than the shared 75% — tables and lists need the room; user
+     bubbles (plain text, no markdown) stay at the narrower default. */
+  max-width: 90%;
+}
+
+/* Real markdown rendering for Bucky's replies (react-markdown + remark-gfm
+   for tables) — see renderMarkdown() in BuckyWidget.tsx. Scoped to
+   .bucky-msg-bucky only; user messages render as plain text. */
+.bucky-msg-bucky p {
+  margin: 0 0 10px 0;
+}
+
+.bucky-msg-bucky > *:first-child {
+  margin-top: 0;
+}
+
+.bucky-msg-bucky > *:last-child {
+  margin-bottom: 0;
+}
+
+.bucky-msg-bucky ul,
+.bucky-msg-bucky ol {
+  margin: 0 0 10px 0;
+  padding-left: 20px;
+}
+
+.bucky-msg-bucky li {
+  margin-bottom: 4px;
+}
+
+.bucky-msg-bucky li > p {
+  margin: 0;
+}
+
+.bucky-table-wrap {
+  overflow-x: auto;
+  margin: 0 0 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}
+
+.bucky-msg-bucky table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+}
+
+.bucky-msg-bucky th,
+.bucky-msg-bucky td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+
+.bucky-msg-bucky thead th {
+  font-weight: 700;
+  background: var(--glass-hover);
+}
+
+.bucky-msg-bucky tr:last-child td {
+  border-bottom: none;
+}
+
+.bucky-msg-bucky code {
+  background: var(--glass-hover);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.bucky-msg-bucky pre {
+  background: var(--glass-hover);
+  border-radius: 10px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  margin: 0 0 10px 0;
+}
+
+.bucky-msg-bucky pre code {
+  background: none;
+  padding: 0;
+}
+
+.bucky-msg-bucky a {
+  color: var(--saffron);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bucky-msg-bucky blockquote {
+  margin: 0 0 10px 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--glass-border);
+  color: var(--ink-soft);
+}
+
+.bucky-msg-bucky h1,
+.bucky-msg-bucky h2,
+.bucky-msg-bucky h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
 }
 
 .bucky-msg-user {

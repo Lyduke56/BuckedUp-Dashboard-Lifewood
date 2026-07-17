@@ -6,13 +6,16 @@ import { Bot, Send, X, User, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useMounted } from "@/lib/useMounted";
 import { useAuth } from "@/lib/useAuth";
+import { createClient } from "@/lib/supabase/client";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
 import { DAILY_VIDEO_TARGET } from "@/lib/data";
-import type { Product, ViewId } from "@/lib/types";
+import type { Product, UserRole, ViewId } from "@/lib/types";
 import type { BuckyCatalogContext, BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import { motion, useDragControls, useMotionValue, animate, type PanInfo, AnimatePresence, useAnimation } from "framer-motion";
 import { useEffect, useRef } from "react";
@@ -24,17 +27,53 @@ const STALE_DAYS_THRESHOLD = 3;
 const GREETING =
   "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
 
-// The model tends to answer with **bold** markdown around key numbers/
-// names — render that as actual emphasis rather than literal asterisks,
-// without pulling in a full markdown parser for just this one case.
-function renderInlineMarkdown(text: string) {
-  const segments = text.split(/(\*\*[^*]+\*\*)/g);
-  return segments.map((segment, index) =>
-    segment.startsWith("**") && segment.endsWith("**") ? (
-      <strong key={index}>{segment.slice(2, -2)}</strong>
-    ) : (
-      segment
-    ),
+// Empty-state starter chips, tailored per role — every one of these is a
+// plain question that works standalone with no editing needed, since
+// clicking a chip sends it immediately (see the onClick below). Action
+// prompts that need a specific product/email filled in are deliberately
+// left out of this list, rather than sending a half-finished request.
+const SUGGESTIONS: Record<UserRole, { label: string; prompt: string }[]> = {
+  admin: [
+    { label: "What's in production?", prompt: "What's currently in production?" },
+    { label: "Who's on the team?", prompt: "Who's on the team, and what are their roles?" },
+    { label: "Quick summary", prompt: "Give me a quick summary of where we stand." },
+    { label: "Open issues?", prompt: "What issues are currently open?" },
+  ],
+  lead: [
+    { label: "What's in production?", prompt: "What's currently in production?" },
+    { label: "Deliverables to review?", prompt: "What deliverables are waiting on review right now?" },
+    { label: "Today's output", prompt: "How many videos did we publish today?" },
+    { label: "Production plan", prompt: "What's our current production plan and deadline?" },
+  ],
+  operator: [
+    { label: "What's in production?", prompt: "What's currently in production?" },
+    { label: "Open issues?", prompt: "What issues are currently open?" },
+    { label: "Today's output", prompt: "How many videos did we publish today?" },
+    { label: "Deliverables to review?", prompt: "What deliverables are waiting on review right now?" },
+  ],
+};
+
+// The model naturally reaches for markdown — bold, bullet lists, and
+// especially tables for anything list-shaped ("what's in production").
+// Rendering it for real (tables included, via remark-gfm) rather than
+// showing the raw "| Rank | Name |" syntax as a wall of text. Only applied
+// to Bucky's own messages — user-typed text renders as plain literal text,
+// see the isUser check at the call site, so a stray "_" or "*" someone
+// types isn't reinterpreted as formatting.
+const MARKDOWN_COMPONENTS: Components = {
+  table: ({ ...props }) => (
+    <div className="bucky-table-wrap">
+      <table {...props} />
+    </div>
+  ),
+  a: ({ ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+};
+
+function renderMarkdown(text: string) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={MARKDOWN_COMPONENTS}>
+      {text}
+    </ReactMarkdown>
   );
 }
 
@@ -108,7 +147,7 @@ function describeAction(toolName: string, input: unknown): string {
 // <summary> of the collapsible output-available block. Read tools (list_*,
 // get_*) have no entry here and fall back to "Looked up {toolName}" —
 // accurate for them. Mutation tools that don't require approval (operator's
-// work-execution tools, see lib/bucky/tools.ts) get a past-tense summary
+// work-execution tools, see lib/bucky/tools/operator.ts) get a past-tense summary
 // instead, since "Looked up submit_deliverable" reads oddly for something
 // that just *did* something rather than fetched data.
 function describeToolResult(toolName: string, input: unknown): string {
@@ -283,9 +322,53 @@ export function BuckyWidget({
     localStorage.setItem(storageKey, JSON.stringify(messages));
   }, [messages, storageKey, historyLoaded]);
 
+  // Clicking the header trash icon used to clear instantly, which read as
+  // ambiguous — easy to mistake for closing/deleting Bucky itself rather
+  // than just wiping the chat history. Gating it behind an explicit
+  // confirm step (skipped when there's nothing to lose) both prevents an
+  // accidental click from destroying an unrecoverable conversation and
+  // spells out exactly what's about to happen.
+  const [confirmingClear, setConfirmingClear] = useState(false);
+
   const clearConversation = () => {
     setMessages([]);
     if (storageKey) localStorage.removeItem(storageKey);
+    setConfirmingClear(false);
+  };
+
+  const requestClearConversation = () => {
+    if (messages.length === 0) {
+      clearConversation();
+      return;
+    }
+    setConfirmingClear(true);
+  };
+
+  // Half of the audit-log picture (see the other half, onToolExecutionEnd,
+  // in app/api/bucky/chat/route.ts). A denied tool call never reaches the
+  // server at all in the common case — see shouldAutoResubmitAfterApproval
+  // above — so this is the only place a denial can ever be recorded.
+  // Deliberately fire-and-forget, not awaited before addToolApprovalResponse:
+  // Cancel being instant is a previously-tested, deliberate UX property (see
+  // the comment on shouldAutoResubmitAfterApproval), and this must not
+  // quietly reintroduce a network wait on every Cancel click. Every tool
+  // reachable at this button is, by construction, already mutating and
+  // already in toolApproval — no metadata import needed client-side.
+  const logDenial = (approvalId: string, toolName: string, input: unknown) => {
+    if (!user?.id || !role) return;
+    // Plain insert, not upsert — PostgREST's upsert(onConflict) path needs
+    // broader permissions than a plain insert under RLS (confirmed live:
+    // identical insert succeeds via .insert(), fails with 42501 via
+    // .upsert() even though the "Own inserts" policy is correct and
+    // unrelated to this). A rare double-click just hits the unique index
+    // on approval_id and errors with 23505 (duplicate key), which is
+    // exactly the "already logged, nothing to do" case — safe to ignore.
+    void createClient()
+      .from("bucky_audit_log")
+      .insert({ approval_id: approvalId, user_id: user.id, role, tool_name: toolName, status: "denied", input: input ?? {} })
+      .then(({ error }) => {
+        if (error && error.code !== "23505") console.error("bucky-audit-log denial insert failed:", error);
+      });
   };
 
   // Mirrors `messages` every render without being a dependency of the
@@ -459,7 +542,7 @@ export function BuckyWidget({
                 <button
                   type="button"
                   className="bucky-clear"
-                  onClick={clearConversation}
+                  onClick={requestClearConversation}
                   aria-label="Clear conversation"
                   title="Clear conversation"
                 >
@@ -475,6 +558,20 @@ export function BuckyWidget({
                 </button>
               </div>
             </div>
+
+            {confirmingClear ? (
+              <div className="bucky-clear-confirm">
+                <span>Clear this conversation? This can&apos;t be undone — Bucky itself stays right here.</span>
+                <div className="bucky-confirm-actions">
+                  <button type="button" className="bucky-confirm-deny" onClick={() => setConfirmingClear(false)}>
+                    Cancel
+                  </button>
+                  <button type="button" className="bucky-confirm-approve" onClick={clearConversation}>
+                    Clear
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             <div className="bucky-messages">
               <div className="bucky-msg-wrapper bucky">
@@ -498,7 +595,7 @@ export function BuckyWidget({
                           {isUser ? <User size={16} /> : <Image src="/bucky_default.svg" width={32} height={32} alt="Bucky" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />}
                         </div>
                         <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
-                          {renderInlineMarkdown(part.text)}
+                          {isUser ? part.text : renderMarkdown(part.text)}
                         </div>
                       </div>
                     );
@@ -514,9 +611,10 @@ export function BuckyWidget({
                             <button
                               type="button"
                               className="bucky-confirm-deny"
-                              onClick={() =>
-                                addToolApprovalResponse({ id: part.approval.id, approved: false })
-                              }
+                              onClick={() => {
+                                logDenial(part.approval.id, toolName, part.input);
+                                addToolApprovalResponse({ id: part.approval.id, approved: false });
+                              }}
                             >
                               Cancel
                             </button>
@@ -583,14 +681,18 @@ export function BuckyWidget({
               <div ref={messagesEndRef} />
             </div>
 
-            {historyLoaded && messages.length === 0 && !busy ? (
+            {historyLoaded && messages.length === 0 && !busy && role ? (
               <div className="bucky-suggestions">
-                <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "What's in production?" })}>
-                  What&apos;s in production?
-                </button>
-                <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "Are there any open issues?" })}>
-                  Open issues?
-                </button>
+                {SUGGESTIONS[role].map(({ label, prompt }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className="bucky-chip"
+                    onClick={() => sendMessage({ text: prompt })}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             ) : null}
 

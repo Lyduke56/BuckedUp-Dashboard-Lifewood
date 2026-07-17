@@ -649,6 +649,55 @@ create policy "Lead update" on production_plans for update
 create policy "Lead delete" on production_plans for delete
   using (get_my_role() = 'lead');
 
+-- Durable audit trail for Bucky (the AI assistant)'s mutating tool calls —
+-- who, what tool, with what arguments, and what happened. Append-only, no
+-- update/delete policy, same convention as notifications/product_status_history.
+-- Two write paths populate this: app/api/bucky/chat/route.ts's
+-- onToolExecutionEnd callback (success/error, server-side, awaited) and
+-- BuckyWidget.tsx's Cancel button (denied, client-side, fire-and-forget —
+-- a denied tool call never reaches onToolExecutionEnd at all, since it
+-- never actually executes). See lib/bucky/tools/metadata.ts for which
+-- tools are "mutating" (only those get logged; read tools are skipped).
+create table bucky_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete set null,
+  role user_role not null,
+  tool_name text not null,
+  status text not null check (status in ('success', 'error', 'denied')),
+  input jsonb not null default '{}'::jsonb,
+  result_summary jsonb,
+  error_message text,
+  call_id text,
+  approval_id text,
+  created_at timestamptz not null default now()
+);
+
+-- Prevents a rare double-click on Cancel from producing two denied rows
+-- for the same approval (the client-side insert uses upsert + this index).
+-- Deliberately NOT partial (no "where approval_id is not null") — Postgres
+-- allows unlimited NULLs in a unique index (NULL is never considered equal
+-- to another NULL for uniqueness), so a plain index already does the right
+-- thing for the server-side rows that never set approval_id at all. A
+-- partial index was tried first and rejected: PostgREST's upsert(onConflict)
+-- resolves to a plain "ON CONFLICT (approval_id)" clause, which Postgres
+-- can't match against a partial index's restricted arbiter — every denial
+-- insert failed with "42P10: no unique or exclusion constraint matching
+-- the ON CONFLICT specification" until this was made non-partial.
+create unique index bucky_audit_log_approval_id_idx
+  on bucky_audit_log (approval_id);
+create index bucky_audit_log_user_idx on bucky_audit_log (user_id, created_at desc);
+create index bucky_audit_log_tool_idx on bucky_audit_log (tool_name, created_at desc);
+
+alter table bucky_audit_log enable row level security;
+
+-- Same posture as issues' "Authenticated insert" policy: this trusts that
+-- only Bucky's own code paths actually call insert (RLS can't verify
+-- "a real tool execution happened"), same as the rest of this schema.
+create policy "Own inserts" on bucky_audit_log for insert
+  with check (user_id = auth.uid());
+create policy "Admin read" on bucky_audit_log for select
+  using (get_my_role() = 'admin');
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;

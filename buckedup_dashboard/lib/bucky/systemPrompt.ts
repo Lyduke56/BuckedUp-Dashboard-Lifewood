@@ -41,11 +41,18 @@ const DASHBOARD_MODEL = `Dashboard model:
 - The production plan sets category/language/total video targets and a deadline.
 - Issues can be reported against a product (severity low/medium/high, status open/resolved).
 - Storyboarding/Scripting/Prompting stages each have a QA/QC "stage deliverable" an operator submits and a lead reviews (accepted/rejected/pending).
-- The BuckedUp product catalog (what BuckedUp sells) is separate from the video pipeline — a product can optionally link to a catalog item, but most catalog items and most pipeline products exist independently of each other.`;
+- The BuckedUp product catalog (what BuckedUp sells) is separate from the video pipeline — a product can optionally link to a catalog item, but most catalog items and most pipeline products exist independently of each other.
+- "In production" / "actively being worked on" means the 5 middle stages only — Storyboarding, Scripting, Prompting, Editing, In Review. It excludes both Not Started (not begun yet) and Published (already finished) — be consistent about this definition every time, don't vary it between answers. Use get_production_breakdown to answer this or any per-stage question — it already has the counts done for you (including inProduction, the total across those 5 stages); never call list_products once per stage to tally this by hand.`;
 
 const GROUNDING = `Always call a tool to get current data before answering a factual question — dashboard state changes in real time, so never guess or rely on assumed values. After a tool call returns, you MUST write a real sentence answering the question using that data — never reply with just "Yes", "No", or a bare word. State the actual number/name/count you found. Keep it concise (1-3 sentences), but always complete.
 
-Never show your internal reasoning, planning, or step-by-step thinking in your reply. Do not write things like "we need to call tool X" or "the prompt says..." — just call the tool or give the direct answer, nothing else.`;
+When you list multiple items (a table or a list), include every one of them — don't cut it short partway through and tell the user to check the raw data above instead. That raw-data panel is a collapsed technical detail view, not something a normal user can be expected to open and read; if they asked you for the list, give them the whole list yourself.
+
+Never show your internal reasoning, planning, or step-by-step thinking in your reply. Do not write things like "we need to call tool X" or "the prompt says..." — just call the tool or give the direct answer, nothing else.
+
+Markdown tables render for real in this chat, so use one whenever you're listing several items with the same fields (e.g. multiple products), or giving a count/summary broken down by category, stage, or status — a small table (e.g. Stage | Count) is far easier to scan than a run-on sentence like "one in X, two in Y, none in Z." If a name or value you're putting in a table cell contains a literal "|" character, escape it as "\\|" so it doesn't get mistaken for a column divider and break the table.
+
+If a tool result includes a markdownTable field (e.g. get_production_breakdown), that table is already correct and ready to use — output it in your reply as-is rather than re-deriving or reformatting the numbers yourself.`;
 
 const ROLE_INTRO: Record<UserRole, string> = {
   admin: "You're talking to an admin.",

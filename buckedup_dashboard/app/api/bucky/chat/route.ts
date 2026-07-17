@@ -6,6 +6,9 @@ import {
   createBuckyActionTools,
   createBuckyOperatorActionTools,
   createBuckyLeadActionTools,
+  BUCKY_TOOL_APPROVAL,
+  BUCKY_TOOL_METADATA,
+  type AnyBuckyToolName,
 } from "@/lib/bucky/tools";
 import { buildSystemPrompt, type BuckyCatalogContext, type BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import type { UserRole, ViewId } from "@/lib/types";
@@ -93,22 +96,12 @@ export async function POST(request: Request) {
     // caller confirms in the chat UI (BuckyWidget renders the
     // approval-requested state as a confirm/cancel card). Read tools and
     // the operator's own work-execution tools are absent from this map,
-    // which defaults them to no approval needed. Harmless to list entries
-    // here even for roles without a given tool — those tools simply won't
-    // exist in the map for them (see the corresponding createBucky*Tools).
-    toolApproval: {
-      create_user: "user-approval",
-      delete_user: "user-approval",
-      change_role: "user-approval",
-      move_product_stage: "user-approval",
-      review_deliverable: "user-approval",
-      review_video: "user-approval",
-      create_product: "user-approval",
-      delete_product: "user-approval",
-      update_production_plan: "user-approval",
-      create_or_update_catalog_product: "user-approval",
-      delete_catalog_product: "user-approval",
-    },
+    // which defaults them to no approval needed. Derived from
+    // BUCKY_TOOL_METADATA (lib/bucky/tools/metadata.ts) rather than
+    // hand-written — that file is the single source of truth for which
+    // tools need approval, and TypeScript refuses to compile it if a new
+    // tool is ever added to any builder without a matching entry there.
+    toolApproval: BUCKY_TOOL_APPROVAL,
     // Default stopWhen is isStepCount(1) — the model would call a tool and
     // the stream would end right there, with no natural-language answer
     // using the result. Allow a few steps so it can call a tool then
@@ -135,6 +128,46 @@ export async function POST(request: Request) {
         totalTokens: usage.totalTokens,
         cost: cost ?? 0,
       });
+    },
+    // Durable audit trail for mutating tools — who, what, with what
+    // arguments, and what happened. Only fires for tool calls that
+    // actually executed, which by construction means it never sees a
+    // *denied* approval-gated call (a denial blocks execution entirely —
+    // see the client-side insert in BuckyWidget.tsx's Cancel handler for
+    // that half of the picture). Read tools are skipped entirely: most
+    // audit value is in mutations, and logging full row-dump outputs
+    // (e.g. list_products) wouldn't be useful or safe by default.
+    onToolExecutionEnd: async (event) => {
+      const toolName = event.toolCall.toolName as AnyBuckyToolName;
+      const meta = BUCKY_TOOL_METADATA[toolName];
+      if (!meta?.mutating) return;
+
+      const isSdkError = event.toolOutput.type === "tool-error";
+      // tools.ts's safe() wrapper never throws for expected/business-logic
+      // failures (e.g. "No product found.") — it resolves normally with a
+      // { error: "..." } object, so a real failure has to be detected two
+      // ways, not just via the SDK's own tool-error discriminant.
+      const output = !isSdkError ? event.toolOutput.output : undefined;
+      const businessError =
+        !isSdkError && output && typeof output === "object" && "error" in output
+          ? String((output as { error: unknown }).error)
+          : null;
+
+      try {
+        await supabase.from("bucky_audit_log").insert({
+          user_id: user.id,
+          role,
+          tool_name: toolName,
+          status: isSdkError || businessError ? "error" : "success",
+          input: event.toolCall.input ?? {},
+          result_summary: isSdkError ? null : output,
+          error_message: isSdkError ? String(event.toolOutput.error) : businessError,
+          call_id: event.callId,
+        });
+      } catch (err) {
+        // Never let an audit-write failure break the user's actual result.
+        console.error("bucky-audit-log insert failed:", err);
+      }
     },
   });
 
