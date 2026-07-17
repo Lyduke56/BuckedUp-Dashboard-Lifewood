@@ -1583,7 +1583,14 @@ a {
   color: var(--text-main);
 }
 
-.bucky-close {
+.bucky-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bucky-close,
+.bucky-clear {
   background: transparent;
   border: none;
   color: var(--ink-soft);
@@ -1599,6 +1606,11 @@ a {
   color: var(--text-main);
   background: var(--glass-hover);
   transform: rotate(90deg);
+}
+
+.bucky-clear:hover {
+  color: var(--text-main);
+  background: var(--glass-hover);
 }
 
 .bucky-messages {
