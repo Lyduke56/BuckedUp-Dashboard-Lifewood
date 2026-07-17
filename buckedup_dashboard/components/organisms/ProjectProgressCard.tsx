@@ -8,9 +8,10 @@ import { averageProgressPct } from "@/lib/utils";
 
 interface ProjectProgressCardProps {
   products: Product[];
+  isPersonal?: boolean;
 }
 
-export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
+export function ProjectProgressCard({ products, isPersonal }: ProjectProgressCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const shimmerRef = useRef<HTMLDivElement>(null);
@@ -172,7 +173,7 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
           <div style={{ width: `${progressPct}%`, height: '100%', background: 'var(--progress-card-bar-bg)', borderRadius: '10px', boxShadow: 'var(--progress-card-bar-glow)', transition: 'width 0.8s cubic-bezier(0.25, 1, 0.5, 1)' }} />
           
           {/* Target Pacing Line */}
-          {expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
+          {!isPersonal && expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
             <div 
               style={{ 
                 position: "absolute", 
@@ -194,7 +195,7 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
         {/* Dates & Pacing text labels */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--ink-soft)', marginTop: '8px', fontWeight: 600 }}>
           <span>Start: {plan?.startDate ? new Date(plan.startDate).toLocaleDateString("en-US", {month: 'short', day: 'numeric'}) : '—'}</span>
-          {expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
+          {!isPersonal && expectedPct !== undefined && expectedPct > 0 && expectedPct < 100 && (
             <span style={{ color: 'var(--saffron)' }}>
               Target pace: {Math.round(expectedPct)}%
             </span>
@@ -202,6 +203,30 @@ export function ProjectProgressCard({ products }: ProjectProgressCardProps) {
           <span>Deadline: {plan?.deadline ? new Date(plan.deadline).toLocaleDateString("en-US", {month: 'short', day: 'numeric'}) : '—'}</span>
         </div>
       </div>
+      {isPersonal && (
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          marginTop: '12px',
+          padding: '6px 12px',
+          background: 'rgba(255,183,77,0.08)',
+          border: '1px solid rgba(255,183,77,0.2)',
+          borderRadius: '8px',
+          fontSize: '11px',
+          color: 'var(--saffron)',
+          fontWeight: 600,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Your progress only — does not reflect overall pipeline
+        </div>
+      )}
     </div>
   );
 }

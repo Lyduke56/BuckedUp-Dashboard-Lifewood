@@ -26,7 +26,7 @@ export function OverviewView({
   const { user, role } = useAuth();
   const projectName = plan?.name || "Active Production Pipeline";
 
-  const userProducts = (role === "lead" || role === "operator") 
+  const userProducts = role === "operator"
     ? products.filter(p => p.ownerId === user?.id)
     : products;
 
@@ -36,7 +36,7 @@ export function OverviewView({
         title={projectName} 
         overline="CURRENT PIPELINE"
       />
-      <ProjectProgressCard products={userProducts} />
+      <ProjectProgressCard products={userProducts} isPersonal={role === "operator"} />
       <KpiRow products={userProducts} isLoading={isLoading} hasError={hasError} />
 
       {/* Main grid: left 2/3 stacks Snapshot + Recent Activity, right 1/3 is Production Output spanning both */}
@@ -58,7 +58,7 @@ export function OverviewView({
           </div>
 
           {/* Recent deliveries */}
-          <RecentActivityWidget products={userProducts} />
+          <RecentActivityWidget products={userProducts} isOperatorView={role === "operator"} />
         </div>
 
         {/* Right column — Production Output Widget stretches to fill the full height */}

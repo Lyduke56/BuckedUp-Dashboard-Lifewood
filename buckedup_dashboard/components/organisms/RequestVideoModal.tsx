@@ -333,7 +333,7 @@ export function RequestVideoModal({
               >
                 <option value="">— Unassigned —</option>
                 {profiles
-                  .filter((p) => p.role === "operator" || p.role === "lead")
+                  .filter((p) => p.role === "operator")
                   .map((p) => (
                     <option key={p.id} value={p.id}>{p.email}</option>
                   ))}

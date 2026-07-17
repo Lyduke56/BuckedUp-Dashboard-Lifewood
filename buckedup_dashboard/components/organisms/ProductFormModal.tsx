@@ -563,7 +563,7 @@ export function ProductFormModal({
                   onChange={(event) => update("ownerId", event.target.value)}
                 >
                   <option value="">Unassigned</option>
-                  {profiles.map((profile) => (
+                  {profiles.filter(p => p.role === "operator").map((profile) => (
                     <option key={profile.id} value={profile.id}>
                       {profile.email}
                     </option>
