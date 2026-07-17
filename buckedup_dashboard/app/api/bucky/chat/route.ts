@@ -7,7 +7,7 @@ import {
   createBuckyOperatorActionTools,
   createBuckyLeadActionTools,
 } from "@/lib/bucky/tools";
-import { buildSystemPrompt, type BuckyProductContext } from "@/lib/bucky/systemPrompt";
+import { buildSystemPrompt, type BuckyCatalogContext, type BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import type { UserRole, ViewId } from "@/lib/types";
 
 const VALID_ROLES: UserRole[] = ["admin", "lead", "operator"];
@@ -58,7 +58,13 @@ export async function POST(request: Request) {
     messages,
     activeView,
     currentProduct,
-  }: { messages: UIMessage[]; activeView?: ViewId; currentProduct?: BuckyProductContext | null } = await request.json();
+    currentCatalogProduct,
+  }: {
+    messages: UIMessage[];
+    activeView?: ViewId;
+    currentProduct?: BuckyProductContext | null;
+    currentCatalogProduct?: BuckyCatalogContext | null;
+  } = await request.json();
 
   const result = streamText({
     model: openrouter.chat(MODEL, {
@@ -71,7 +77,7 @@ export async function POST(request: Request) {
       // models).
       reasoning: { exclude: true, effort: "low" },
     }),
-    system: buildSystemPrompt(role, activeView, currentProduct),
+    system: buildSystemPrompt(role, activeView, currentProduct, currentCatalogProduct),
     messages: await convertToModelMessages(messages),
     tools: {
       ...createBuckyReadTools(supabase),

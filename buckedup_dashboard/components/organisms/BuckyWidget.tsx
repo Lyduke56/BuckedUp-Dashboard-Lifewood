@@ -8,7 +8,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
 import type { ViewId } from "@/lib/types";
-import type { BuckyProductContext } from "@/lib/bucky/systemPrompt";
+import type { BuckyCatalogContext, BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import { motion, useDragControls, useMotionValue, animate, type PanInfo, AnimatePresence, useAnimation } from "framer-motion";
 import { useEffect, useRef } from "react";
 
@@ -184,9 +184,11 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 export function BuckyWidget({
   activeView,
   currentProduct,
+  currentCatalogProduct,
 }: {
   activeView: ViewId;
   currentProduct: BuckyProductContext | null;
+  currentCatalogProduct: BuckyCatalogContext | null;
 }) {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
@@ -213,7 +215,10 @@ export function BuckyWidget({
     // built on the widget's most recent render), so activeView always
     // reflects whichever tab the user is on when a message is actually
     // sent, not just whichever tab was active on mount.
-    transport: new DefaultChatTransport({ api: "/api/bucky/chat", body: { activeView, currentProduct } }),
+    transport: new DefaultChatTransport({
+      api: "/api/bucky/chat",
+      body: { activeView, currentProduct, currentCatalogProduct },
+    }),
     // Auto-resubmit once the admin has approved every pending approval in
     // the last turn, so confirming doesn't need a separate "send" click.
     // Denials are handled locally without a round-trip — see the comment

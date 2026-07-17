@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import type { ViewId } from "@/lib/types";
-import type { BuckyProductContext } from "@/lib/bucky/systemPrompt";
+import type { CatalogProduct, ViewId } from "@/lib/types";
+import type { BuckyCatalogContext, BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import { parseModalKey } from "@/lib/utils";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
@@ -11,7 +11,7 @@ import { AppHeader } from "@/components/organisms/AppHeader";
 import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
 import { CatalogView } from "@/components/templates/CatalogView";
-import { VideoLibraryView } from "@/components/templates/VideoLibraryView";
+import { VideoLibraryView, type LibraryProductFocus } from "@/components/templates/VideoLibraryView";
 import { VideoModal } from "@/components/organisms/VideoModal";
 import { AnalyticsView } from "@/components/templates/AnalyticsView";
 import { AdminView } from "@/components/templates/AdminView";
@@ -28,17 +28,37 @@ export function Dashboard() {
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
   const { role, mustChangePassword } = useAuth();
 
-  // Bucky's product-selection context (Phase 3b) — derived from the same
-  // modalKey/products state VideoModal already resolves, no new state.
-  // null whenever no video-preview modal is open, which is most of the time.
+  // Bucky's product-selection context (Phase 3b). libraryFocus covers
+  // VideoLibraryView's review/production/edit-form modals (reported up via
+  // its onProductFocus callback); modalKey covers the plain video-preview
+  // modal, already-lifted state from the original (cheap) pass. libraryFocus
+  // takes priority when both are somehow set, since it represents more
+  // deliberate in-progress work than a passive preview.
+  const [libraryFocus, setLibraryFocus] = useState<LibraryProductFocus | null>(null);
+  const [catalogFocus, setCatalogFocus] = useState<CatalogProduct | null>(null);
+
   const currentProduct = useMemo<BuckyProductContext | null>(() => {
+    if (libraryFocus) {
+      const item = libraryFocus.product.items[0];
+      return {
+        rank: libraryFocus.product.rank,
+        name: libraryFocus.product.name,
+        status: item?.status ?? null,
+        source: libraryFocus.source,
+      };
+    }
     if (!modalKey) return null;
     const { rank, index } = parseModalKey(modalKey);
     const product = products.find((p) => p.rank === rank);
     if (!product) return null;
     const item = product.items[index];
-    return { rank: product.rank, name: product.name, status: item?.status ?? null };
-  }, [modalKey, products]);
+    return { rank: product.rank, name: product.name, status: item?.status ?? null, source: "preview" };
+  }, [libraryFocus, modalKey, products]);
+
+  const currentCatalogProduct = useMemo<BuckyCatalogContext | null>(() => {
+    if (!catalogFocus) return null;
+    return { id: catalogFocus.id, name: catalogFocus.name };
+  }, [catalogFocus]);
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
@@ -123,6 +143,7 @@ export function Dashboard() {
             loading={catalogLoading}
             error={catalogError}
             onNavigateToLibrary={() => switchView("library")}
+            onProductFocus={setCatalogFocus}
           />
         </div>
         <div className={`view${activeView === "library" ? " active" : ""}`}>
@@ -134,6 +155,7 @@ export function Dashboard() {
             externalSearch={librarySearch}
             onExternalSearchApplied={() => setLibrarySearch(null)}
             theme={theme}
+            onProductFocus={setLibraryFocus}
           />
         </div>
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>
@@ -155,7 +177,11 @@ export function Dashboard() {
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />
-      <BuckyWidget activeView={activeView} currentProduct={currentProduct} />
+      <BuckyWidget
+        activeView={activeView}
+        currentProduct={currentProduct}
+        currentCatalogProduct={currentCatalogProduct}
+      />
     </div>
   );
 }

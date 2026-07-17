@@ -11,11 +11,29 @@ const VIEW_LABELS: Record<ViewId, string> = {
   planning: "Planning",
 };
 
-// The product currently open in the video-preview modal, if any — resolved
-// by Dashboard.tsx from its existing modalKey/products state (see
-// VideoModal.tsx for the same rank/index resolution). Shared type so
-// BuckyWidget.tsx and route.ts don't each repeat the inline shape.
-export type BuckyProductContext = { rank: number; name: string; status: string | null };
+// The pipeline product the user currently has open, if any — resolved by
+// Dashboard.tsx from whichever of several modals is active (video preview,
+// lead's review modal, operator's production modal, or the edit form).
+// Shared type so BuckyWidget.tsx and route.ts don't each repeat the inline
+// shape.
+export type BuckyProductContext = {
+  rank: number;
+  name: string;
+  status: string | null;
+  source: "preview" | "review" | "production" | "edit";
+};
+
+const SOURCE_LABELS: Record<BuckyProductContext["source"], string> = {
+  preview: "open in a preview",
+  review: "open for review",
+  production: "open in the deliverable/video submission modal",
+  edit: "open in the edit form",
+};
+
+// The BuckedUp catalog item the user currently has open (Catalog view's
+// detail modal), if any. Catalog items have no rank/stage, so this doesn't
+// fit BuckyProductContext's shape — kept as its own small type.
+export type BuckyCatalogContext = { id: string; name: string };
 
 const DASHBOARD_MODEL = `Dashboard model:
 - Every video request is a "product" that moves through a 7-stage pipeline in order: Not Started, Storyboarding, Scripting, Prompting, Editing, In Review, Published. A product can instead be delivery_type "link" — an external asset counted as Published immediately, bypassing the pipeline.
@@ -51,12 +69,18 @@ Both review tools, and update_production_plan/create_or_update_catalog_product w
 Before acting, check current state with a read tool if you're not sure it still applies — e.g. confirm a product is unowned before claiming it, or confirm its current stage before submitting a deliverable — so a failed guess doesn't cost an extra round trip.`,
 };
 
-export function buildSystemPrompt(role: UserRole, activeView?: ViewId, currentProduct?: BuckyProductContext | null): string {
+export function buildSystemPrompt(
+  role: UserRole,
+  activeView?: ViewId,
+  currentProduct?: BuckyProductContext | null,
+  currentCatalogProduct?: BuckyCatalogContext | null,
+): string {
   const viewLine = activeView && VIEW_LABELS[activeView] ? `The user is currently on the ${VIEW_LABELS[activeView]} tab.` : "";
   const productLine = currentProduct
-    ? `The user currently has product #${currentProduct.rank} "${currentProduct.name}" open in a preview${currentProduct.status ? ` (status: ${currentProduct.status})` : ""}.`
+    ? `The user currently has product #${currentProduct.rank} "${currentProduct.name}" ${SOURCE_LABELS[currentProduct.source]}${currentProduct.status ? ` (status: ${currentProduct.status})` : ""}.`
     : "";
-  const contextLine = [viewLine, productLine].filter(Boolean).join(" ");
+  const catalogLine = currentCatalogProduct ? `The user currently has catalog item "${currentCatalogProduct.name}" open.` : "";
+  const contextLine = [viewLine, productLine, catalogLine].filter(Boolean).join(" ");
 
   return `You are Bucky, the assistant embedded in the BuckedUp x Lifewood video production dashboard. ${ROLE_INTRO[role]}${contextLine ? ` ${contextLine}` : ""}
 
