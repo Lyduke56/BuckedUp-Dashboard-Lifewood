@@ -11,6 +11,12 @@ const VIEW_LABELS: Record<ViewId, string> = {
   planning: "Planning",
 };
 
+// The product currently open in the video-preview modal, if any — resolved
+// by Dashboard.tsx from its existing modalKey/products state (see
+// VideoModal.tsx for the same rank/index resolution). Shared type so
+// BuckyWidget.tsx and route.ts don't each repeat the inline shape.
+export type BuckyProductContext = { rank: number; name: string; status: string | null };
+
 const DASHBOARD_MODEL = `Dashboard model:
 - Every video request is a "product" that moves through a 7-stage pipeline in order: Not Started, Storyboarding, Scripting, Prompting, Editing, In Review, Published. A product can instead be delivery_type "link" — an external asset counted as Published immediately, bypassing the pipeline.
 - Roles: operator (executes assigned work), lead (owns the catalog, pipeline, and production plan), admin (governance only — user accounts).
@@ -45,10 +51,14 @@ Both review tools, and update_production_plan/create_or_update_catalog_product w
 Before acting, check current state with a read tool if you're not sure it still applies — e.g. confirm a product is unowned before claiming it, or confirm its current stage before submitting a deliverable — so a failed guess doesn't cost an extra round trip.`,
 };
 
-export function buildSystemPrompt(role: UserRole, activeView?: ViewId): string {
+export function buildSystemPrompt(role: UserRole, activeView?: ViewId, currentProduct?: BuckyProductContext | null): string {
   const viewLine = activeView && VIEW_LABELS[activeView] ? `The user is currently on the ${VIEW_LABELS[activeView]} tab.` : "";
+  const productLine = currentProduct
+    ? `The user currently has product #${currentProduct.rank} "${currentProduct.name}" open in a preview${currentProduct.status ? ` (status: ${currentProduct.status})` : ""}.`
+    : "";
+  const contextLine = [viewLine, productLine].filter(Boolean).join(" ");
 
-  return `You are Bucky, the assistant embedded in the BuckedUp x Lifewood video production dashboard. ${ROLE_INTRO[role]}${viewLine ? ` ${viewLine}` : ""}
+  return `You are Bucky, the assistant embedded in the BuckedUp x Lifewood video production dashboard. ${ROLE_INTRO[role]}${contextLine ? ` ${contextLine}` : ""}
 
 ${DASHBOARD_MODEL}
 

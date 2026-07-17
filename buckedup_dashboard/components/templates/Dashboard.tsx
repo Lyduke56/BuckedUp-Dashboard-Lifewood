@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { ViewId } from "@/lib/types";
+import type { BuckyProductContext } from "@/lib/bucky/systemPrompt";
+import { parseModalKey } from "@/lib/utils";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import { useCatalog } from "@/lib/useCatalog";
@@ -25,6 +27,18 @@ export function Dashboard() {
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
   const { role, mustChangePassword } = useAuth();
+
+  // Bucky's product-selection context (Phase 3b) — derived from the same
+  // modalKey/products state VideoModal already resolves, no new state.
+  // null whenever no video-preview modal is open, which is most of the time.
+  const currentProduct = useMemo<BuckyProductContext | null>(() => {
+    if (!modalKey) return null;
+    const { rank, index } = parseModalKey(modalKey);
+    const product = products.find((p) => p.rank === rank);
+    if (!product) return null;
+    const item = product.items[index];
+    return { rank: product.rank, name: product.name, status: item?.status ?? null };
+  }, [modalKey, products]);
 
   const switchView = (view: ViewId) => {
     setActiveView(view);
@@ -141,7 +155,7 @@ export function Dashboard() {
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />
-      <BuckyWidget activeView={activeView} />
+      <BuckyWidget activeView={activeView} currentProduct={currentProduct} />
     </div>
   );
 }

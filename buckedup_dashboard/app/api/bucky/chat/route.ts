@@ -7,7 +7,7 @@ import {
   createBuckyOperatorActionTools,
   createBuckyLeadActionTools,
 } from "@/lib/bucky/tools";
-import { buildSystemPrompt } from "@/lib/bucky/systemPrompt";
+import { buildSystemPrompt, type BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import type { UserRole, ViewId } from "@/lib/types";
 
 const VALID_ROLES: UserRole[] = ["admin", "lead", "operator"];
@@ -54,7 +54,11 @@ export async function POST(request: Request) {
     return new Response(JSON.stringify({ error: "No valid role for this account" }), { status: 403 });
   }
 
-  const { messages, activeView }: { messages: UIMessage[]; activeView?: ViewId } = await request.json();
+  const {
+    messages,
+    activeView,
+    currentProduct,
+  }: { messages: UIMessage[]; activeView?: ViewId; currentProduct?: BuckyProductContext | null } = await request.json();
 
   const result = streamText({
     model: openrouter.chat(MODEL, {
@@ -67,7 +71,7 @@ export async function POST(request: Request) {
       // models).
       reasoning: { exclude: true, effort: "low" },
     }),
-    system: buildSystemPrompt(role, activeView),
+    system: buildSystemPrompt(role, activeView, currentProduct),
     messages: await convertToModelMessages(messages),
     tools: {
       ...createBuckyReadTools(supabase),
