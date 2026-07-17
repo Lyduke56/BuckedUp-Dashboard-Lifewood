@@ -1048,16 +1048,20 @@ a {
   padding: 16px 8px 32px 16px;
   margin: -16px -8px 0 -16px;
 }
+
 .isolated-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 .isolated-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .isolated-scroll::-webkit-scrollbar-thumb {
   background: var(--glass-border);
   border-radius: 4px;
 }
+
 .isolated-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--ink-soft);
 }
@@ -1511,14 +1515,37 @@ a {
 .bucky-root {
   position: fixed;
   z-index: 9998;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
 }
 
-.bucky-root.bottom-right { bottom: 40px; right: 40px; top: auto; left: auto; }
-.bucky-root.bottom-left { bottom: 40px; left: 40px; top: auto; right: auto; }
-.bucky-root.top-right { top: 40px; right: 40px; bottom: auto; left: auto; }
-.bucky-root.top-left { top: 40px; left: 40px; bottom: auto; right: auto; }
+.bucky-root.bottom-right {
+  bottom: 40px;
+  right: 40px;
+  top: auto;
+  left: auto;
+}
+
+.bucky-root.bottom-left {
+  bottom: 40px;
+  left: 40px;
+  top: auto;
+  right: auto;
+}
+
+.bucky-root.top-right {
+  top: 40px;
+  right: 40px;
+  bottom: auto;
+  left: auto;
+}
+
+.bucky-root.top-left {
+  top: 40px;
+  left: 40px;
+  bottom: auto;
+  right: auto;
+}
 
 .bucky-fab {
   position: relative;
@@ -1532,12 +1559,12 @@ a {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(255, 159, 28, 0.4), 0 0 0 1px inset rgba(255,255,255,0.2);
+  box-shadow: 0 10px 30px rgba(255, 159, 28, 0.4), 0 0 0 1px inset rgba(255, 255, 255, 0.2);
   transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
 }
 
 .bucky-fab:hover {
-  box-shadow: 0 14px 40px rgba(255, 159, 28, 0.5), 0 0 0 1px inset rgba(255,255,255,0.3);
+  box-shadow: 0 14px 40px rgba(255, 159, 28, 0.5), 0 0 0 1px inset rgba(255, 255, 255, 0.3);
 }
 
 .bucky-panel {
@@ -1556,10 +1583,29 @@ a {
 }
 
 /* Panel absolute anchors based on root corner */
-.bucky-root.bottom-right .bucky-panel { bottom: calc(100% + 16px); right: 0; transform-origin: bottom right; }
-.bucky-root.bottom-left .bucky-panel { bottom: calc(100% + 16px); left: 0; transform-origin: bottom left; }
-.bucky-root.top-right .bucky-panel { top: calc(100% + 16px); right: 0; transform-origin: top right; }
-.bucky-root.top-left .bucky-panel { top: calc(100% + 16px); left: 0; transform-origin: top left; }
+.bucky-root.bottom-right .bucky-panel {
+  bottom: calc(100% + 16px);
+  right: 0;
+  transform-origin: bottom right;
+}
+
+.bucky-root.bottom-left .bucky-panel {
+  bottom: calc(100% + 16px);
+  left: 0;
+  transform-origin: bottom left;
+}
+
+.bucky-root.top-right .bucky-panel {
+  top: calc(100% + 16px);
+  right: 0;
+  transform-origin: top right;
+}
+
+.bucky-root.top-left .bucky-panel {
+  top: calc(100% + 16px);
+  left: 0;
+  transform-origin: top left;
+}
 
 .bucky-header {
   display: flex;
@@ -1612,13 +1658,21 @@ a {
   align-items: flex-start;
   animation: buckyMsgIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
 }
+
 .bucky-msg-wrapper.user {
   flex-direction: row-reverse;
 }
 
 @keyframes buckyMsgIn {
-  from { opacity: 0; transform: translateY(10px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .bucky-avatar {
@@ -1632,7 +1686,7 @@ a {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-main);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .bucky-msg-wrapper.user .bucky-avatar {
@@ -1647,7 +1701,7 @@ a {
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.5;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .bucky-msg-bucky {
@@ -1692,8 +1746,9 @@ a {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 .bucky-chip:hover {
   background: var(--glass-hover);
   transform: translateY(-2px);
@@ -1736,6 +1791,7 @@ a {
   background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
   color: #1a1207;
 }
+
 .bucky-confirm-approve:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 159, 28, 0.4);
@@ -1746,6 +1802,7 @@ a {
   border: 1px solid var(--glass-border);
   color: var(--ink-soft);
 }
+
 .bucky-confirm-deny:hover {
   color: var(--text-main);
   background: var(--glass-hover);
@@ -1767,9 +1824,19 @@ a {
   cursor: pointer;
   list-style: none;
 }
-.bucky-tool-json summary::-webkit-details-marker { display: none; }
-.bucky-tool-json summary::before { content: "▸ "; }
-.bucky-tool-json[open] summary::before { content: "▾ "; }
+
+.bucky-tool-json summary::-webkit-details-marker {
+  display: none;
+}
+
+.bucky-tool-json summary::before {
+  content: "▸ ";
+}
+
+.bucky-tool-json[open] summary::before {
+  content: "▾ ";
+}
+
 .bucky-tool-json pre {
   margin: 0;
   padding: 0 14px 14px 14px;
@@ -1804,7 +1871,7 @@ a {
   line-height: 1.5;
   transition: all 0.3s ease;
   outline: none;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .bucky-input::placeholder {
@@ -1814,7 +1881,7 @@ a {
 .bucky-input:focus {
   background: var(--modal-bg);
   border-color: var(--saffron);
-  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.2), inset 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.2), inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .bucky-send {
@@ -1854,18 +1921,34 @@ a {
   gap: 5px;
   padding: 6px 8px;
 }
+
 .bucky-typing span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   animation: typingBounce 1.4s infinite ease-in-out both;
 }
-.bucky-typing span:nth-child(1) { animation-delay: -0.32s; }
-.bucky-typing span:nth-child(2) { animation-delay: -0.16s; }
+
+.bucky-typing span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.bucky-typing span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
 @keyframes typingBounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
 }
 
 /* ================= VIDEO LIBRARY — GRID VIEW (Drive-style) =========== */
