@@ -181,6 +181,7 @@ export function Dashboard() {
         activeView={activeView}
         currentProduct={currentProduct}
         currentCatalogProduct={currentCatalogProduct}
+        products={products}
       />
     </div>
   );

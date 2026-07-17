@@ -8,10 +8,18 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
 import { useAuth } from "@/lib/useAuth";
-import type { ViewId } from "@/lib/types";
+import { useStageAge } from "@/lib/useStageAge";
+import { useProductionPlan } from "@/lib/useProductionPlan";
+import { useDailyProgress } from "@/lib/useDailyProgress";
+import { DAILY_VIDEO_TARGET } from "@/lib/data";
+import type { Product, ViewId } from "@/lib/types";
 import type { BuckyCatalogContext, BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import { motion, useDragControls, useMotionValue, animate, type PanInfo, AnimatePresence, useAnimation } from "framer-motion";
 import { useEffect, useRef } from "react";
+
+// How many days a product can sit in its current stage before the
+// proactive-alert check (see the alert effect below) flags it as stale.
+const STALE_DAYS_THRESHOLD = 3;
 
 const GREETING =
   "Hi, I'm Bucky. Ask me anything about the dashboard — what's in production, today's output, open issues, and more.";
@@ -183,14 +191,18 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 // confirm click here before they run. Conversation history persists to
 // localStorage per-user (see the load/save effects below), so it survives
 // a reload — use the header's clear-conversation button to start fresh.
+// Lead/operator also get proactive alerts (stale items, pacing behind
+// target) posted unprompted on dashboard load — see the alert effect below.
 export function BuckyWidget({
   activeView,
   currentProduct,
   currentCatalogProduct,
+  products,
 }: {
   activeView: ViewId;
   currentProduct: BuckyProductContext | null;
   currentCatalogProduct: BuckyCatalogContext | null;
+  products: Product[];
 }) {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
@@ -212,7 +224,10 @@ export function BuckyWidget({
     animate(y, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
   };
 
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const { stageAgeByProductId } = useStageAge();
+  const { plan } = useProductionPlan();
+  const dailyProgress = useDailyProgress(plan?.startDate, plan?.dailyAccumulativeTargets);
 
   const { messages, sendMessage, status, addToolApprovalResponse, setMessages } = useChat({
     // body is re-resolved on every send (useChat proxies to the transport
@@ -272,6 +287,89 @@ export function BuckyWidget({
     setMessages([]);
     if (storageKey) localStorage.removeItem(storageKey);
   };
+
+  // Mirrors `messages` every render without being a dependency of the
+  // proactive-alert effect below — `messages` changes on every streamed
+  // token during a live response, and that effect has no reason to re-run
+  // that often. Reading the ref instead gives it the latest transcript
+  // (for the dedup check) only when one of its real triggers fires.
+  const messagesRef = useRef(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Proactive alerts (Phase 5): surfaces stale in-review/claimed items and
+  // pacing-behind-target, unprompted, on dashboard load — not gated on
+  // opening the panel. Template-generated, not model-generated, so it
+  // costs zero LLM calls; injected straight into the local message array
+  // via setMessages, same mechanism Phase 4's history load/clear already
+  // use. Dedup is a deterministic message id checked against the
+  // already-persisted transcript, so a given alert posts at most once per
+  // calendar day — a day with nothing wrong writes no id, so a problem
+  // that appears later the same day can still be caught on the next
+  // natural re-run of this effect.
+  useEffect(() => {
+    if (!historyLoaded) return;
+    if (role !== "lead" && role !== "operator") return;
+    if (!user?.id) return;
+
+    const dateKey = new Date().toISOString().slice(0, 10);
+    const existingIds = new Set(messagesRef.current.map((m) => m.id));
+    const newAlerts: UIMessage[] = [];
+
+    const staleId = `bucky-alert-stale-${role}-${dateKey}`;
+    if (!existingIds.has(staleId)) {
+      const stale = products.filter((p) => {
+        const item = p.items[0];
+        const age = stageAgeByProductId.get(p.id);
+        if (!item || !age) return false;
+        if (role === "lead") {
+          return item.status === "In Review" && age.status === "In Review" && age.days >= STALE_DAYS_THRESHOLD;
+        }
+        return (
+          p.ownerId === user.id &&
+          item.status !== "Not Started" &&
+          item.status !== "Published" &&
+          age.status === item.status &&
+          age.days >= STALE_DAYS_THRESHOLD
+        );
+      });
+      if (stale.length > 0) {
+        const list = stale
+          .slice(0, 5)
+          .map((p) => {
+            const age = stageAgeByProductId.get(p.id);
+            const days = age ? age.days.toFixed(1) : "?";
+            const stageNote = role === "operator" ? ` in ${p.items[0]?.status}` : "";
+            return `#${p.rank} "${p.name}" (${days}d${stageNote})`;
+          })
+          .join(", ");
+        const text =
+          role === "lead"
+            ? `Heads up — ${stale.length} item${stale.length === 1 ? " has" : "s have"} been sitting In Review for ${STALE_DAYS_THRESHOLD}+ days: ${list}. Want me to look into any of these?`
+            : `Heads up — you have ${stale.length} claimed item${stale.length === 1 ? "" : "s"} that ${stale.length === 1 ? "hasn't" : "haven't"} moved in ${STALE_DAYS_THRESHOLD}+ days: ${list}. Might be worth picking ${stale.length === 1 ? "it" : "those"} back up.`;
+        newAlerts.push({ id: staleId, role: "assistant", parts: [{ type: "text", text }] });
+      }
+    }
+
+    const pacingId = `bucky-alert-pacing-${dateKey}`;
+    if (!existingIds.has(pacingId)) {
+      const today = dailyProgress[dailyProgress.length - 1];
+      if (today) {
+        const target = today.target ?? DAILY_VIDEO_TARGET;
+        if (today.published < target) {
+          const behind = target - today.published;
+          const text = `Also — today's pace is behind target: ${today.published} of ${target} videos published so far, ${behind} to go.`;
+          newAlerts.push({ id: pacingId, role: "assistant", parts: [{ type: "text", text }] });
+        }
+      }
+    }
+
+    if (newAlerts.length > 0) {
+      setMessages((prev) => [...prev, ...newAlerts]);
+      if (!open) setHasUnread(true);
+    }
+  }, [historyLoaded, role, user?.id, products, stageAgeByProductId, dailyProgress, open, setMessages]);
 
   const send = (event?: FormEvent) => {
     if (event) event.preventDefault();
