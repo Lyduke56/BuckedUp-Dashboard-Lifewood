@@ -85,70 +85,66 @@ export function ManageUsersView() {
   return (
     <div>
       <div className="content-angle-label">Create user</div>
-      {invited ? (
-        <div
-          className="callout"
-          style={{
-            borderLeft: "4px solid var(--castleton)",
-            marginBottom: "16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
-          <div>
-            Invite sent to <strong>{invited.email}</strong> ({roleLabel(invited.role)}).
+      {/* MODIFIED: Keep the form visible even after an invite is sent. Just show the success callout above it. */}
+      {invited && (
+        <div className="p-4 rounded-xl flex flex-col gap-2.5 mb-4 bg-blue-500/10 border-l-4 border-blue-500 text-blue-400 shadow-sm">
+          <div className="text-sm font-medium">
+            Invite sent to <strong className="text-blue-300">{invited.email}</strong> ({roleLabel(invited.role)}).
             They&apos;ll receive an email to set their password.
           </div>
-          <div>
-            <button type="button" className="header-btn" onClick={dismissInvited}>
-              Done
+          <div className="mt-1">
+            <button
+              type="button"
+              className="px-4 py-1.5 text-xs font-bold rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-colors border border-blue-500/20"
+              onClick={dismissInvited}
+            >
+              Dismiss
             </button>
           </div>
         </div>
-      ) : (
-        <form
-          className="form-grid"
-          onSubmit={handleCreate}
-          style={{ marginBottom: "20px" }}
-        >
-          {createError ? (
-            <div className="callout form-error">{createError}</div>
-          ) : null}
-
-          <label className="form-field">
-            <span>Email</span>
-            <input
-              type="email"
-              value={newEmail}
-              onChange={(event) => setNewEmail(event.target.value)}
-              placeholder="name@company.com"
-              required
-            />
-          </label>
-
-          <label className="form-field">
-            <span>Role</span>
-            <select
-              value={newRole}
-              onChange={(event) => setNewRole(event.target.value as UserRole)}
-            >
-              {ROLE_OPTIONS.map((role) => (
-                <option key={role} value={role}>
-                  {roleLabel(role)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="form-actions">
-            <span />
-            <button type="submit" className="issue-submit-btn" disabled={creating}>
-              {creating ? "Sending invite…" : "Send invite"}
-            </button>
-          </div>
-        </form>
       )}
+
+      <form
+        className="form-grid"
+        onSubmit={handleCreate}
+        style={{ marginBottom: "20px" }}
+      >
+        {createError ? (
+          <div className="callout form-error">{createError}</div>
+        ) : null}
+
+        <label className="form-field">
+          <span>Email</span>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(event) => setNewEmail(event.target.value)}
+            placeholder="name@company.com"
+            required
+          />
+        </label>
+
+        <label className="form-field">
+          <span>Role</span>
+          <select
+            value={newRole}
+            onChange={(event) => setNewRole(event.target.value as UserRole)}
+          >
+            {ROLE_OPTIONS.map((role) => (
+              <option key={role} value={role}>
+                {roleLabel(role)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="form-actions">
+          <span />
+          <button type="submit" className="issue-submit-btn" disabled={creating}>
+            {creating ? "Sending invite…" : "Send invite"}
+          </button>
+        </div>
+      </form>
 
       <div className="content-angle-label">Existing users</div>
       {error ? (
@@ -175,7 +171,7 @@ export function ManageUsersView() {
           </thead>
           <tbody>
             {profiles.map((profile) => (
-              <tr key={profile.id}>
+              <tr key={profile.id} className="video-table-row">
                 <td>{profile.email}</td>
                 <td>
                   <select
@@ -194,16 +190,31 @@ export function ManageUsersView() {
                   </select>
                 </td>
                 <td>
-                  {profile.id !== user?.id ? (
-                    <button
-                      type="button"
-                      className="header-btn"
-                      disabled={deletingId === profile.id}
-                      onClick={() => handleDelete(profile.id, profile.email)}
-                    >
-                      {deletingId === profile.id ? "Deleting…" : "Delete"}
-                    </button>
-                  ) : null}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {/* ADDED: Mock property 'inviteExpired' to demonstrate conditional Resend Invite.
+                        In a real scenario, this would check the profile's invite status from the DB. */}
+                    {(profile as any).inviteStatus === 'pending' && (
+                      <button
+                        type="button"
+                        className="px-3.5 py-1.5 text-[11px] font-bold rounded-full bg-white/5 hover:bg-white/10 text-[var(--text-main)] transition-colors border border-white/10"
+                        disabled={(profile as any).inviteExpired}
+                        title={(profile as any).inviteExpired ? "Invite has expired" : "Resend Invite"}
+                        style={{ opacity: (profile as any).inviteExpired ? 0.5 : 1 }}
+                      >
+                        {(profile as any).inviteExpired ? "Expired" : "Resend Invite"}
+                      </button>
+                    )}
+                    {profile.id !== user?.id ? (
+                      <button
+                        type="button"
+                        className="px-3.5 py-1.5 text-[11px] font-bold rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors border border-red-500/20"
+                        disabled={deletingId === profile.id}
+                        onClick={() => handleDelete(profile.id, profile.email)}
+                      >
+                        {deletingId === profile.id ? "Deleting…" : "Delete"}
+                      </button>
+                    ) : null}
+                  </div>
                 </td>
               </tr>
             ))}

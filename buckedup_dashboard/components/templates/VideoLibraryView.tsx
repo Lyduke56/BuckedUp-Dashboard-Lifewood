@@ -335,7 +335,7 @@ export function VideoLibraryView({
                   </button>
                 ))}
                 <div style={{ width: '1px', height: '20px', background: 'var(--glass-border)', margin: '0 8px', alignSelf: 'center' }} />
-                {role === "operator" ? (
+                {role === "operator" || role === "lead" ? (
                   <button
                     type="button"
                     className={`pill${mineOnly ? " active" : ""}`}
@@ -483,7 +483,10 @@ export function VideoLibraryView({
           ) : (
             <div className="isolated-scroll" style={{ flex: 1 }}>
               <div className="video-list">
-              {filteredProducts.map((product) => {
+              {filteredProducts.map((product, index) => {
+                const displayRank = index + 1;
+                const priority = displayRank <= 10 ? "High" : displayRank <= 20 ? "Medium" : "Low";
+                const priorityClass = priority === "High" ? "bg-red-500/10 text-red-500 border-red-500/20" : priority === "Medium" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-500 border-blue-500/20";
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
                 const expanded = expandedRanks.has(product.rank);
@@ -515,7 +518,7 @@ export function VideoLibraryView({
                   currentDeliverable?.decision === "pending" ||
                   item.status === "In Review";
                 const publishedText = product.publishDate
-                  ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US")
+                  ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
                   : "—";
 
                 return (
@@ -524,7 +527,7 @@ export function VideoLibraryView({
                       className="video-list-card"
                       onClick={() => onOpenModal(modalKey)}
                     >
-                      <div className="vlc-rank">{product.rank}</div>
+                      <div className="vlc-rank" title={`Database ID: ${product.rank}`}>{displayRank}</div>
 
                       <div className="vlc-thumb">
                         {product.thumbnailUrl ? (
@@ -546,6 +549,7 @@ export function VideoLibraryView({
                           {product.name}
                         </div>
                         <div className="vlc-pills">
+                          <span className={`status-pill ${priorityClass} font-bold mr-1`}>{priority} Priority</span>
                           <span className="vlc-tag">{product.category}</span>
                           <span className="vlc-tag vlc-tag-sub">{product.subcategory}</span>
                           {product.deliveryType === "link" ? (
@@ -588,7 +592,7 @@ export function VideoLibraryView({
                               onChange={(event) => handleInlineStage(product, event.target.value as PipelineStatus)}
                             >
                               {STATUS_ORDER.map((s) => (
-                                <option key={s} value={s}>
+                                <option key={s} value={s} disabled={s === "Published" && product.reviewStatus === "Rejected"}>
                                   {s}
                                 </option>
                               ))}
@@ -604,16 +608,23 @@ export function VideoLibraryView({
                               <button
                                 type="button"
                                 className="row-action-btn row-action-edit"
-                                title="Edit product"
+                                title={role === "operator" ? "View product details" : "Edit product"}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   setFormModal({ mode: "edit", product });
                                 }}
                               >
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
+                                {role === "operator" ? (
+                                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                  </svg>
+                                ) : (
+                                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                  </svg>
+                                )}
                               </button>
                             ) : null}
                             {canSubmit ? (
@@ -649,21 +660,23 @@ export function VideoLibraryView({
                                 {awaitingReview ? <span className="row-action-badge">!</span> : null}
                               </button>
                             ) : null}
-                            <button
-                              type="button"
-                              className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
-                              title={openCount > 0 ? `${openCount} open issue${openCount === 1 ? "" : "s"}` : "Flag issue"}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleExpanded(product.rank);
-                              }}
-                            >
-                              <svg viewBox="0 0 24 24" width="16" height="16" fill={openCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                                <line x1="4" y1="22" x2="4" y2="15" />
-                              </svg>
-                              {openCount > 0 ? <span className="row-action-badge">{openCount}</span> : null}
-                            </button>
+                            {role !== "operator" ? (
+                              <button
+                                type="button"
+                                className={`row-action-btn row-action-flag${openCount > 0 ? " has-issues" : ""}`}
+                                title={openCount > 0 ? `${openCount} open issue${openCount === 1 ? "" : "s"}` : "Flag issue"}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  toggleExpanded(product.rank);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill={openCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                                  <line x1="4" y1="22" x2="4" y2="15" />
+                                </svg>
+                                {openCount > 0 ? <span className="row-action-badge">{openCount}</span> : null}
+                              </button>
+                            ) : null}
                           </div>
                         </div>
 
@@ -698,8 +711,9 @@ export function VideoLibraryView({
                               : undefined
                           }
                           onReportIssue={reportIssue}
-                          onResolveIssue={resolveIssue}
+                          onResolveIssue={(id) => resolveIssue(id, product.id)}
                           canDelete={canManageCatalog}
+                          canReportIssue={role !== "operator"}
                           onDeleteRequest={() => setDeleteConfirm(product)}
                         />
                       </div>
@@ -862,6 +876,7 @@ interface RowDetailProps {
   ) => Promise<void>;
   onResolveIssue: (id: string) => Promise<void>;
   canDelete: boolean;
+  canReportIssue: boolean;
   onDeleteRequest: () => void;
 }
 
@@ -873,6 +888,7 @@ function RowDetail({
   onReportIssue,
   onResolveIssue,
   canDelete,
+  canReportIssue,
   onDeleteRequest,
 }: RowDetailProps) {
   const [description, setDescription] = useState("");
@@ -950,35 +966,72 @@ function RowDetail({
             ))}
           </ul>
         )}
-        {isAuthenticated ? (
-          <div className="issue-form">
-            <select
-              value={severity}
-              onChange={(event) =>
-                setSeverity(event.target.value as IssueSeverity)
-              }
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Describe the problem…"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") handleSubmit();
-              }}
-            />
-            <button
-              type="button"
-              className="issue-submit-btn"
-              disabled={submitting || !description.trim()}
-              onClick={handleSubmit}
-            >
-              {submitting ? "Reporting…" : "Report issue"}
-            </button>
+        {isAuthenticated && canReportIssue ? (
+          <div className="issue-form" style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+            background: "rgba(255,255,255,0.02)",
+            padding: "16px",
+            borderRadius: "12px",
+            border: "1px solid rgba(255,255,255,0.05)",
+            marginTop: "16px"
+          }}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <select
+                value={severity}
+                onChange={(event) =>
+                  setSeverity(event.target.value as IssueSeverity)
+                }
+                style={{
+                  padding: "10px",
+                  borderRadius: "8px",
+                  background: "rgba(0,0,0,0.2)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  outline: "none"
+                }}
+              >
+                <option value="low">Low Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Describe the issue..."
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && issues.every(i => i.status === "resolved")) handleSubmit();
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  background: "rgba(0,0,0,0.2)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  outline: "none"
+                }}
+              />
+            </div>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {issues.some(i => i.status === "open") ? (
+                <div style={{ fontSize: "12px", color: "var(--saffron)", paddingLeft: "4px" }}>
+                  Please resolve the current active issue before reporting a new one.
+                </div>
+              ) : <div />}
+              <button
+                type="button"
+                className="issue-submit-btn"
+                disabled={submitting || !description.trim() || issues.some(i => i.status === "open")}
+                onClick={handleSubmit}
+                style={{ alignSelf: "flex-end" }}
+              >
+                {submitting ? "Reporting…" : "Report issue"}
+              </button>
+            </div>
             {canDelete ? (
               <button
                 type="button"

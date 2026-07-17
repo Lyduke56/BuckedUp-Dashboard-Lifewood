@@ -7,6 +7,7 @@ import { ProductionOutputWidget } from "@/components/organisms/ProductionOutputW
 import { RecentActivityWidget } from "@/components/organisms/RecentActivityWidget";
 import { Tilt } from "@/components/atoms/Tilt";
 import { useProductionPlan } from "@/lib/useProductionPlan";
+import { useAuth } from "@/lib/useAuth";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
@@ -22,7 +23,12 @@ export function OverviewView({
   hasError,
 }: OverviewViewProps) {
   const { plan } = useProductionPlan();
+  const { user, role } = useAuth();
   const projectName = plan?.name || "Active Production Pipeline";
+
+  const userProducts = (role === "lead" || role === "operator") 
+    ? products.filter(p => p.ownerId === user?.id)
+    : products;
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,8 +36,8 @@ export function OverviewView({
         title={projectName} 
         overline="CURRENT PIPELINE"
       />
-      <ProjectProgressCard products={products} />
-      <KpiRow products={products} isLoading={isLoading} hasError={hasError} />
+      <ProjectProgressCard products={userProducts} />
+      <KpiRow products={userProducts} isLoading={isLoading} hasError={hasError} />
 
       {/* Main grid: left 2/3 stacks Snapshot + Recent Activity, right 1/3 is Production Output spanning both */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -46,13 +52,13 @@ export function OverviewView({
                 breakdown across all 10 is in the completion chart below.
               </div>
               <div className="flex flex-col gap-4">
-                <OverviewSnapshot products={products} />
+                <OverviewSnapshot products={userProducts} />
               </div>
             </div>
           </div>
 
           {/* Recent deliveries */}
-          <RecentActivityWidget products={products} />
+          <RecentActivityWidget products={userProducts} />
         </div>
 
         {/* Right column — Production Output Widget stretches to fill the full height */}

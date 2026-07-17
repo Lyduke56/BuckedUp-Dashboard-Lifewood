@@ -16,6 +16,7 @@ import { CATEGORY_TREE } from "@/lib/data";
 import { CatalogProductFormModal } from "@/components/organisms/CatalogProductFormModal";
 import { useAuth } from "@/lib/useAuth";
 import type { AigcStatus, CatalogProduct, Product } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ export function CatalogView({
   onProductFocus,
 }: CatalogViewProps) {
   const { role } = useAuth();
-  const isLead = role === "lead";
+  const canEdit = role === "lead";
 
   // ── Filter state ──
   const [search, setSearch] = useState("");
@@ -68,7 +69,7 @@ export function CatalogView({
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [aigcFilter, setAigcFilter] = useState<AigcFilter>("all");
   const [flagFilter, setFlagFilter] = useState<FlagFilter>("all");
-  const [availabilityFilter, setAvailabilityFilter] = useState<"active" | "inactive" | "all">("active");
+  const [availabilityFilter, setAvailabilityFilter] = useState<"active" | "inactive" | "all">("all");
   const [layout, setLayout] = useState<LayoutMode>("grid");
 
   const itemsPerPage = 40;
@@ -101,6 +102,26 @@ export function CatalogView({
   useEffect(() => {
     onProductFocus?.(detailProduct);
   }, [detailProduct, onProductFocus]);
+
+  // ── Handlers ──
+  const handleToggleActive = async (productData: ProductData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!productData.rawCatalogProduct) return;
+    const supabase = createClient();
+    const newActiveState = !productData.isActive;
+    
+    // Optimistic UI update (requires a way to update the parent catalog state, or just refresh the page)
+    // Since catalog is passed as prop, we'll mutate it locally for immediate effect, but the real fix is via subscription/refresh.
+    productData.isActive = newActiveState;
+    if (productData.rawCatalogProduct) productData.rawCatalogProduct.isActive = newActiveState;
+    // Force re-render (hacky but works if parent doesn't auto-refresh)
+    setAvailabilityFilter(prev => prev);
+
+    await supabase
+      .from("catalog_products")
+      .update({ is_active: newActiveState })
+      .eq("id", productData.id);
+  };
 
   // ── Filtered catalog ──
   const filtered = useMemo(() => {
@@ -218,6 +239,7 @@ export function CatalogView({
   const gridProducts: ProductData[] = useMemo(() => {
     return paginatedFiltered.map((cp) => {
       const status = getAigcStatus(cp.id, products);
+      const videosInProduction = products.filter(p => p.catalogProductId === cp.id && p.items[0]?.status !== "Published").length;
       return {
         id: cp.id,
         category: cp.category,
@@ -225,10 +247,13 @@ export function CatalogView({
         name: cp.name,
         variants: (cp.variants ?? []).join(", "),
         variantCount: String(cp.variantCount ?? (cp.variants ?? []).length),
-        price: cp.price ?? "",
+        // MODIFIED: Strip 'from ' prefix if the product has only one variant or no variants
+        price: (cp.variants?.length <= 1 || cp.variantCount <= 1) && cp.price ? cp.price.replace(/^from\s+/i, "") : (cp.price ?? ""),
         flag: cp.flagStatus ?? "",
         link: cp.productUrl ?? "",
         aigcStatus: status,
+        isActive: cp.isActive,
+        videosInProduction,
         rawCatalogProduct: cp,
       };
     });
@@ -323,7 +348,7 @@ export function CatalogView({
               </div>
 
               {/* + Add Product button for Leads */}
-              {isLead && (
+              {canEdit && (
                 <button
                   type="button"
                   className="btn-primary text-xs h-9 px-3.5 rounded-full flex items-center gap-1.5 font-semibold"
@@ -449,8 +474,9 @@ export function CatalogView({
                     setFormModalMode("edit");
                   }
                 }}
+                onToggleActive={handleToggleActive}
                 onViewInLibrary={() => onNavigateToLibrary()}
-                isLead={isLead}
+                canEdit={canEdit}
               />
             ) : (
               /* List view */
@@ -462,18 +488,24 @@ export function CatalogView({
                   <span style={{ flex: 1, textAlign: "center" }}>AIGC Status</span>
                   <span style={{ flex: 1, textAlign: "right" }}>Actions</span>
                 </div>
-                {paginatedFiltered.map((cp) => (
-                  <CatalogListRow
-                    key={cp.id}
-                    product={cp}
-                    aigcStatus={getAigcStatus(cp.id, products)}
-                    linkedProduct={getLinkedProduct(cp.id, products)}
-                    isLead={isLead}
-                    onView={() => setDetailProduct(cp)}
-                    onEdit={() => { setEditingProduct(cp); setFormModalMode("edit"); }}
-                    onNavigateToLibrary={onNavigateToLibrary}
-                  />
-                ))}
+                {paginatedFiltered.map((cp) => {
+                  const pData = gridProducts.find(p => p.id === cp.id)!;
+                  return (
+                    <CatalogListRow
+                      key={cp.id}
+                      product={cp}
+                      aigcStatus={pData.aigcStatus!}
+                      linkedProduct={getLinkedProduct(cp.id, products)}
+                      videosInProduction={pData.videosInProduction}
+                      isActive={pData.isActive}
+                      canEdit={canEdit}
+                      onView={() => setDetailProduct(cp)}
+                      onEdit={() => { setEditingProduct(cp); setFormModalMode("edit"); }}
+                      onToggleActive={(e) => handleToggleActive(pData, e)}
+                      onNavigateToLibrary={onNavigateToLibrary}
+                    />
+                  );
+                })}
               </div>
             )}
 
@@ -486,7 +518,7 @@ export function CatalogView({
           product={detailProduct}
           aigcStatus={getAigcStatus(detailProduct.id, products)}
           linkedProduct={getLinkedProduct(detailProduct.id, products)}
-          isLead={isLead}
+          canEdit={canEdit}
           onClose={() => setDetailProduct(null)}
           onEdit={() => { setEditingProduct(detailProduct); setFormModalMode("edit"); setDetailProduct(null); }}
           onNavigateToLibrary={onNavigateToLibrary}
@@ -509,13 +541,16 @@ interface CardProps {
   product: CatalogProduct;
   aigcStatus: AigcStatus;
   linkedProduct: Product | null;
-  isLead: boolean;
+  videosInProduction?: number;
+  isActive?: boolean;
+  canEdit: boolean;
   onView: () => void;
   onEdit: () => void;
+  onToggleActive?: (e: React.MouseEvent) => void;
   onNavigateToLibrary: () => void;
 }
 
-function CatalogListRow({ product, aigcStatus, linkedProduct, isLead, onView, onEdit, onNavigateToLibrary }: CardProps) {
+function CatalogListRow({ product, aigcStatus, linkedProduct, videosInProduction, isActive, canEdit, onView, onEdit, onToggleActive, onNavigateToLibrary }: CardProps) {
   const badge = AIGC_BADGE[aigcStatus];
   const stageLabel = linkedProduct?.items?.[0]?.status || badge.label;
 
@@ -544,18 +579,35 @@ function CatalogListRow({ product, aigcStatus, linkedProduct, isLead, onView, on
       </div>
       <div style={{ flex: 1 }} className="flex justify-center">
         {aigcStatus !== "none" ? (
-          <span className={`catalog-aigc-badge ${badge.cls} text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm`}>{stageLabel}</span>
+          <div className="flex flex-col items-center gap-1">
+            <span className={`catalog-aigc-badge ${badge.cls} text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm`}>{stageLabel}</span>
+            {videosInProduction !== undefined && videosInProduction > 0 && (
+              <span className="text-[9px] font-semibold text-[var(--ink-soft)] uppercase flex items-center gap-0.5" title={`${videosInProduction} video(s) in production`}>
+                <Video size={10} /> {videosInProduction} Prod
+              </span>
+            )}
+          </div>
         ) : (
           <span className="text-[var(--ink-soft)] opacity-50 font-bold">—</span>
         )}
       </div>
       <div style={{ flex: 1 }} className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={onToggleActive}
+            className={`relative w-8 h-4 rounded-full transition-colors border shadow-sm flex items-center shrink-0 my-auto ${isActive ? "bg-[var(--castleton)] border-[var(--castleton)]" : "bg-[var(--glass-bg)] border-[var(--glass-border)]"}`}
+            title={isActive ? "Active in Catalog" : "Hidden (Inactive)"}
+          >
+            <span className={`absolute left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${isActive ? "translate-x-3.5" : "translate-x-0"}`} />
+          </button>
+        )}
         {aigcStatus !== "none" && (
           <button className="w-7 h-7 rounded-full bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--ink-soft)] hover:text-[var(--castleton)] transition-all" onClick={onNavigateToLibrary} title="View in Library">
             <ChevronRight size={14} />
           </button>
         )}
-        {isLead && (
+        {canEdit && (
           <button className="w-7 h-7 rounded-full bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--ink-soft)] hover:text-[var(--text-main)] transition-all" onClick={onEdit} title="Edit">
             <Edit2 size={12} />
           </button>
@@ -571,13 +623,13 @@ interface ModalProps {
   product: CatalogProduct;
   aigcStatus: AigcStatus;
   linkedProduct: Product | null;
-  isLead: boolean;
+  canEdit: boolean;
   onClose: () => void;
   onEdit: () => void;
   onNavigateToLibrary: () => void;
 }
 
-function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClose, onEdit, onNavigateToLibrary }: ModalProps) {
+function CatalogDetailModal({ product, aigcStatus, linkedProduct, canEdit, onClose, onEdit, onNavigateToLibrary }: ModalProps) {
   const mounted = useMounted();
   const badge = AIGC_BADGE[aigcStatus];
   const stageLabel = linkedProduct?.items?.[0]?.status || badge.label;
@@ -728,7 +780,7 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, isLead, onClos
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--glass-border)] flex-shrink-0 bg-[var(--glass-bg)] z-10">
-          {isLead && (
+          {canEdit && (
             <button className="btn-ghost px-4 py-2 rounded-full font-bold text-xs bg-[var(--glass-hover)] text-[var(--ink-soft)] hover:text-[var(--text-main)] flex items-center gap-1.5 transition-all border border-[var(--glass-border)]" onClick={onEdit}>
               <Edit2 size={12} /> Edit Product
             </button>

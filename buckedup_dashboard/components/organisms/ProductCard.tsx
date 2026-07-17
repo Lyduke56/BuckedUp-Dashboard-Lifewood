@@ -17,6 +17,8 @@ export interface ProductData {
   flag: string;
   link: string;
   aigcStatus?: "none" | "in-progress" | "published";
+  isActive?: boolean;
+  videosInProduction?: number;
   rawCatalogProduct?: CatalogProduct;
 }
 
@@ -24,16 +26,18 @@ interface ProductCardProps {
   product: ProductData;
   onClick?: (product: ProductData) => void;
   onEdit?: (product: ProductData, e: React.MouseEvent) => void;
+  onToggleActive?: (product: ProductData, e: React.MouseEvent) => void;
   onViewInLibrary?: (product: ProductData, e: React.MouseEvent) => void;
-  isLead?: boolean;
+  canEdit?: boolean;
 }
 
 export function ProductCard({
   product,
   onClick,
   onEdit,
+  onToggleActive,
   onViewInLibrary,
-  isLead,
+  canEdit,
 }: ProductCardProps) {
   // Parse flag/status for badges
   const isNew = product.flag.toUpperCase().includes('NEW');
@@ -62,9 +66,29 @@ export function ProductCard({
                 In Progress
               </Badge>
             )}
-
           </div>
         )}
+        <div className="absolute top-2 right-2 flex flex-col gap-1.5 items-end z-10" style={{ marginTop: product.aigcStatus ? "30px" : "0px" }}>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onToggleActive?.(product, e); }}
+              className={`relative w-9 h-5 rounded-full transition-colors border shadow-sm flex items-center ${product.isActive ? "bg-[var(--castleton)] border-[var(--castleton)]" : "bg-black/40 border-white/20 backdrop-blur-md"}`}
+              title={product.isActive ? "Active in Catalog" : "Hidden (Inactive)"}
+            >
+              <span className={`absolute left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${product.isActive ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          )}
+          {product.videosInProduction !== undefined && product.videosInProduction > 0 && (
+            <div 
+              className="flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2 py-0.5 rounded shadow-sm border border-white/10 cursor-help"
+              title={`${product.videosInProduction} video(s) currently in production`}
+            >
+              <Video className="w-3 h-3" />
+              {product.videosInProduction} in prod
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="flex flex-col flex-1 gap-2">
@@ -113,7 +137,7 @@ export function ProductCard({
               </Button>
             )}
 
-            {isLead && onEdit && (
+            {canEdit && onEdit && (
               <Button
                 variant="ghost"
                 size="sm"

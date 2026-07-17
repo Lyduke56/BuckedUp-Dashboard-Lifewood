@@ -80,6 +80,7 @@ export interface Product {
   /** FK to catalog_products.id — null for one-off products not in the catalog */
   catalogProductId: string | null;
   items: VideoItem[];
+  createdAt: string;
 }
 
 /**
@@ -93,6 +94,7 @@ export type IssueStatus = "open" | "resolved";
 export interface Issue {
   id: string;
   rank: number;
+  productId?: string;
   description: string;
   severity: IssueSeverity;
   status: IssueStatus;

@@ -40,13 +40,24 @@ export function RecentActivityWidget({ products }: RecentActivityWidgetProps) {
             recent.map((product) => (
               <div 
                 key={product.rank} 
-                className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] rounded-xl border border-[var(--glass-border)] hover:border-[var(--castleton)] transition-all duration-300"
+                className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] rounded-xl border border-[var(--glass-border)] hover:border-[var(--castleton)] transition-all duration-300 cursor-pointer hover:shadow-sm"
+                onClick={() => {
+                  // MODIFIED: Made the delivery item interactive
+                  window.location.href = `/library?product=${product.id || product.catalogProductId}`;
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    window.location.href = `/library?product=${product.id || product.catalogProductId}`;
+                  }
+                }}
               >
                 <div className="w-9 h-9 rounded-full bg-[var(--castleton-glow)] text-[var(--castleton)] flex items-center justify-center flex-shrink-0">
                   <Video size={16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold truncate">
+                  <div className="text-sm font-bold truncate group-hover:text-[var(--castleton)] transition-colors">
                     {product.name}
                   </div>
                   <div className="text-[10px] font-medium truncate" style={{ color: 'var(--ink-soft)' }}>

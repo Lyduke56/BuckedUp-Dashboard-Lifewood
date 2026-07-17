@@ -19,7 +19,7 @@ function formatRelative(iso: string): string {
 }
 
 export function NotificationBell({ onNavigate }: NotificationBellProps) {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, clearAll } = useNotifications();
   const [open, setOpen] = useState(false);
 
   return (
@@ -44,11 +44,20 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
           <div className="notification-dropdown">
             <div className="notification-dropdown-header">
               <span>Notifications</span>
-              {unreadCount > 0 ? (
-                <button type="button" onClick={() => markAllRead()}>
-                  Mark all read
-                </button>
-              ) : null}
+              <div style={{ display: "flex", gap: "12px" }}>
+                {unreadCount > 0 ? (
+                  <button type="button" onClick={() => markAllRead()}>
+                    Mark all read
+                  </button>
+                ) : null}
+                {notifications.length > 0 ? (
+                  <button type="button" onClick={() => {
+                    clearAll();
+                  }}>
+                    Clear all
+                  </button>
+                ) : null}
+              </div>
             </div>
             {notifications.length === 0 ? (
               <div className="notification-empty">No notifications yet.</div>

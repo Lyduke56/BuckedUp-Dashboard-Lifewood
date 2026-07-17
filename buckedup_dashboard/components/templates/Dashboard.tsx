@@ -88,6 +88,13 @@ export function Dashboard() {
     }, 10);
   }, [activeView]);
 
+  // Route guard: prevent operators from accessing analytics
+  useEffect(() => {
+    if (role === "operator" && activeView === "analytics") {
+      setActiveView("overview");
+    }
+  }, [role, activeView]);
+
   const handleNotificationNavigate = (productName: string) => {
     setLibrarySearch(productName);
     setActiveView("library");

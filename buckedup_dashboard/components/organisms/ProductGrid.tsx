@@ -6,16 +6,18 @@ interface ProductGridProps {
   products: ProductData[];
   onCardClick?: (product: ProductData) => void;
   onEdit?: (product: ProductData, e: React.MouseEvent) => void;
+  onToggleActive?: (product: ProductData, e: React.MouseEvent) => void;
   onViewInLibrary?: (product: ProductData, e: React.MouseEvent) => void;
-  isLead?: boolean;
+  canEdit?: boolean;
 }
 
 export function ProductGrid({
   products,
   onCardClick,
   onEdit,
+  onToggleActive,
   onViewInLibrary,
-  isLead,
+  canEdit,
 }: ProductGridProps) {
   if (products.length === 0) {
     return (
@@ -37,8 +39,9 @@ export function ProductGrid({
           product={product}
           onClick={onCardClick}
           onEdit={onEdit}
+          onToggleActive={onToggleActive}
           onViewInLibrary={onViewInLibrary}
-          isLead={isLead}
+          canEdit={canEdit}
         />
       ))}
     </div>

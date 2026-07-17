@@ -80,6 +80,8 @@ function initialState(
   };
 }
 
+const COMMON_LANGUAGES = ["English", "Spanish", "French", "German", "Italian", "Japanese", "Chinese"];
+
 export function ProductFormModal({
   mode,
   product,
@@ -508,12 +510,33 @@ export function ProductFormModal({
             </label>
             <label className="form-field">
               <span>Language</span>
-              <input
-                type="text"
-                value={form.language}
+              <select
+                value={COMMON_LANGUAGES.includes(form.language) ? form.language : (form.language === "" ? "English" : "Other")}
                 disabled={isOperator}
-                onChange={(event) => update("language", event.target.value)}
-              />
+                onChange={(event) => {
+                  const val = event.target.value;
+                  if (val === "Other") {
+                    update("language", "");
+                  } else {
+                    update("language", val);
+                  }
+                }}
+                className="mb-2"
+              >
+                {COMMON_LANGUAGES.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+                <option value="Other">Other...</option>
+              </select>
+              {!COMMON_LANGUAGES.includes(form.language) ? (
+                <input
+                  type="text"
+                  placeholder="Enter language"
+                  value={form.language}
+                  disabled={isOperator}
+                  onChange={(event) => update("language", event.target.value)}
+                />
+              ) : null}
             </label>
             <label className="form-field">
               <span>Owner</span>
@@ -644,24 +667,26 @@ export function ProductFormModal({
                   ) : (
                     <span />
                   )}
-                  <button
-                    type="submit"
-                    className="issue-submit-btn"
-                    disabled={submitting || deleting}
-                    style={isOperator ? { marginLeft: "auto" } : {}}
-                  >
-                    {submitting
-                      ? "Saving…"
-                      : mode === "edit"
-                        ? "Save changes"
-                        : "Add product"}
-                  </button>
+                  {!isOperator && (
+                    <button
+                      type="submit"
+                      className="issue-submit-btn"
+                      disabled={submitting || deleting}
+                    >
+                      {submitting
+                        ? "Saving…"
+                        : mode === "edit"
+                          ? "Save changes"
+                          : "Add product"}
+                    </button>
+                  )}
                 </>
             </div>
           </form>
 
           {/* RIGHT COLUMN: Video Versions & Thumbnail Portal */}
-          <div className="modal-right-column">
+          {!isOperator && (
+            <div className="modal-right-column">
             {mode === "edit" && product ? (
               <VideoVersionsPanel
                 productId={product.id}
@@ -811,6 +836,7 @@ export function ProductFormModal({
               </div>
             )}
         </div>
+      )}
       </div>
     </div>
   </div>,
