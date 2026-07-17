@@ -19,6 +19,18 @@ export async function safe<T>(fn: () => Promise<T>): Promise<T | { error: string
   }
 }
 
+// ILIKE treats "%" (any sequence) and "_" (any single character) as
+// wildcards, not literal text. Fine for tools that intentionally want
+// substring search (list_products/list_catalog_products' `search` param,
+// wrapped in %...%) — not fine for a tool using ilike to do a
+// case-insensitive EXACT match (delete_catalog_product), where an
+// unescaped "%" or "_" in a real product name would silently widen the
+// match to a *different* row than the one asked for. Escaping the
+// backslash first avoids double-escaping the ones just added.
+export function escapeIlikePattern(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
 // Shared by every product-locating tool below (operator's and lead's) —
 // mirrors get_product's same-shaped params so the model can reuse whichever
 // it already has from a prior read-tool call.

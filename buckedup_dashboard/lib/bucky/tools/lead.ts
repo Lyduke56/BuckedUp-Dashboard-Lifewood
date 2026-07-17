@@ -2,7 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { STATUS_ORDER } from "@/lib/data";
 import type { UserRole } from "@/lib/types";
-import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, type SupabaseServerClient } from "./shared";
+import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, escapeIlikePattern, type SupabaseServerClient } from "./shared";
 
 const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
 
@@ -384,7 +384,11 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
         safe(async () => {
           if (!id && !name) return { error: "Provide either id or name." };
           let query = supabase.from("catalog_products").select("id, name");
-          query = id ? query.eq("id", id) : query.ilike("name", name as string);
+          // escapeIlikePattern makes this a real case-insensitive EXACT
+          // match, not a wildcard pattern — a name containing a literal
+          // "%" or "_" must match only that literal name, never silently
+          // match a different row (see the comment on escapeIlikePattern).
+          query = id ? query.eq("id", id) : query.ilike("name", escapeIlikePattern(name as string));
           const { data: matches, error } = await query;
           if (error) return { error: error.message };
           if (!matches || matches.length === 0) return { error: "No catalog product found." };
