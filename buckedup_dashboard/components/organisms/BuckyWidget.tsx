@@ -82,6 +82,12 @@ function describeAction(toolName: string, input: unknown): string {
           : "Create a new product?";
     case "delete_product":
       return `Delete ${product}? This can't be undone and removes all its issues, deliverables, and version history.`;
+    case "update_production_plan":
+      return `Update the production plan${typeof params.name === "string" ? ` "${params.name}"` : ""}?`;
+    case "create_or_update_catalog_product":
+      return `${params.id ? "Update" : "Create"} the catalog product${typeof params.name === "string" ? ` "${params.name}"` : ""}?`;
+    case "delete_catalog_product":
+      return `Delete the catalog product${typeof params.name === "string" ? ` "${params.name}"` : ""}? This can't be undone — any linked video stays, just unlinked.`;
     default:
       return `Run ${toolName}?`;
   }
@@ -130,6 +136,12 @@ function describeToolResult(toolName: string, input: unknown): string {
       return typeof params.name === "string" ? `Created "${params.name}"` : "Created a new product";
     case "delete_product":
       return `Deleted ${product}`;
+    case "update_production_plan":
+      return "Updated the production plan";
+    case "create_or_update_catalog_product":
+      return params.id ? "Updated a catalog product" : "Created a catalog product";
+    case "delete_catalog_product":
+      return "Deleted a catalog product";
     default:
       return `Looked up ${toolName}`;
   }
@@ -161,10 +173,11 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 // backend (app/api/bucky/chat/route.ts). Can answer questions about any
 // dashboard data for anyone. Admins additionally get three
 // account-management actions (create/delete/change role); operators get six
-// self-scoped work-execution tools that run immediately; leads get three
-// pipeline-management tools (move stage, review deliverable, review video) —
-// account-management and pipeline-management actions require an explicit
-// confirm click here before they run, work-execution tools don't. State
+// self-scoped work-execution tools that run immediately; leads get ten
+// pipeline/catalog/plan-management tools — issue report/resolve run
+// immediately like operator's, the other eight (stage moves, deliverable/
+// video review, product/catalog CRUD, plan edits) require an explicit
+// confirm click here before they run. State
 // resets on close/reload (no persisted chat history yet).
 export function BuckyWidget() {
   const mounted = useMounted();

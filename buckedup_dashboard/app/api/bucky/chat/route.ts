@@ -92,6 +92,9 @@ export async function POST(request: Request) {
       review_video: "user-approval",
       create_product: "user-approval",
       delete_product: "user-approval",
+      update_production_plan: "user-approval",
+      create_or_update_catalog_product: "user-approval",
+      delete_catalog_product: "user-approval",
     },
     // Default stopWhen is isStepCount(1) — the model would call a tool and
     // the stream would end right there, with no natural-language answer

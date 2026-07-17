@@ -262,6 +262,31 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           return { users: data };
         }),
     }),
+
+    list_catalog_products: tool({
+      description:
+        "List products in the BuckedUp catalog (separate from the video pipeline) — what BuckedUp sells, not what's in production. Optionally filter by name search or category. Excludes inactive items by default.",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Case-insensitive substring match on product name."),
+        category: z.string().optional(),
+        includeInactive: z.boolean().default(false),
+        limit: z.number().int().min(1).max(100).default(30),
+      }),
+      execute: ({ search, category, includeInactive, limit }) =>
+        safe(async () => {
+          let query = supabase
+            .from("catalog_products")
+            .select("id, name, category, subcategory, price, flag_status, is_active, variant_count")
+            .order("name")
+            .limit(limit);
+          if (!includeInactive) query = query.eq("is_active", true);
+          if (search) query = query.ilike("name", `%${search}%`);
+          if (category) query = query.eq("category", category);
+          const { data, error } = await query;
+          if (error) return { error: error.message };
+          return { catalogProducts: data };
+        }),
+    }),
   };
 }
 
@@ -393,13 +418,12 @@ async function resolveProductId(
   return { id: data.id };
 }
 
-// Operator's own work-execution tools. None of these require toolApproval
-// (see route.ts) — they're the operator doing their own routine, self-scoped
-// job, exactly as frictionless as the equivalent buttons in
-// VideoLibraryView/ProductFormModal/VideoVersionsPanel today. Every write
-// goes through the caller's own session client (RLS-enforced), same as the
-// read tools — no service-role client here either.
-function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string) {
+// Issue tools — shared by operator and lead (RLS allows any authenticated
+// role to insert/update issues; the table has no "reported-by" column, so
+// no userId is needed here). Neither requires toolApproval — low-risk,
+// matches the real UI's own frictionless report/resolve buttons regardless
+// of who's clicking them.
+function buildIssueTools(supabase: SupabaseServerClient) {
   return {
     report_issue: tool({
       description: "Report a new issue against a product. Runs immediately, no confirmation needed.",
@@ -444,6 +468,18 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           return { resolved: true };
         }),
     }),
+  };
+}
+
+// Operator's own work-execution tools. None of these require toolApproval
+// (see route.ts) — they're the operator doing their own routine, self-scoped
+// job, exactly as frictionless as the equivalent buttons in
+// VideoLibraryView/ProductFormModal/VideoVersionsPanel today. Every write
+// goes through the caller's own session client (RLS-enforced), same as the
+// read tools — no service-role client here either.
+function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string) {
+  return {
+    ...buildIssueTools(supabase),
 
     claim_product: tool({
       description:
@@ -563,16 +599,18 @@ export function createBuckyOperatorActionTools(
 
 const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
 
-// Lead's pipeline-management tools. All three require toolApproval (see
+// Lead's pipeline-management tools. Most require toolApproval (see
 // route.ts) — team-visible workflow changes, not self-scoped routine work
-// like the operator tools above. Every write goes through the caller's own
-// session client (RLS-enforced) — lead's real DB permissions are the actual
-// authority here, this just gives chat access to what the UI already
-// allows. This builder grows across future sub-phases (product/catalog CRUD,
-// plan edits) the same way buildOperatorActionTools did — one role, one
-// builder, tools added incrementally.
+// like the operator tools above; report_issue/resolve_issue are the
+// exception, shared verbatim with operator via buildIssueTools since
+// they're low-risk regardless of who's calling them. Every write goes
+// through the caller's own session client (RLS-enforced) — lead's real DB
+// permissions are the actual authority here, this just gives chat access
+// to what the UI already allows.
 function buildLeadActionTools(supabase: SupabaseServerClient) {
   return {
+    ...buildIssueTools(supabase),
+
     move_product_stage: tool({
       description:
         "Directly set a product's pipeline stage to any of the 7 stages, bypassing normal review. Prefer review_deliverable or review_video when actually reviewing a submission — use this for corrections or exceptions. Requires confirmation before it runs.",
@@ -798,6 +836,159 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
           const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
           if (deleteError) return { error: deleteError.message };
           return { deleted: true, product: product.name };
+        }),
+    }),
+
+    update_production_plan: tool({
+      description:
+        "Update the active production plan's targets, dates, or notes. Only changes the fields you provide — everything else (including any Excel-imported daily pacing schedule) stays untouched. If no plan is active yet, creates one (name, startDate, and deadline are then required). Requires confirmation before it runs.",
+      inputSchema: z.object({
+        name: z.string().optional(),
+        totalVideoTarget: z.number().int().optional(),
+        startDate: z.string().optional().describe("YYYY-MM-DD"),
+        deadline: z.string().optional().describe("YYYY-MM-DD"),
+        notes: z.string().optional(),
+        categoryTargets: z.record(z.string(), z.number()).optional(),
+        languageTargets: z.record(z.string(), z.number()).optional(),
+      }),
+      execute: (params) =>
+        safe(async () => {
+          const { data: current, error: fetchError } = await supabase
+            .from("production_plans")
+            .select("*")
+            .eq("is_active", true)
+            .maybeSingle();
+          if (fetchError) return { error: fetchError.message };
+
+          if (current) {
+            const updatePayload: Record<string, unknown> = {};
+            if (params.name !== undefined) updatePayload.name = params.name;
+            if (params.totalVideoTarget !== undefined) updatePayload.total_video_target = params.totalVideoTarget;
+            if (params.startDate !== undefined) updatePayload.start_date = params.startDate;
+            if (params.deadline !== undefined) updatePayload.deadline = params.deadline;
+            if (params.notes !== undefined) updatePayload.notes = params.notes;
+            if (params.categoryTargets !== undefined) updatePayload.category_targets = params.categoryTargets;
+            if (params.languageTargets !== undefined) updatePayload.language_targets = params.languageTargets;
+            if (Object.keys(updatePayload).length === 0) {
+              return { error: "Provide at least one field to update." };
+            }
+            const { error: updateError } = await supabase
+              .from("production_plans")
+              .update(updatePayload)
+              .eq("id", current.id);
+            if (updateError) return { error: updateError.message };
+            return { updated: true, plan: params.name ?? current.name };
+          }
+
+          if (!params.name || !params.startDate || !params.deadline) {
+            return { error: "No active plan exists yet — name, startDate, and deadline are required to create one." };
+          }
+          const { error: insertError } = await supabase.from("production_plans").insert({
+            name: params.name,
+            total_video_target: params.totalVideoTarget ?? 0,
+            start_date: params.startDate,
+            deadline: params.deadline,
+            notes: params.notes ?? null,
+            category_targets: params.categoryTargets ?? {},
+            language_targets: params.languageTargets ?? {},
+            is_active: true,
+          });
+          if (insertError) return { error: insertError.message };
+          return { created: true, plan: params.name };
+        }),
+    }),
+
+    create_or_update_catalog_product: tool({
+      description:
+        "Create a new BuckedUp catalog product, or update an existing one by id — updating only changes the fields you provide, everything else stays as-is. Thumbnails aren't supported through chat — use the dashboard UI for those. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        id: z
+          .string()
+          .uuid()
+          .optional()
+          .describe("Provide to update an existing catalog product; omit to create a new one."),
+        name: z.string().optional().describe("Required when creating."),
+        category: z.string().optional().describe("Required when creating."),
+        subcategory: z.string().optional().describe("Required when creating."),
+        variants: z.array(z.string()).optional(),
+        price: z.string().optional(),
+        flagStatus: z.string().optional(),
+        productUrl: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }),
+      execute: (params) =>
+        safe(async () => {
+          if (params.id) {
+            const updatePayload: Record<string, unknown> = {};
+            if (params.name !== undefined) updatePayload.name = params.name;
+            if (params.category !== undefined) updatePayload.category = params.category;
+            if (params.subcategory !== undefined) updatePayload.subcategory = params.subcategory;
+            if (params.variants !== undefined) updatePayload.variants = params.variants;
+            if (params.price !== undefined) updatePayload.price = params.price;
+            if (params.flagStatus !== undefined) updatePayload.flag_status = params.flagStatus;
+            if (params.productUrl !== undefined) updatePayload.product_url = params.productUrl;
+            if (params.isActive !== undefined) updatePayload.is_active = params.isActive;
+            if (Object.keys(updatePayload).length === 0) {
+              return { error: "Provide at least one field to update." };
+            }
+            const { data: updated, error: updateError } = await supabase
+              .from("catalog_products")
+              .update(updatePayload)
+              .eq("id", params.id)
+              .select("id, name")
+              .maybeSingle();
+            if (updateError) return { error: updateError.message };
+            if (!updated) return { error: "No catalog product found with that id." };
+            return { updated: true, product: updated.name };
+          }
+
+          if (!params.name || !params.category || !params.subcategory) {
+            return {
+              error: "Provide id to update an existing item, or name, category, and subcategory to create a new one.",
+            };
+          }
+          const { data: created, error: insertError } = await supabase
+            .from("catalog_products")
+            .insert({
+              name: params.name,
+              category: params.category,
+              subcategory: params.subcategory,
+              variants: params.variants ?? [],
+              price: params.price ?? null,
+              flag_status: params.flagStatus ?? null,
+              product_url: params.productUrl ?? null,
+              is_active: params.isActive ?? true,
+            })
+            .select("id, name")
+            .single();
+          if (insertError) return { error: insertError.message };
+          return { created: true, product: created.name };
+        }),
+    }),
+
+    delete_catalog_product: tool({
+      description:
+        "Delete a BuckedUp catalog product. This is irreversible. Only removes the catalog listing — if a video is linked to it, the video itself isn't deleted, only unlinked. Requires confirmation before it runs.",
+      inputSchema: z.object({
+        id: z.string().uuid().optional(),
+        name: z.string().optional().describe("Exact name match — used only if id isn't given."),
+      }),
+      execute: ({ id, name }) =>
+        safe(async () => {
+          if (!id && !name) return { error: "Provide either id or name." };
+          let query = supabase.from("catalog_products").select("id, name");
+          query = id ? query.eq("id", id) : query.ilike("name", name as string);
+          const { data: matches, error } = await query;
+          if (error) return { error: error.message };
+          if (!matches || matches.length === 0) return { error: "No catalog product found." };
+          if (matches.length > 1) {
+            return {
+              error: `Multiple catalog products match "${name}" — be more specific or provide the exact id. Matches: ${matches.map((m) => m.name).join(", ")}`,
+            };
+          }
+          const { error: deleteError } = await supabase.from("catalog_products").delete().eq("id", matches[0].id);
+          if (deleteError) return { error: deleteError.message };
+          return { deleted: true, product: matches[0].name };
         }),
     }),
   };
