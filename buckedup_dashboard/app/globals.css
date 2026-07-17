@@ -1511,12 +1511,16 @@ a {
   }
 }
 
-/* ================= BUCKY — FLOATING ASSISTANT (admin only) ========== */
+/* ================= BUCKY — FLOATING ASSISTANT ========== */
 .bucky-root {
   position: fixed;
-  z-index: 9998;
-  width: 56px;
-  height: 56px;
+  /* Above .overlay's 9999 (both definitions in this file) so Bucky stays
+     clickable/visible while a modal is open — confirmed via hit-testing
+     that the overlay otherwise captures every click at the FAB's position,
+     making it impossible to open Bucky whenever a modal is up. */
+  z-index: 10000;
+  width: 64px;
+  height: 64px;
 }
 
 .bucky-root.bottom-right {
@@ -1625,7 +1629,14 @@ a {
   color: var(--text-main);
 }
 
-.bucky-close {
+.bucky-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bucky-close,
+.bucky-clear {
   background: transparent;
   border: none;
   color: var(--ink-soft);
@@ -1641,6 +1652,11 @@ a {
   color: var(--text-main);
   background: var(--glass-hover);
   transform: rotate(90deg);
+}
+
+.bucky-clear:hover {
+  color: var(--text-main);
+  background: var(--glass-hover);
 }
 
 .bucky-messages {

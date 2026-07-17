@@ -48,6 +48,7 @@ interface CatalogViewProps {
   loading: boolean;
   error: string | null;
   onNavigateToLibrary: () => void;
+  onProductFocus?: (product: CatalogProduct | null) => void;
 }
 
 export function CatalogView({
@@ -56,6 +57,7 @@ export function CatalogView({
   loading,
   error,
   onNavigateToLibrary,
+  onProductFocus,
 }: CatalogViewProps) {
   const { role } = useAuth();
   const isLead = role === "lead";
@@ -92,6 +94,13 @@ export function CatalogView({
   const [formModalMode, setFormModalMode] = useState<"add" | "edit" | null>(null);
   const [editingProduct, setEditingProduct] = useState<CatalogProduct | null>(null);
   const [detailProduct, setDetailProduct] = useState<CatalogProduct | null>(null);
+
+  // Reports the catalog item currently open in the detail view up to
+  // Dashboard for Bucky's context awareness — a side effect on an external
+  // system, so an effect rather than an inline call at each setter site.
+  useEffect(() => {
+    onProductFocus?.(detailProduct);
+  }, [detailProduct, onProductFocus]);
 
   // ── Filtered catalog ──
   const filtered = useMemo(() => {

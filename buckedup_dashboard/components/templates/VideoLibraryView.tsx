@@ -57,6 +57,8 @@ function languageFlag(language: string): string {
   return LANGUAGE_FLAG[language] ?? "🌐";
 }
 
+export type LibraryProductFocus = { product: Product; source: "review" | "production" | "edit" };
+
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
   products: Product[];
@@ -65,6 +67,7 @@ interface VideoLibraryViewProps {
   externalSearch?: string | null;
   onExternalSearchApplied?: () => void;
   theme: "dark" | "light";
+  onProductFocus?: (focus: LibraryProductFocus | null) => void;
 }
 
 export function VideoLibraryView({
@@ -75,6 +78,7 @@ export function VideoLibraryView({
   externalSearch,
   onExternalSearchApplied,
   theme,
+  onProductFocus,
 }: VideoLibraryViewProps) {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [currentSubcategory, setCurrentSubcategory] = useState("all");
@@ -119,6 +123,26 @@ export function VideoLibraryView({
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Reports which product (if any) is currently being worked on — via the
+  // review, production, or edit-form modal — up to Dashboard for Bucky's
+  // context awareness. Same "real effect" reasoning as the
+  // externalSearch/onExternalSearchApplied pair above: telling the parent
+  // is a side effect on an external system, not this component's own
+  // state. At most one of these three is ever open at a time in this UI,
+  // but the priority order (review > production > edit) resolves any
+  // theoretical overlap deterministically.
+  useEffect(() => {
+    if (reviewModal) {
+      onProductFocus?.({ product: reviewModal, source: "review" });
+    } else if (productionModal) {
+      onProductFocus?.({ product: productionModal, source: "production" });
+    } else if (formModal?.mode === "edit" && formModal.product) {
+      onProductFocus?.({ product: formModal.product, source: "edit" });
+    } else {
+      onProductFocus?.(null);
+    }
+  }, [reviewModal, productionModal, formModal, onProductFocus]);
 
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();

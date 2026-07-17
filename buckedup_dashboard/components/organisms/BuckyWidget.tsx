@@ -2,11 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Send, X, User, Loader2 } from "lucide-react";
+import { Bot, Send, X, User, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
+import { useAuth } from "@/lib/useAuth";
+import type { ViewId } from "@/lib/types";
+import type { BuckyCatalogContext, BuckyProductContext } from "@/lib/bucky/systemPrompt";
 import { motion, useDragControls, useMotionValue, animate, type PanInfo, AnimatePresence, useAnimation } from "framer-motion";
 import { useEffect, useRef } from "react";
 
@@ -177,9 +180,18 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 // pipeline/catalog/plan-management tools — issue report/resolve run
 // immediately like operator's, the other eight (stage moves, deliverable/
 // video review, product/catalog CRUD, plan edits) require an explicit
-// confirm click here before they run. State
-// resets on close/reload (no persisted chat history yet).
-export function BuckyWidget() {
+// confirm click here before they run. Conversation history persists to
+// localStorage per-user (see the load/save effects below), so it survives
+// a reload — use the header's clear-conversation button to start fresh.
+export function BuckyWidget({
+  activeView,
+  currentProduct,
+  currentCatalogProduct,
+}: {
+  activeView: ViewId;
+  currentProduct: BuckyProductContext | null;
+  currentCatalogProduct: BuckyCatalogContext | null;
+}) {
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -200,8 +212,17 @@ export function BuckyWidget() {
     animate(y, 0, { type: "spring", bounce: 0.2, duration: 0.6 });
   };
 
-  const { messages, sendMessage, status, addToolApprovalResponse } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/bucky/chat" }),
+  const { user } = useAuth();
+
+  const { messages, sendMessage, status, addToolApprovalResponse, setMessages } = useChat({
+    // body is re-resolved on every send (useChat proxies to the transport
+    // built on the widget's most recent render), so activeView always
+    // reflects whichever tab the user is on when a message is actually
+    // sent, not just whichever tab was active on mount.
+    transport: new DefaultChatTransport({
+      api: "/api/bucky/chat",
+      body: { activeView, currentProduct, currentCatalogProduct },
+    }),
     // Auto-resubmit once the admin has approved every pending approval in
     // the last turn, so confirming doesn't need a separate "send" click.
     // Denials are handled locally without a round-trip — see the comment
@@ -214,6 +235,43 @@ export function BuckyWidget() {
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const storageKey = user?.id ? `bucky-chat-${user.id}` : null;
+
+  // Loads any saved conversation once we know who's logged in. useChat's
+  // own `messages` seed option only applies once, at construction inside a
+  // useRef — updating it on a later render is silently ignored unless `id`
+  // also changes — so this uses setMessages() instead, which correctly
+  // notifies useChat's internal state and triggers a re-render.
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  useEffect(() => {
+    if (!storageKey) return;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch {
+        // Corrupted entry — ignore and start fresh rather than crashing.
+      }
+    }
+    setHistoryLoaded(true);
+  }, [storageKey, setMessages]);
+
+  // Saves on every conversation change, including a user message sent but
+  // not yet answered (not just on response completion), so an early reload
+  // mid-stream doesn't lose it. The historyLoaded gate is load-bearing, not
+  // just tidy: without it this would fire on the very first render with the
+  // fresh Chat instance's empty messages array, before the load effect
+  // above has run, and clobber any real saved history with [].
+  useEffect(() => {
+    if (!storageKey || !historyLoaded) return;
+    localStorage.setItem(storageKey, JSON.stringify(messages));
+  }, [messages, storageKey, historyLoaded]);
+
+  const clearConversation = () => {
+    setMessages([]);
+    if (storageKey) localStorage.removeItem(storageKey);
+  };
 
   const send = (event?: FormEvent) => {
     if (event) event.preventDefault();
@@ -299,14 +357,25 @@ export function BuckyWidget() {
                 <Bot size={18} />
                 Bucky
               </div>
-              <button
-                type="button"
-                className="bucky-close"
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
+              <div className="bucky-header-actions">
+                <button
+                  type="button"
+                  className="bucky-clear"
+                  onClick={clearConversation}
+                  aria-label="Clear conversation"
+                  title="Clear conversation"
+                >
+                  <Trash2 size={15} />
+                </button>
+                <button
+                  type="button"
+                  className="bucky-close"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             <div className="bucky-messages">
@@ -416,7 +485,7 @@ export function BuckyWidget() {
               <div ref={messagesEndRef} />
             </div>
 
-            {messages.length === 0 && !busy ? (
+            {historyLoaded && messages.length === 0 && !busy ? (
               <div className="bucky-suggestions">
                 <button type="button" className="bucky-chip" onClick={() => sendMessage({ text: "What's in production?" })}>
                   What&apos;s in production?
