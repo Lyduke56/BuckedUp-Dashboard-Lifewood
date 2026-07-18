@@ -5,6 +5,7 @@ import { Tilt } from "@/components/atoms/Tilt";
 interface RecentActivityWidgetProps {
   products: Product[];
   isOperatorView?: boolean;
+  onNavigateToProduct?: (productName: string) => void;
 }
 
 /** Colour + icon for each pipeline stage in the operator's status view. */
@@ -40,7 +41,7 @@ function stagePill(stage: string) {
   );
 }
 
-export function RecentActivityWidget({ products, isOperatorView }: RecentActivityWidgetProps) {
+export function RecentActivityWidget({ products, isOperatorView, onNavigateToProduct }: RecentActivityWidgetProps) {
   if (isOperatorView) {
     // Operator view: show all assigned products sorted by stage progress (most advanced first)
     const STAGE_ORDER = ["Published", "In Review", "Editing", "Prompting", "Scripting", "Storyboarding", "Not Started"];
@@ -74,7 +75,13 @@ export function RecentActivityWidget({ products, isOperatorView }: RecentActivit
                 return (
                   <div
                     key={product.rank}
-                    className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] rounded-xl border border-[var(--glass-border)] hover:border-[var(--saffron)] transition-all duration-300"
+                    className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] rounded-xl border border-[var(--glass-border)] hover:border-[var(--saffron)] transition-all duration-300 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onNavigateToProduct?.(product.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') onNavigateToProduct?.(product.name);
+                    }}
                   >
                     <div className="w-8 h-8 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--ink-soft)] flex items-center justify-center flex-shrink-0" style={{ fontSize: '11px', fontWeight: 700 }}>
                       {product.rank}
@@ -134,16 +141,11 @@ export function RecentActivityWidget({ products, isOperatorView }: RecentActivit
               <div 
                 key={product.rank} 
                 className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] rounded-xl border border-[var(--glass-border)] hover:border-[var(--castleton)] transition-all duration-300 cursor-pointer hover:shadow-sm"
-                onClick={() => {
-                  // MODIFIED: Made the delivery item interactive
-                  window.location.href = `/library?product=${product.id || product.catalogProductId}`;
-                }}
                 role="button"
                 tabIndex={0}
+                onClick={() => onNavigateToProduct?.(product.name)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    window.location.href = `/library?product=${product.id || product.catalogProductId}`;
-                  }
+                  if (e.key === 'Enter' || e.key === ' ') onNavigateToProduct?.(product.name);
                 }}
               >
                 <div className="w-9 h-9 rounded-full bg-[var(--castleton-glow)] text-[var(--castleton)] flex items-center justify-center flex-shrink-0">

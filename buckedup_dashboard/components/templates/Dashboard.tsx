@@ -142,6 +142,10 @@ export function Dashboard() {
             isLoading={loading}
             hasError={!!error}
             onBrowseLibrary={() => switchView("library")}
+            onNavigateToProduct={(productName) => {
+              setLibrarySearch(productName);
+              switchView("library");
+            }}
           />
         </div>
         <div className={`view${activeView === "catalog" ? " active" : ""}`}>

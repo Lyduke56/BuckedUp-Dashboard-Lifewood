@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/useAuth";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
+  onNavigateToProduct: (productName: string) => void;
   products: Product[];
   isLoading?: boolean;
   hasError?: boolean;
@@ -18,6 +19,7 @@ interface OverviewViewProps {
 
 export function OverviewView({
   onBrowseLibrary,
+  onNavigateToProduct,
   products,
   isLoading,
   hasError,
@@ -58,7 +60,7 @@ export function OverviewView({
           </div>
 
           {/* Recent deliveries */}
-          <RecentActivityWidget products={userProducts} isOperatorView={role === "operator"} />
+          <RecentActivityWidget products={userProducts} isOperatorView={role === "operator"} onNavigateToProduct={onNavigateToProduct} />
         </div>
 
         {/* Right column — Production Output Widget stretches to fill the full height */}
