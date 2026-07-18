@@ -42,6 +42,7 @@ interface UseNotificationsState {
   unreadCount: number;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  clearAll: () => Promise<void>;
 }
 
 export function useNotifications(): UseNotificationsState {
@@ -108,7 +109,16 @@ export function useNotifications(): UseNotificationsState {
       .eq("read", false);
   }, [user]);
 
+  const clearAll = useCallback(async () => {
+    if (!user) return;
+    setNotifications([]); // Optimistic update
+    await supabaseRef.current
+      .from("notifications")
+      .delete()
+      .eq("recipient_id", user.id);
+  }, [user]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  return { notifications, unreadCount, markRead, markAllRead };
+  return { notifications, unreadCount, markRead, markAllRead, clearAll };
 }

@@ -211,7 +211,7 @@ export function DailyProgressChart({
             })}
           </div>
         </div>
-        <div className="category-legend" style={{ marginTop: "12px" }}>
+        <div className="category-legend" style={{ marginTop: "4px", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
           {keys.map((key) => (
             <div 
               key={key} 
@@ -219,13 +219,15 @@ export function DailyProgressChart({
               style={{
                 opacity: activeLegend && activeLegend !== key ? 0.3 : 1,
                 transform: activeLegend === key ? "scale(1.02)" : "scale(1)",
+                padding: "2px 6px", // MODIFIED: Reduced padding to save space
+                fontSize: "11px" // MODIFIED: Reduced font size to save space
               }}
               onMouseEnter={() => setActiveLegend(key)}
               onMouseLeave={() => setActiveLegend(null)}
             >
               <span 
                 className="category-legend-dot transition-transform" 
-                style={{ background: colorFor(key), transform: activeLegend === key ? "scale(1.2)" : "scale(1)" }} 
+                style={{ background: colorFor(key), transform: activeLegend === key ? "scale(1.2)" : "scale(1)", marginRight: "4px", width: "8px", height: "8px" }} 
               />
               {key}
             </div>

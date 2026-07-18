@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuckedUp Dashboard — Developer Workflow</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding: 32px 24px 60px;
+    }
+
+    /* ─── PAGE WRAPPER ─── */
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2f4a 100%);
+      padding: 36px 48px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+    .header-title span.accent { color: #f5a623; }
+    .header-subtitle {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.4px;
+    }
+    .header-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .stack-pill {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ─── LEGEND ─── */
+    .legend-bar {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 48px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .legend-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6b7280;
+      margin-right: 4px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+    }
+    .legend-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .dot-human   { background: #f5a623; }
+    .dot-code    { background: #4ade80; border: 1px solid #22c55e; }
+    .dot-auto    { background: #c084fc; }
+    .dot-db      { background: #60a5fa; }
+    .dot-decision{ background: #f9a8d4; border: 1px solid #f472b6; border-radius: 50%; }
+
+    /* ─── DIAGRAM BODY ─── */
+    .diagram {
+      padding: 0 0 40px;
+    }
+
+    /* ─── SWIMLANE ─── */
+    .lane {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid #e5e7eb;
+      min-height: 130px;
+    }
+    .lane:last-child { border-bottom: none; }
+
+    .lane-label {
+      width: 110px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 10px;
+      background: #f3f4f6;
+      border-right: 2px solid #e5e7eb;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #4b5563;
+      user-select: none;
+    }
+    .lane-label.env   { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .lane-label.db    { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+    .lane-label.code  { background: #dcfce7; color: #15803d; border-color: #86efac; }
+    .lane-label.sec   { background: #fce7f3; color: #9d174d; border-color: #f9a8d4; }
+    .lane-label.test  { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+    .lane-label.deploy{ background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+
+    /* ─── STEPS ROW ─── */
+    .steps {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 20px 28px;
+      gap: 0;
+      flex-wrap: wrap;
+      row-gap: 16px;
+      position: relative;
+    }
+
+    /* ─── STEP WRAPPER (step + arrow) ─── */
+    .step-unit {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ─── ARROW ─── */
+    .arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      color: #9ca3af;
+      font-size: 18px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .arrow svg { display: block; }
+
+    /* ─── STEP BOX ─── */
+    .step {
+      position: relative;
+      border-radius: 10px;
+      padding: 10px 13px;
+      min-width: 120px;
+      max-width: 160px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: default;
+      flex-shrink: 0;
+    }
+    .step:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+    }
+    .step-num {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+      background: #374151;
+      padding: 2px 7px;
+      border-radius: 20px;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+    .step-icon {
+      font-size: 20px;
+      line-height: 1;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    .step-text {
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #1a1a2e;
+    }
+
+    /* Step colour themes */
+    .step.human   { background: #fef3c7; border: 1.5px solid #f5a623; }
+    .step.human   .step-num  { background: #d97706; }
+    .step.code    { background: #dcfce7; border: 1.5px solid #22c55e; }
+    .step.code    .step-num  { background: #15803d; }
+    .step.auto    { background: #f5f3ff; border: 1.5px solid #a78bfa; }
+    .step.auto    .step-num  { background: #7c3aed; }
+    .step.db      { background: #dbeafe; border: 1.5px solid #60a5fa; }
+    .step.db      .step-num  { background: #1d4ed8; }
+    .step.warn    { background: #fef9c3; border: 1.5px dashed #facc15; }
+    .step.warn    .step-num  { background: #ca8a04; }
+
+    /* ─── DECISION DIAMOND ─── */
+    .decision-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .diamond {
+      width: 90px;
+      height: 90px;
+      background: #fce7f3;
+      border: 2px solid #f472b6;
+      transform: rotate(45deg);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: default;
+      transition: transform 0.2s;
+    }
+    .diamond:hover { transform: rotate(45deg) scale(1.05); }
+    .diamond-inner {
+      transform: rotate(-45deg);
+      font-size: 11px;
+      font-weight: 700;
+      color: #9d174d;
+      text-align: center;
+      line-height: 1.3;
+      padding: 4px;
+      pointer-events: none;
+    }
+    .yes-label, .no-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #6b7280;
+      position: absolute;
+    }
+    .yes-label { top: -14px; }
+    .no-label  { bottom: -14px; }
+
+    /* ─── BRANCH ROWS (YES/NO below diamond) ─── */
+    .branch-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: flex-start;
+    }
+    .branch-yes, .branch-no {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 4px 0;
+    }
+    .branch-tag {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+    .branch-tag.yes { background: #bbf7d0; color: #14532d; }
+    .branch-tag.no  { background: #fecaca; color: #7f1d1d; }
+
+    /* ─── VERTICAL SPLIT (two rows in one lane) ─── */
+    .steps-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+    .sub-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 28px;
+      gap: 0;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .sub-row:last-child { border-bottom: none; }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a2f4a 100%);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+    .footer-brand span { color: #f5a623; }
+    .footer-note {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+    }
+    .footer-tag {
+      background: rgba(245,166,35,0.18);
+      border: 1px solid rgba(245,166,35,0.35);
+      color: #f5a623;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ─── UTILITY ─── */
+    .mt { margin-top: 8px; }
+    .sub-note {
+      font-size: 10px;
+      font-weight: 500;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    .wide { max-width: 200px; }
+    .wider { max-width: 230px; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <div class="header">
+    <div>
+      <div class="header-title">
+        BuckedUp<span class="accent"> Dashboard</span> — Developer Workflow
+      </div>
+      <div class="header-subtitle">
+        Repo: Lyduke56/BuckedUp-Dashboard-Lifewood &nbsp;·&nbsp; Maintainer: Lifewood Dev Team
+      </div>
+    </div>
+    <div class="header-stack">
+      <span class="stack-pill">Next.js 16</span>
+      <span class="stack-pill">React 19</span>
+      <span class="stack-pill">TypeScript</span>
+      <span class="stack-pill">Supabase</span>
+      <span class="stack-pill">Tailwind v4</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ LEGEND ═══════════════════ -->
+  <div class="legend-bar">
+    <span class="legend-label">Legend</span>
+    <div class="legend-item"><div class="legend-dot dot-human"></div> Human / Manual Step</div>
+    <div class="legend-item"><div class="legend-dot dot-code"></div> Code / Build Step</div>
+    <div class="legend-item"><div class="legend-dot dot-auto"></div> Automated / Script</div>
+    <div class="legend-item"><div class="legend-dot dot-db"></div> Database / Supabase</div>
+    <div class="legend-item"><div class="legend-dot dot-decision"></div> Decision Gate</div>
+  </div>
+
+  <!-- ═══════════════════ DIAGRAM ═══════════════════ -->
+  <div class="diagram">
+
+    <!-- ══════════ LANE 1 — Environment Setup ══════════ -->
+    <div class="lane">
+      <div class="lane-label env">Environment<br>Setup</div>
+      <div class="steps">
+
+        <div class="step-unit">
+          <div class="step human">
+            <div class="step-num">1.0</div>
+            <div class="step-icon">🖥️</div>
+            <div class="step-text">Clone repo &amp; run npm install</div>
+            <div class="sub-note">Node ≥ 18 required</div>
+          </div>
+        </div>
+
+        <div class="arrow">
+          <svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg>
+        </div>
+
+        <div class="step-unit">
+          <div class="step human">
+            <div class="step-num">2.0</div>
+            <div class="step-icon">🔑</div>
+            <div class="step-text">Create .env.local with Supabase keys</div>
+            <div class="sub-note">NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, DB_URL…</div>
+          </div>
+        </div>
+
+        <div class="arrow">
+          <svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg>
+        </div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">3.0</div>
+            <div class="step-icon">⚡</div>
+            <div class="step-text">npm run dev → localhost:3000</div>
+            <div class="sub-note">Hot-reload enabled</div>
+          </div>
+        </div>
+
+        <div class="arrow">
+          <svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg>
+        </div>
+
+        <div class="step-unit">
+          <div class="step human">
+            <div class="step-num">4.0</div>
+            <div class="step-icon">🔐</div>
+            <div class="step-text">First signup → auto-provisioned as Admin</div>
+            <div class="sub-note">handle_new_user() trigger</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /lane 1 -->
+
+    <!-- ══════════ LANE 2 — Database Setup ══════════ -->
+    <div class="lane">
+      <div class="lane-label db">Database<br>Setup</div>
+      <div class="steps-col">
+
+        <!-- Decision row -->
+        <div class="sub-row" style="gap:20px; align-items:flex-start; padding-top:20px; padding-bottom:20px;">
+
+          <!-- Decision Diamond -->
+          <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; margin-top:8px;">
+            <div class="diamond">
+              <div class="diamond-inner">Fresh<br>Project?</div>
+            </div>
+          </div>
+
+          <!-- YES / NO branches -->
+          <div class="branch-block" style="margin-top:4px;">
+
+            <div class="branch-yes">
+              <span class="branch-tag yes">YES</span>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step auto" style="min-width:150px;">
+                <div class="step-num">5.0</div>
+                <div class="step-icon">🗄️</div>
+                <div class="step-text">npm run db:apply-schema</div>
+                <div class="sub-note">Applies supabase/schema.sql once</div>
+              </div>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step auto" style="min-width:145px;">
+                <div class="step-num">6.0</div>
+                <div class="step-icon">🌱</div>
+                <div class="step-text">npm run db:seed-catalog</div>
+                <div class="sub-note">Populates catalog_products</div>
+              </div>
+            </div>
+
+            <div class="branch-no" style="margin-top:12px;">
+              <span class="branch-tag no">NO</span>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step code" style="min-width:165px;">
+                <div class="step-num">7.0</div>
+                <div class="step-icon">📝</div>
+                <div class="step-text">Write migration script in scripts/</div>
+                <div class="sub-note">tsx --env-file=.env.local scripts/migrate-*.ts</div>
+              </div>
+            </div>
+
+          </div><!-- /branch-block -->
+
+          <!-- Common next step -->
+          <div class="arrow" style="margin-top:24px;"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+          <div class="step human" style="margin-top:24px; min-width:155px;">
+            <div class="step-num">8.0</div>
+            <div class="step-icon">📡</div>
+            <div class="step-text">Enable Realtime for all tables in Supabase Dashboard</div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /lane 2 -->
+
+    <!-- ══════════ LANE 3 — Feature Development ══════════ -->
+    <div class="lane">
+      <div class="lane-label code">Feature<br>Development</div>
+      <div class="steps">
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">9.0</div>
+            <div class="step-icon">🧩</div>
+            <div class="step-text">Define TypeScript type in lib/types.ts</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">10.0</div>
+            <div class="step-icon">🪝</div>
+            <div class="step-text">Write Supabase Realtime hook in lib/use*.ts</div>
+            <div class="sub-note">useRef + channel + load pattern</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">11.0</div>
+            <div class="step-icon">⚛️</div>
+            <div class="step-text">Build components — Atom → Molecule → Organism → Template</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">12.0</div>
+            <div class="step-icon">🎨</div>
+            <div class="step-text">Add CSS classes to app/globals.css</div>
+            <div class="sub-note">All styles in one file — no exceptions</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">13.0</div>
+            <div class="step-icon">🌗</div>
+            <div class="step-text">Test dark + light theme — use CSS vars, never hardcode hex</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /lane 3 -->
+
+    <!-- ══════════ LANE 4 — Security & Permissions ══════════ -->
+    <div class="lane">
+      <div class="lane-label sec">Security &amp;<br>Permissions</div>
+      <div class="steps-col">
+        <div class="sub-row" style="gap:20px; align-items:flex-start; padding-top:20px; padding-bottom:20px;">
+
+          <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; margin-top:8px;">
+            <div class="diamond">
+              <div class="diamond-inner">Role-<br>Restricted?</div>
+            </div>
+          </div>
+
+          <div class="branch-block" style="margin-top:4px;">
+
+            <div class="branch-yes">
+              <span class="branch-tag yes">YES</span>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step db" style="min-width:175px;">
+                <div class="step-num">14.0</div>
+                <div class="step-icon">🛡️</div>
+                <div class="step-text">Add RLS policy or trigger to supabase/schema.sql FIRST</div>
+                <div class="sub-note">DB is the real security boundary</div>
+              </div>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step code" style="min-width:160px;">
+                <div class="step-num">15.0</div>
+                <div class="step-icon">👁️</div>
+                <div class="step-text">Add UI role check for UX (canManageCatalog, isAdmin…)</div>
+              </div>
+            </div>
+
+            <div class="branch-no" style="margin-top:12px;">
+              <span class="branch-tag no">NO</span>
+              <div class="arrow"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+              <div class="step code" style="min-width:145px;">
+                <div class="step-num">14b.0</div>
+                <div class="step-icon">✅</div>
+                <div class="step-text">Skip DB trigger — public RLS read policy is sufficient</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="arrow" style="margin-top:24px;"><svg width="24" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+          <div class="step db" style="margin-top:24px; min-width:150px;">
+            <div class="step-num">16.0</div>
+            <div class="step-icon">🔄</div>
+            <div class="step-text">Apply SQL change in Supabase Dashboard SQL Editor</div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /lane 4 -->
+
+    <!-- ══════════ LANE 5 — API Routes (if needed) ══════════ -->
+    <div class="lane">
+      <div class="lane-label code" style="background:#e0f2fe; color:#0c4a6e; border-color:#7dd3fc;">API Routes<br>(if needed)</div>
+      <div class="steps">
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">17.0</div>
+            <div class="step-icon">📁</div>
+            <div class="step-text">Create app/api/&lt;path&gt;/route.ts</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step db">
+            <div class="step-num">18.0</div>
+            <div class="step-icon">🔒</div>
+            <div class="step-text">Call supabase.auth.getUser() first — always</div>
+            <div class="sub-note">Middleware skips /api/* routes</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step db">
+            <div class="step-num">19.0</div>
+            <div class="step-icon">👤</div>
+            <div class="step-text">Check profile.role for restricted routes (admin-only)</div>
+            <div class="sub-note">Use server client, not browser client</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">20.0</div>
+            <div class="step-icon">📤</div>
+            <div class="step-text">Return NextResponse.json() — never plain Response</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /lane 5 -->
+
+    <!-- ══════════ LANE 6 — Test, Review & Deploy ══════════ -->
+    <div class="lane">
+      <div class="lane-label test">Test &amp;<br>Deploy</div>
+      <div class="steps">
+
+        <div class="step-unit">
+          <div class="step human">
+            <div class="step-num">21.0</div>
+            <div class="step-icon">👥</div>
+            <div class="step-text">Test all 3 roles: Operator, Lead, Admin</div>
+            <div class="sub-note">Check both dark + light themes</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">22.0</div>
+            <div class="step-icon">🧹</div>
+            <div class="step-text">npm run lint — fix all ESLint errors</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step code">
+            <div class="step-num">23.0</div>
+            <div class="step-icon">🏗️</div>
+            <div class="step-text">npm run build — verify production build passes</div>
+            <div class="sub-note">Strict TypeScript — must compile clean</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step human">
+            <div class="step-num">24.0</div>
+            <div class="step-icon">🔍</div>
+            <div class="step-text">Code review — check RLS, schema.sql updated, no hardcoded hex</div>
+          </div>
+        </div>
+
+        <div class="arrow"><svg width="28" height="14" viewBox="0 0 28 14"><line x1="2" y1="7" x2="22" y2="7" stroke="#9ca3af" stroke-width="2"/><polygon points="22,3 28,7 22,11" fill="#9ca3af"/></svg></div>
+
+        <div class="step-unit">
+          <div class="step auto">
+            <div class="step-num">25.0</div>
+            <div class="step-icon">🚀</div>
+            <div class="step-text">Deploy — all connected users see update via Realtime</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /lane 6 -->
+
+  </div><!-- /diagram -->
+
+  <!-- ═══════════════════ CRITICAL RULES STRIP ═══════════════════ -->
+  <div style="background:#fff8e1; border-top:2px solid #f5a623; border-bottom:2px solid #f5a623; padding:18px 48px;">
+    <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#92400e; margin-bottom:12px;">⚠️ Critical Rules — Never Break These</div>
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🗄️ Update <code>schema.sql</code> before the live DB
+      </div>
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🎨 All styles in <code>globals.css</code> — one file only
+      </div>
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🛡️ DB is the security boundary — UI hides, DB blocks
+      </div>
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🪝 Use <code>useRef(createClient())</code> — not inside useEffect
+      </div>
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🔄 Always clean up Realtime channels on unmount
+      </div>
+      <div style="background:#fff; border:1.5px solid #fcd34d; border-radius:8px; padding:8px 14px; font-size:11.5px; font-weight:600; color:#1a1a2e; flex:1; min-width:180px;">
+        🔐 Never remove <code>getUser()</code> call in <code>proxy.ts</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <div class="footer">
+    <div class="footer-brand">🦬 <span>BuckedUp</span> Dashboard</div>
+    <div class="footer-note">Internal tool · Lifewood Development · Last updated July 2026</div>
+    <div class="footer-tag">lifewood</div>
+  </div>
+
+</div><!-- /page -->
+
+</body>
+</html>

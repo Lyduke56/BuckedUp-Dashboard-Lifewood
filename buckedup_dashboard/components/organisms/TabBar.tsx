@@ -47,7 +47,9 @@ export function TabBar({ activeView, onViewChange, role }: TabBarProps) {
       ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], ADMIN_TAB, BUCKY_TAB]
       : role === "lead"
         ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB]
-        : BASE_TABS;
+        : role === "operator"
+          ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1]] // No Analytics for Operator
+          : BASE_TABS;
 
   return (
     <nav className="tab-bar">

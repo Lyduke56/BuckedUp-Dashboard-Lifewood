@@ -38,6 +38,7 @@ interface ProductRow {
   video_url: string | null;
   thumbnail_url: string | null;
   catalog_product_id: string | null;
+  created_at: string;
 }
 
 function toProduct(row: ProductRow): Product {
@@ -62,6 +63,7 @@ function toProduct(row: ProductRow): Product {
     deliveryType: row.delivery_type === "link" ? "link" : "pipeline",
     thumbnailUrl: row.thumbnail_url,
     catalogProductId: row.catalog_product_id ?? null,
+    createdAt: row.created_at,
     items: [
       {
         name: type ? `${row.name} — ${type}` : row.name,

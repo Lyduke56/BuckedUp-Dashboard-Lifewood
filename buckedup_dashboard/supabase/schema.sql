@@ -295,6 +295,8 @@ create policy "Own notifications" on notifications for select
   using (recipient_id = auth.uid());
 create policy "Mark own notifications read" on notifications for update
   using (recipient_id = auth.uid());
+create policy "Delete own notifications" on notifications for delete
+  using (recipient_id = auth.uid());
 
 create or replace function notify_issue_reported()
 returns trigger as $$

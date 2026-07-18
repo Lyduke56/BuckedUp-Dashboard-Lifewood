@@ -14,7 +14,7 @@ export function ProductionOutputWidget() {
   const { plan } = useProductionPlan();
   const todayStats = useTodayStats();
   const { products } = useVideoRequests();
-  const { role } = useAuth();
+  const { user, role } = useAuth();
   const [editingDeadline, setEditingDeadline] = useState(false);
   const [deadlineDraft, setDeadlineDraft] = useState("");
   const [saving, setSaving] = useState(false);
@@ -56,15 +56,19 @@ export function ProductionOutputWidget() {
     );
   }
 
+  const userProducts = role === "operator"
+    ? products.filter(p => p.ownerId === user?.id)
+    : products;
+
   const dailyGoal = Object.values(plan.categoryTargets || {}).reduce((sum, val) => sum + Number(val), 0);
   const dailyPct = dailyGoal > 0 ? Math.min(100, Math.round((todayStats.publishedToday / dailyGoal) * 100)) : 0;
 
   const totalTarget = plan.totalVideoTarget || 0;
-  const overallStaged = products.filter((p) => p.items[0]?.status !== "Not Started").length;
+  const overallStaged = userProducts.filter((p) => p.items[0]?.status !== "Not Started").length;
   const remainingToStage = Math.max(0, totalTarget - overallStaged);
   const stagingPct = totalTarget > 0 ? Math.min(100, Math.round((overallStaged / totalTarget) * 100)) : 0;
 
-  const overallPublished = products.filter((p) => p.items[0]?.status === "Published").length;
+  const overallPublished = userProducts.filter((p) => p.items[0]?.status === "Published").length;
   const publishedPct = totalTarget > 0 ? Math.min(100, Math.round((overallPublished / totalTarget) * 100)) : 0;
 
   const { daysToDeadline } = computeProjectPacing(publishedPct, new Date(), plan.startDate, plan.deadline);

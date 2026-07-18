@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import type { Product } from "@/lib/types";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { useStageAge } from "@/lib/useStageAge";
@@ -22,6 +23,23 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
   const { plan } = useProductionPlan();
   const dailyProgress = useDailyProgress(plan?.startDate, plan?.dailyAccumulativeTargets);
 
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (!p.createdAt) return true; // Fallback if no createdAt
+      const createdDate = new Date(p.createdAt);
+      if (startDate && createdDate < new Date(startDate)) return false;
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (createdDate > end) return false;
+      }
+      return true;
+    });
+  }, [products, startDate, endDate]);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
@@ -29,6 +47,32 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
         overline="PERFORMANCE" 
         subtitle="Current snapshot of the queue — reflects the live production stage, rejection analytics, and owner workloads."
       />
+
+      <div className="flex items-center gap-4 py-3 px-4 bg-[var(--surface-sunken)] rounded-xl border border-[var(--glass-border)]">
+        <span className="text-sm font-medium text-[var(--ink-soft)]">Date Range:</span>
+        <input 
+          type="date" 
+          value={startDate} 
+          onChange={(e) => setStartDate(e.target.value)}
+          className="bg-transparent border border-[var(--line)] rounded-md px-3 py-1.5 text-sm outline-none focus:border-[var(--castleton)]"
+        />
+        <span className="text-[var(--ink-soft)]">to</span>
+        <input 
+          type="date" 
+          value={endDate} 
+          onChange={(e) => setEndDate(e.target.value)}
+          className="bg-transparent border border-[var(--line)] rounded-md px-3 py-1.5 text-sm outline-none focus:border-[var(--castleton)]"
+        />
+        {(startDate || endDate) && (
+          <button 
+            type="button" 
+            className="text-xs text-[var(--castleton)] font-medium hover:underline ml-2"
+            onClick={() => { setStartDate(""); setEndDate(""); }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       {/* Tightly aligned 3-Column Grid representing the "invisible square" layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -54,7 +98,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
               Review status distribution
             </div>
             <div className="chart-mt">
-              <ReviewStatusChart products={products} />
+              <ReviewStatusChart products={filteredProducts} />
             </div>
           </div>
           <div className="callout callout-inline mt-6">
@@ -73,7 +117,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Cumulative progression showing pipeline conversion rates.
           </div>
           <div className="chart-mt">
-            <FunnelChart products={products} />
+            <FunnelChart products={filteredProducts} />
           </div>
         </div>
 
@@ -86,7 +130,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Average days products have spent in their current stage.
           </div>
           <div className="chart-mt">
-            <StageAgeChart products={products} stageAgeByProductId={stageAgeByProductId} />
+            <StageAgeChart products={filteredProducts} stageAgeByProductId={stageAgeByProductId} />
           </div>
         </div>
 
@@ -99,7 +143,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Proportion of all items currently sitting in each stage.
           </div>
           <div className="chart-mt">
-            <StatusChart products={products} stageTargets={plan?.stageTargets} />
+            <StatusChart products={filteredProducts} stageTargets={plan?.stageTargets} />
           </div>
         </div>
 
@@ -110,7 +154,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Rejection rate by category
           </div>
           <div className="chart-mt flex flex-col gap-4">
-            <RejectionRateChart products={products} />
+            <RejectionRateChart products={filteredProducts} />
           </div>
         </div>
 
@@ -120,7 +164,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Delivery progress by language
           </div>
           <div className="chart-mt flex flex-col gap-4">
-            <LanguageProgressChart products={products} languageTargets={plan?.languageTargets} />
+            <LanguageProgressChart products={filteredProducts} languageTargets={plan?.languageTargets} />
           </div>
         </div>
 
@@ -134,7 +178,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
             Current assignment counts and active vs published status per person.
           </div>
           <div className="chart-mt">
-            <OwnerWorkloadChart products={products} />
+            <OwnerWorkloadChart products={filteredProducts} />
           </div>
         </div>
 

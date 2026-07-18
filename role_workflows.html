@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BuckedUp Dashboard — Role Workflows</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#eef0f4;min-height:100vh;padding:28px 20px 60px}
+
+/* ─── PAGE ─── */
+.page{max-width:1240px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 6px 48px rgba(0,0,0,.12);overflow:hidden}
+
+/* ─── HEADER ─── */
+.hdr{padding:32px 52px 24px;background:linear-gradient(135deg,#0d1b2a,#1b3352);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.hdr-left h1{font-size:26px;font-weight:800;color:#fff;line-height:1.15}
+.hdr-left h1 span{color:#f5a623}
+.hdr-left p{margin-top:5px;font-size:12px;color:rgba(255,255,255,.45);font-weight:500}
+.hdr-right{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px}
+
+/* ─── TAB BAR ─── */
+.tabs{display:flex;border-bottom:2px solid #e5e7eb;background:#f9fafb;padding:0 52px;gap:4px}
+.tab{padding:14px 24px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:none;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .2s,border-color .2s;user-select:none;letter-spacing:.2px}
+.tab:hover{color:#374151}
+.tab.active-op{color:#2563eb;border-bottom-color:#2563eb}
+.tab.active-lead{color:#d97706;border-bottom-color:#d97706}
+.tab.active-admin{color:#dc2626;border-bottom-color:#dc2626}
+
+/* ─── LEGEND BAR ─── */
+.legend-bar{display:flex;align-items:center;gap:24px;padding:12px 52px;background:#f9fafb;border-bottom:1px solid #e5e7eb;flex-wrap:wrap}
+.lgd-title{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;margin-right:4px}
+.lgd-item{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;color:#374151}
+.lgd-box{width:16px;height:14px;border-radius:4px}
+.lgd-diamond{width:14px;height:14px;transform:rotate(45deg);border-radius:3px}
+.c-human {background:#fde68a;border:1.5px solid #f59e0b}
+.c-sys   {background:#a7f3d0;border:1.5px solid #10b981}
+.c-db    {background:#bfdbfe;border:1.5px solid #3b82f6}
+.c-block {background:#fecaca;border:1.5px solid #ef4444}
+.c-dec   {background:#f9a8d4;border:1.5px solid #ec4899}
+
+/* ─── DIAGRAM WRAP ─── */
+.diagram{padding:8px 0 40px}
+.role-panel{display:none}
+.role-panel.visible{display:block}
+
+/* ─── SWIMLANE ─── */
+.lane{display:flex;align-items:stretch;border-bottom:1px solid #e9ecef;min-height:136px}
+.lane:last-child{border-bottom:none}
+.lane-lbl{width:108px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:12px 8px;border-right:2px solid #e9ecef;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;user-select:none}
+/* lane themes */
+.ll-blue{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.ll-green{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.ll-amber{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.ll-purple{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.ll-rose{background:#ffe4e6;color:#9f1239;border-color:#fda4af}
+.ll-slate{background:#f1f5f9;color:#334155;border-color:#cbd5e1}
+/* lead colours */
+.ll-lead1{background:#fef9c3;color:#713f12;border-color:#fde047}
+.ll-lead2{background:#dcfce7;color:#14532d;border-color:#86efac}
+.ll-lead3{background:#ffedd5;color:#7c2d12;border-color:#fdba74}
+.ll-lead4{background:#ede9fe;color:#4c1d95;border-color:#c4b5fd}
+.ll-lead5{background:#e0f2fe;color:#075985;border-color:#7dd3fc}
+/* admin colours */
+.ll-adm1{background:#fce7f3;color:#831843;border-color:#f9a8d4}
+.ll-adm2{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.ll-adm3{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.ll-adm4{background:#dbeafe;color:#1e3a5f;border-color:#93c5fd}
+
+/* ─── STEPS ROW ─── */
+.steps{flex:1;display:flex;align-items:center;padding:18px 28px;gap:0;flex-wrap:wrap;row-gap:14px}
+
+/* ─── ARROW ─── */
+.arr{display:flex;align-items:center;padding:0 5px;flex-shrink:0}
+.arr svg{display:block}
+
+/* ─── STEP ─── */
+.step{position:relative;border-radius:10px;padding:9px 12px;min-width:118px;max-width:155px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07);flex-shrink:0;transition:transform .15s,box-shadow .15s;cursor:default}
+.step:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+.step-num{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;color:#fff;background:#374151;padding:2px 7px;border-radius:12px;white-space:nowrap;letter-spacing:.2px}
+.step-icon{font-size:19px;line-height:1;margin-top:10px;margin-bottom:3px}
+.step-text{font-size:11px;font-weight:600;line-height:1.35;color:#1a1a2e}
+.step-note{font-size:9.5px;font-weight:500;color:#6b7280;margin-top:2px}
+
+/* step colour themes */
+.s-human{background:#fef3c7;border:1.5px solid #f59e0b}
+.s-human .step-num{background:#d97706}
+.s-sys  {background:#d1fae5;border:1.5px solid #10b981}
+.s-sys  .step-num{background:#059669}
+.s-db   {background:#dbeafe;border:1.5px solid #3b82f6}
+.s-db   .step-num{background:#1d4ed8}
+.s-block{background:#fef2f2;border:1.5px dashed #ef4444}
+.s-block .step-num{background:#dc2626}
+.s-block .step-text{color:#991b1b}
+
+/* ─── DECISION ─── */
+.dec-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;margin:0 6px}
+.diamond{width:84px;height:84px;background:#fce7f3;border:2px solid #f472b6;transform:rotate(45deg);border-radius:6px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .2s;cursor:default}
+.diamond:hover{transform:rotate(45deg) scale(1.06)}
+.d-inner{transform:rotate(-45deg);font-size:10.5px;font-weight:700;color:#9d174d;text-align:center;line-height:1.3;padding:4px;pointer-events:none}
+
+/* ─── BRANCH BLOCK ─── */
+.branch-wrap{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.branch-row{display:flex;align-items:center;gap:0}
+.b-tag{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:4px;margin-right:5px;flex-shrink:0}
+.b-yes{background:#bbf7d0;color:#14532d}
+.b-no {background:#fecaca;color:#7f1d1d}
+
+/* ─── CANNOT SECTION ─── */
+.cannot-strip{background:#fff5f5;border-top:1px solid #fecaca;border-bottom:1px solid #fecaca;padding:16px 52px}
+.cannot-title{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#991b1b;margin-bottom:10px}
+.cannot-grid{display:flex;flex-wrap:wrap;gap:8px}
+.cannot-item{background:#fff;border:1.5px solid #fca5a5;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;color:#7f1d1d;flex:1;min-width:170px}
+
+/* ─── FOOTER ─── */
+.ftr{background:linear-gradient(135deg,#0d1b2a,#1b3352);padding:16px 52px;display:flex;align-items:center;justify-content:space-between}
+.ftr-brand{font-size:15px;font-weight:800;color:#fff}
+.ftr-brand span{color:#f5a623}
+.ftr-note{font-size:11px;color:rgba(255,255,255,.4)}
+.ftr-tag{background:rgba(245,166,35,.18);border:1px solid rgba(245,166,35,.35);color:#f5a623;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══ HEADER ══ -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>BuckedUp <span>Dashboard</span> — Role Workflows</h1>
+    <p>BuckedUp AIGC Video Production Dashboard &nbsp;·&nbsp; Step-by-step user journey per role &nbsp;·&nbsp; July 2026</p>
+  </div>
+  <div class="hdr-right">
+    <span class="pill">Operator</span>
+    <span class="pill">Lead</span>
+    <span class="pill">Admin</span>
+    <span class="pill">Supabase</span>
+  </div>
+</div>
+
+<!-- ══ TAB BAR ══ -->
+<div class="tabs">
+  <button class="tab active-op" onclick="switchTab('op',this)">🟦 Operator Workflow</button>
+  <button class="tab" onclick="switchTab('lead',this)">🟨 Lead Workflow</button>
+  <button class="tab" onclick="switchTab('admin',this)">🟥 Admin Workflow</button>
+</div>
+
+<!-- ══ LEGEND ══ -->
+<div class="legend-bar">
+  <span class="lgd-title">Legend</span>
+  <div class="lgd-item"><div class="lgd-box c-human"></div>Human / User Action</div>
+  <div class="lgd-item"><div class="lgd-box c-sys"></div>System / Automated</div>
+  <div class="lgd-item"><div class="lgd-box c-db"></div>Database Operation</div>
+  <div class="lgd-item"><div class="lgd-box c-block"></div>Blocked Action</div>
+  <div class="lgd-item"><div class="lgd-diamond c-dec"></div>Decision Gate</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     OPERATOR PANEL
+══════════════════════════════════════ -->
+<div id="panel-op" class="role-panel visible">
+<div class="diagram">
+
+  <!-- LANE: Login & Access -->
+  <div class="lane">
+    <div class="lane-lbl ll-blue">Login &amp; Access</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">1.0</div>
+        <div class="step-icon">🌐</div>
+        <div class="step-text">Open BuckedUp Dashboard</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">2.0</div>
+        <div class="step-icon">🔐</div>
+        <div class="step-text">Enter email + password on /login</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <!-- Decision -->
+      <div class="dec-wrap">
+        <div class="diamond"><div class="d-inner">First<br>Login?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:6px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">YES</span>
+          <div class="arr"><svg width="22" height="14"><line x1="2" y1="7" x2="16" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="16,3.5 22,7 16,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:140px">
+            <div class="step-num">3.0</div>
+            <div class="step-icon">🔑</div>
+            <div class="step-text">ForcePasswordChangeView — set new password</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-no">NO</span>
+          <div class="arr"><svg width="22" height="14"><line x1="2" y1="7" x2="16" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="16,3.5 22,7 16,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-sys" style="min-width:118px">
+            <div class="step-num">4.0</div>
+            <div class="step-icon">🏠</div>
+            <div class="step-text">Dashboard loads — Overview tab</div>
+            <div class="step-note">Session from Supabase Auth cookie</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Browse Library -->
+  <div class="lane">
+    <div class="lane-lbl ll-green">Browse &amp; Filter</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">5.0</div>
+        <div class="step-icon">📚</div>
+        <div class="step-text">Navigate to Video Library tab</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">6.0</div>
+        <div class="step-icon">🙋</div>
+        <div class="step-text">Enable "My Items" filter — own assigned products only</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">7.0</div>
+        <div class="step-icon">🔍</div>
+        <div class="step-text">Apply Stage / Rejected / Search filters</div>
+        <div class="step-note">Real-time via Supabase Realtime</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">8.0</div>
+        <div class="step-icon">🗂️</div>
+        <div class="step-text">Choose layout: Table / Grid / Board</div>
+        <div class="step-note">View-only access to Board — cannot drag</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Submit Deliverable -->
+  <div class="lane" style="min-height:180px">
+    <div class="lane-lbl ll-amber">Submit Deliverable</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+      <div class="step s-human" style="margin-top:18px">
+        <div class="step-num">9.0</div>
+        <div class="step-icon">📦</div>
+        <div class="step-text">Find assigned product — click Upload button</div>
+        <div class="step-note">Opens ProductionModal</div>
+      </div>
+      <div class="arr" style="margin-top:46px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <!-- Decision: stage -->
+      <div class="dec-wrap" style="margin-top:6px">
+        <div class="diamond"><div class="d-inner">Current<br>Stage?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px;gap:8px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">STORY / SCRIPT</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:148px">
+            <div class="step-num">10.0</div>
+            <div class="step-icon">📄</div>
+            <div class="step-text">Choose File (PDF/DOCX) or Text — upload or paste</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-yes">PROMPTING</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:140px">
+            <div class="step-num">11.0</div>
+            <div class="step-icon">💬</div>
+            <div class="step-text">Text only — paste AI prompt</div>
+            <div class="step-note">No file upload option</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-yes">EDITING</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:148px">
+            <div class="step-num">12.0</div>
+            <div class="step-icon">🎬</div>
+            <div class="step-text">Upload video file → click "Submit for Review"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arr" style="margin-top:44px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-db" style="margin-top:44px">
+        <div class="step-num">13.0</div>
+        <div class="step-icon">💾</div>
+        <div class="step-text">Deliverable saved — status: pending — Lead notified</div>
+        <div class="step-note">stage_deliverables row inserted</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Receive Feedback -->
+  <div class="lane">
+    <div class="lane-lbl ll-purple">Receive Feedback</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+      <div class="step s-sys" style="margin-top:18px">
+        <div class="step-num">14.0</div>
+        <div class="step-icon">⏳</div>
+        <div class="step-text">Awaiting Lead review — decision banner shown</div>
+        <div class="step-note">Banner: pending / accepted / rejected</div>
+      </div>
+      <div class="arr" style="margin-top:46px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <div class="dec-wrap" style="margin-top:6px">
+        <div class="diamond"><div class="d-inner">Lead's<br>Decision?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">ACCEPTED</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-sys" style="min-width:140px">
+            <div class="step-num">15.0</div>
+            <div class="step-icon">✅</div>
+            <div class="step-text">Stage auto-advances — green banner shown</div>
+            <div class="step-note">Move to next stage</div>
+          </div>
+        </div>
+        <div class="branch-row" style="margin-top:8px">
+          <span class="b-tag b-no">REJECTED</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:148px">
+            <div class="step-num">16.0</div>
+            <div class="step-icon">🔁</div>
+            <div class="step-text">Read rejection note — address feedback — re-submit</div>
+            <div class="step-note">Loops back to step 10-12</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arr" style="margin-top:28px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-sys" style="margin-top:28px">
+        <div class="step-num">17.0</div>
+        <div class="step-icon">🔔</div>
+        <div class="step-text">In-app notification received</div>
+        <div class="step-note">assigned / rejected / issue_reported</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Issue Tracking -->
+  <div class="lane">
+    <div class="lane-lbl ll-rose">Issue Tracking</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">18.0</div>
+        <div class="step-icon">🚩</div>
+        <div class="step-text">Click flag icon on product row</div>
+        <div class="step-note">Opens expanded row detail</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">19.0</div>
+        <div class="step-icon">⚠️</div>
+        <div class="step-text">Select severity: low / medium / high — type description</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-db">
+        <div class="step-num">20.0</div>
+        <div class="step-icon">📋</div>
+        <div class="step-text">Issue inserted — product owner notified</div>
+        <div class="step-note">issues table row created</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">21.0</div>
+        <div class="step-icon">🛠️</div>
+        <div class="step-text">Fix the issue — click "Resolve" to close it</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANNOT DO -->
+  <div class="cannot-strip">
+    <div class="cannot-title">❌ Operator CANNOT Do</div>
+    <div class="cannot-grid">
+      <div class="cannot-item">Move product stages (DB trigger blocks it)</div>
+      <div class="cannot-item">Create / add products to pipeline</div>
+      <div class="cannot-item">Edit product or catalog fields</div>
+      <div class="cannot-item">Delete products</div>
+      <div class="cannot-item">Submit for non-owned products (RLS blocks)</div>
+      <div class="cannot-item">Approve / reject deliverables</div>
+      <div class="cannot-item">Access Planning tab</div>
+      <div class="cannot-item">Access Admin tab</div>
+      <div class="cannot-item">Create / edit production plan</div>
+      <div class="cannot-item">Request videos from Catalog</div>
+      <div class="cannot-item">Change any user's role</div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /op panel -->
+
+<!-- ══════════════════════════════════════
+     LEAD PANEL
+══════════════════════════════════════ -->
+<div id="panel-lead" class="role-panel">
+<div class="diagram">
+
+  <!-- LANE: Login -->
+  <div class="lane">
+    <div class="lane-lbl ll-lead1">Login &amp; Access</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">1.0</div>
+        <div class="step-icon">🌐</div>
+        <div class="step-text">Open BuckedUp Dashboard</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">2.0</div>
+        <div class="step-icon">🔐</div>
+        <div class="step-text">Enter email + password on /login</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-sys">
+        <div class="step-num">3.0</div>
+        <div class="step-icon">🏠</div>
+        <div class="step-text">Dashboard loads — Overview tab</div>
+        <div class="step-note">Reads pacing, KPIs, deadline</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">4.0</div>
+        <div class="step-icon">✏️</div>
+        <div class="step-text">Edit deadline inline on Overview widget</div>
+        <div class="step-note">Lead-exclusive — saves to production_plans</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Catalog Management -->
+  <div class="lane" style="min-height:190px">
+    <div class="lane-lbl ll-lead2">Catalog Management</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+      <div class="step s-human" style="margin-top:24px">
+        <div class="step-num">5.0</div>
+        <div class="step-icon">🛍️</div>
+        <div class="step-text">Navigate to Catalog tab — browse, search, filter</div>
+      </div>
+      <div class="arr" style="margin-top:52px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <div class="dec-wrap" style="margin-top:12px">
+        <div class="diamond"><div class="d-inner">Action?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px;gap:6px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">ADD</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:140px">
+            <div class="step-num">6.0</div>
+            <div class="step-icon">➕</div>
+            <div class="step-text">Fill form — Name, Category, Price, URL — Save to catalog_products</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-yes">EDIT</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:128px">
+            <div class="step-num">7.0</div>
+            <div class="step-icon">📝</div>
+            <div class="step-text">Open edit form — modify fields — save</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-yes">REQUEST VIDEO</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:155px">
+            <div class="step-num">8.0</div>
+            <div class="step-icon">🎥</div>
+            <div class="step-text">Fill: Language, Type, Angle, Owner, Rank → creates pipeline product</div>
+            <div class="step-note">products row inserted: Not Started</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Pipeline Control -->
+  <div class="lane">
+    <div class="lane-lbl ll-lead3">Pipeline Control</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">9.0</div>
+        <div class="step-icon">📋</div>
+        <div class="step-text">Open Video Library — sees ALL products at ALL stages</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">10.0</div>
+        <div class="step-icon">🔄</div>
+        <div class="step-text">Move stage via dropdown OR drag Kanban card</div>
+        <div class="step-note">Lead-exclusive canMoveStage</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">11.0</div>
+        <div class="step-icon">👤</div>
+        <div class="step-text">Assign Operator as owner — edit product form</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-db">
+        <div class="step-num">12.0</div>
+        <div class="step-icon">📡</div>
+        <div class="step-text">Stage update saved — Operator notified in real-time</div>
+        <div class="step-note">Trigger: products_notify_changes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Review Deliverables -->
+  <div class="lane" style="min-height:175px">
+    <div class="lane-lbl ll-lead4">Review Deliverables</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+      <div class="step s-sys" style="margin-top:20px">
+        <div class="step-num">13.0</div>
+        <div class="step-icon">🔴</div>
+        <div class="step-text">Review button badge appears on pending product row</div>
+        <div class="step-note">Pending stage_deliverables row exists</div>
+      </div>
+      <div class="arr" style="margin-top:48px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human" style="margin-top:20px">
+        <div class="step-num">14.0</div>
+        <div class="step-icon">👁️</div>
+        <div class="step-text">Open ProductReviewModal — read doc or watch video</div>
+      </div>
+      <div class="arr" style="margin-top:48px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <div class="dec-wrap" style="margin-top:10px">
+        <div class="diamond"><div class="d-inner">Accept<br>or Reject?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">ACCEPT</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-db" style="min-width:148px">
+            <div class="step-num">15.0</div>
+            <div class="step-icon">✅</div>
+            <div class="step-text">Stage auto-advances — review_stage_deliverable RPC — Operator notified</div>
+          </div>
+        </div>
+        <div class="branch-row" style="margin-top:8px">
+          <span class="b-tag b-no">REJECT</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:148px">
+            <div class="step-num">16.0</div>
+            <div class="step-icon">↩️</div>
+            <div class="step-text">Add rejection note — Operator notified — Operator re-submits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Planning -->
+  <div class="lane">
+    <div class="lane-lbl ll-lead5">Planning</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">17.0</div>
+        <div class="step-icon">📅</div>
+        <div class="step-text">Open Planning tab — Lead-exclusive</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">18.0</div>
+        <div class="step-icon">🗓️</div>
+        <div class="step-text">Create / edit production plan — set total target, deadline, notes</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">19.0</div>
+        <div class="step-icon">🎯</div>
+        <div class="step-text">Set stage / category / language daily targets</div>
+        <div class="step-note">Saved to production_plans JSONB columns</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-sys">
+        <div class="step-num">20.0</div>
+        <div class="step-icon">📊</div>
+        <div class="step-text">Monitor pacing on Overview: On Track / At Risk / Late</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANNOT DO -->
+  <div class="cannot-strip">
+    <div class="cannot-title">❌ Lead CANNOT Do</div>
+    <div class="cannot-grid">
+      <div class="cannot-item">Access Admin tab</div>
+      <div class="cannot-item">Create / invite user accounts</div>
+      <div class="cannot-item">Change user roles</div>
+      <div class="cannot-item">Delete user accounts</div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /lead panel -->
+
+<!-- ══════════════════════════════════════
+     ADMIN PANEL
+══════════════════════════════════════ -->
+<div id="panel-admin" class="role-panel">
+<div class="diagram">
+
+  <!-- LANE: Login & Provision -->
+  <div class="lane" style="min-height:160px">
+    <div class="lane-lbl ll-adm1">Login &amp; Provision</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+
+      <div class="dec-wrap" style="margin-top:10px">
+        <div class="diamond"><div class="d-inner">First Ever<br>Signup?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">YES</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-db" style="min-width:145px">
+            <div class="step-num">1.0</div>
+            <div class="step-icon">🤖</div>
+            <div class="step-text">Auto-provisioned as Admin — on_auth_user_created trigger</div>
+          </div>
+        </div>
+        <div class="branch-row" style="margin-top:8px">
+          <span class="b-tag b-no">NO</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:145px">
+            <div class="step-num">2.0</div>
+            <div class="step-icon">📧</div>
+            <div class="step-text">Invited by Admin — receives email — ForcePasswordChangeView</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arr" style="margin-top:32px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-sys" style="margin-top:32px">
+        <div class="step-num">3.0</div>
+        <div class="step-icon">🏠</div>
+        <div class="step-text">Dashboard loads — Overview tab (read-only)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: View Only Access -->
+  <div class="lane">
+    <div class="lane-lbl ll-adm2">View-Only Access</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">4.0</div>
+        <div class="step-icon">📈</div>
+        <div class="step-text">Overview tab — all widgets read-only. Cannot edit deadline</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">5.0</div>
+        <div class="step-icon">🛍️</div>
+        <div class="step-text">Catalog tab — browse and search only. No add/edit/delete/request</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">6.0</div>
+        <div class="step-icon">🎬</div>
+        <div class="step-text">Video Library — Published items ONLY. Table view only</div>
+        <div class="step-note">isAdmin filter — hides all non-Published</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">7.0</div>
+        <div class="step-icon">📊</div>
+        <div class="step-text">Analytics tab — all charts (read-only)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Create User -->
+  <div class="lane">
+    <div class="lane-lbl ll-adm3">Create User</div>
+    <div class="steps">
+      <div class="step s-human">
+        <div class="step-num">8.0</div>
+        <div class="step-icon">👑</div>
+        <div class="step-text">Navigate to Admin tab — GOVERNANCE section</div>
+        <div class="step-note">Only visible to Admin role</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">9.0</div>
+        <div class="step-icon">✉️</div>
+        <div class="step-text">Enter new user email</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-human">
+        <div class="step-num">10.0</div>
+        <div class="step-icon">🎭</div>
+        <div class="step-text">Select role: Operator / Lead / Admin</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-sys">
+        <div class="step-num">11.0</div>
+        <div class="step-icon">📤</div>
+        <div class="step-text">POST /api/admin/create-user — email invite sent via SMTP</div>
+        <div class="step-note">must_change_password = true</div>
+      </div>
+      <div class="arr"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+      <div class="step s-db">
+        <div class="step-num">12.0</div>
+        <div class="step-icon">👤</div>
+        <div class="step-text">User account created — profiles row auto-inserted by trigger</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE: Manage Existing Users -->
+  <div class="lane" style="min-height:175px">
+    <div class="lane-lbl ll-adm4">Manage Users</div>
+    <div class="steps" style="align-items:flex-start;padding-top:22px">
+      <div class="step s-human" style="margin-top:22px">
+        <div class="step-num">13.0</div>
+        <div class="step-icon">📋</div>
+        <div class="step-text">View existing users table — Email, Role, Delete button</div>
+      </div>
+      <div class="arr" style="margin-top:50px"><svg width="26" height="14"><line x1="2" y1="7" x2="20" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="20,3.5 26,7 20,10.5" fill="#9ca3af"/></svg></div>
+
+      <div class="dec-wrap" style="margin-top:10px">
+        <div class="diamond"><div class="d-inner">Action?</div></div>
+      </div>
+
+      <div class="branch-wrap" style="margin-left:8px;gap:8px">
+        <div class="branch-row">
+          <span class="b-tag b-yes">CHANGE ROLE</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-db" style="min-width:155px">
+            <div class="step-num">14.0</div>
+            <div class="step-icon">🔄</div>
+            <div class="step-text">Select new role from dropdown — saved immediately — permissions change on next load</div>
+            <div class="step-note">profiles_enforce_role_change trigger validates</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-no">DELETE</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-human" style="min-width:145px">
+            <div class="step-num">15.0</div>
+            <div class="step-icon">🗑️</div>
+            <div class="step-text">Confirm dialog → DELETE /api/admin/users/:id → user logged out immediately</div>
+          </div>
+        </div>
+        <div class="branch-row">
+          <span class="b-tag b-no">SELF</span>
+          <div class="arr"><svg width="18" height="14"><line x1="2" y1="7" x2="12" y2="7" stroke="#9ca3af" stroke-width="1.8"/><polygon points="12,3.5 18,7 12,10.5" fill="#9ca3af"/></svg></div>
+          <div class="step s-block" style="min-width:140px">
+            <div class="step-num">16.0</div>
+            <div class="step-icon">🚫</div>
+            <div class="step-text">Delete button hidden for own account — self-delete blocked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANNOT DO -->
+  <div class="cannot-strip">
+    <div class="cannot-title">❌ Admin CANNOT Do</div>
+    <div class="cannot-grid">
+      <div class="cannot-item">Move products through pipeline stages</div>
+      <div class="cannot-item">Create / add / edit / delete products</div>
+      <div class="cannot-item">Add / edit / delete catalog items</div>
+      <div class="cannot-item">Request videos from catalog</div>
+      <div class="cannot-item">Submit or review deliverables</div>
+      <div class="cannot-item">Upload video files</div>
+      <div class="cannot-item">Configure production plans</div>
+      <div class="cannot-item">See non-Published items in Library</div>
+      <div class="cannot-item">Use Board or Grid views</div>
+      <div class="cannot-item">Delete own account via UI</div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /admin panel -->
+
+<!-- ══ FOOTER ══ -->
+<div class="ftr">
+  <div class="ftr-brand">🦬 <span>BuckedUp</span> Dashboard</div>
+  <div class="ftr-note">Role Workflows · Lifewood Internal · July 2026</div>
+  <div class="ftr-tag">lifewood</div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+function switchTab(role, btn) {
+  // Hide all panels
+  document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('visible'));
+  // Remove active class from all tabs
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.remove('active-op','active-lead','active-admin');
+  });
+  // Show selected panel
+  document.getElementById('panel-' + role).classList.add('visible');
+  // Apply active class
+  const cls = role === 'op' ? 'active-op' : role === 'lead' ? 'active-lead' : 'active-admin';
+  btn.classList.add(cls);
+}
+</script>
+</body>
+</html>

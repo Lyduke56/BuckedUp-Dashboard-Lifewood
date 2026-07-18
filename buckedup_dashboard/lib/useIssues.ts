@@ -10,6 +10,7 @@ interface IssueRow {
   severity: IssueSeverity;
   status: IssueStatus;
   created_at: string;
+  product_id: string;
   products: { rank: number } | { rank: number }[] | null;
 }
 
@@ -18,6 +19,7 @@ function toIssue(row: IssueRow): Issue {
   return {
     id: row.id,
     rank: product?.rank ?? 0,
+    productId: row.product_id,
     description: row.description,
     severity: row.severity,
     status: row.status,
@@ -33,7 +35,7 @@ interface UseIssuesState {
     description: string,
     severity: IssueSeverity,
   ) => Promise<void>;
-  resolveIssue: (id: string) => Promise<void>;
+  resolveIssue: (id: string, productId?: string) => Promise<void>;
 }
 
 export function useIssues(): UseIssuesState {
@@ -44,7 +46,7 @@ export function useIssues(): UseIssuesState {
   const load = useCallback(async () => {
     const { data, error } = await supabaseRef.current
       .from("issues")
-      .select("id, description, severity, status, created_at, products(rank)")
+      .select("id, description, severity, status, created_at, product_id, products(rank)")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -94,14 +96,24 @@ export function useIssues(): UseIssuesState {
   );
 
   const resolveIssue = useCallback(
-    async (id: string) => {
+    async (id: string, productId?: string) => {
       const supabase = supabaseRef.current;
       const { error: updateError } = await supabase
         .from("issues")
         .update({ status: "resolved" })
         .eq("id", id);
 
-      if (!updateError) await load();
+      if (!updateError) {
+        if (productId) {
+          // If the product was Rejected, reset it back to an active state
+          await supabase
+            .from("products")
+            .update({ review_status: null, rejection_reason: null })
+            .eq("id", productId)
+            .eq("review_status", "Rejected");
+        }
+        await load();
+      }
     },
     [load],
   );
