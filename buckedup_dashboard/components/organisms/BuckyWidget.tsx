@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Bot, Send, X, User, Loader2, Trash2 } from "lucide-react";
+import { MicIcon, SpeakerOnIcon, SpeakerOffIcon } from "@/components/atoms/icons";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
@@ -12,6 +13,13 @@ import { createClient } from "@/lib/supabase/client";
 import { loadChatHistory, saveChatHistory, clearChatHistory } from "@/lib/bucky/chatHistory";
 import { renderMarkdown, isLeakedReasoning } from "@/lib/bucky/renderMarkdown";
 import { describeAction, describeToolResult } from "@/lib/bucky/toolCopy";
+import {
+  isSpeechRecognitionSupported,
+  isSpeechSynthesisSupported,
+  speak,
+  stopSpeaking,
+  createRecognizer,
+} from "@/lib/bucky/speech";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
@@ -146,6 +154,47 @@ export function BuckyWidget({
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Voice: populates the draft for review rather than auto-sending (a
+  // misheard word could otherwise trigger a real confirm-gated mutation
+  // without the user ever reading it), and reads new replies aloud only
+  // when explicitly opted in. Both controls are hidden entirely (not just
+  // disabled) when the browser doesn't support the underlying API — see
+  // the speechSupported/micSupported render-time checks below.
+  const [listening, setListening] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const recognizerRef = useRef<ReturnType<typeof createRecognizer>>(null);
+  const lastSpokenIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bucky-auto-speak");
+    if (saved === "true") setAutoSpeak(true);
+  }, []);
+
+  const toggleListening = () => {
+    if (listening) {
+      recognizerRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const recognizer = createRecognizer(
+      (text) => setDraft((prev) => (prev ? `${prev} ${text}` : text)),
+      () => setListening(false),
+    );
+    if (!recognizer) return;
+    recognizerRef.current = recognizer;
+    setListening(true);
+    recognizer.start();
+  };
+
+  const toggleAutoSpeak = () => {
+    setAutoSpeak((prev) => {
+      const next = !prev;
+      localStorage.setItem("bucky-auto-speak", String(next));
+      if (!next) stopSpeaking();
+      return next;
+    });
+  };
 
   // Pre-Phase-10 storage key — only ever read once, for the one-time
   // migration below, and removed as soon as that migration runs. Not the
@@ -381,6 +430,23 @@ export function BuckyWidget({
     prevBusy.current = busy;
   }, [busy, open]);
 
+  // Auto-speak: reads a newly-completed assistant reply aloud once it
+  // finishes streaming (same "just went from busy to idle" trigger as the
+  // unread-badge effect above). lastSpokenIdRef prevents re-speaking the
+  // same message on an unrelated re-render/reload, and isLeakedReasoning
+  // reuses the same filter the visible text rendering already applies so
+  // leaked reasoning is never read aloud either.
+  useEffect(() => {
+    if (!autoSpeak || busy) return;
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.role !== "assistant") return;
+    if (lastSpokenIdRef.current === lastMessage.id) return;
+    const textPart = [...lastMessage.parts].reverse().find((p) => p.type === "text");
+    if (!textPart || isLeakedReasoning(textPart.text)) return;
+    lastSpokenIdRef.current = lastMessage.id;
+    speak(textPart.text);
+  }, [messages, busy, autoSpeak]);
+
   useEffect(() => {
     if (open || busy || hasUnread) {
       iconControls.stop();
@@ -434,6 +500,17 @@ export function BuckyWidget({
                 Bucky
               </div>
               <div className="bucky-header-actions">
+                {isSpeechSynthesisSupported() ? (
+                  <button
+                    type="button"
+                    className="bucky-speak-toggle"
+                    onClick={toggleAutoSpeak}
+                    aria-label={autoSpeak ? "Stop reading replies aloud" : "Read replies aloud"}
+                    title={autoSpeak ? "Reading replies aloud — click to stop" : "Read replies aloud"}
+                  >
+                    {autoSpeak ? <SpeakerOnIcon size={15} /> : <SpeakerOffIcon size={15} />}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="bucky-clear"
@@ -446,7 +523,11 @@ export function BuckyWidget({
                 <button
                   type="button"
                   className="bucky-close"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    stopSpeaking();
+                    recognizerRef.current?.stop();
+                    setOpen(false);
+                  }}
                   aria-label="Close"
                 >
                   <X size={16} />
@@ -491,6 +572,17 @@ export function BuckyWidget({
                         </div>
                         <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
                           {isUser ? part.text : renderMarkdown(part.text)}
+                          {!isUser && isSpeechSynthesisSupported() ? (
+                            <button
+                              type="button"
+                              className="bucky-speak-msg"
+                              onClick={() => speak(part.text)}
+                              aria-label="Read this reply aloud"
+                              title="Read this reply aloud"
+                            >
+                              <SpeakerOnIcon size={12} />
+                            </button>
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -611,6 +703,18 @@ export function BuckyWidget({
                 }}
                 disabled={busy}
               />
+              {isSpeechRecognitionSupported() ? (
+                <button
+                  type="button"
+                  className={`bucky-mic${listening ? " listening" : ""}`}
+                  onClick={toggleListening}
+                  aria-label={listening ? "Stop listening" : "Speak instead of typing"}
+                  title={listening ? "Stop listening" : "Speak instead of typing"}
+                  disabled={busy}
+                >
+                  <MicIcon size={15} />
+                </button>
+              ) : null}
               <button
                 type="submit"
                 className="bucky-send"

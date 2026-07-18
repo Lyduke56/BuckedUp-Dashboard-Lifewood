@@ -8,6 +8,9 @@ import {
   BarChart2,
   Package,
   Bot,
+  Mic,
+  Volume2,
+  VolumeX,
   type LucideProps,
 } from "lucide-react";
 
@@ -47,6 +50,18 @@ export function CatalogIcon(props: LucideProps) {
 
 export function BuckyIcon(props: LucideProps) {
   return <Bot {...props} />;
+}
+
+export function MicIcon(props: LucideProps) {
+  return <Mic {...props} />;
+}
+
+export function SpeakerOnIcon(props: LucideProps) {
+  return <Volume2 {...props} />;
+}
+
+export function SpeakerOffIcon(props: LucideProps) {
+  return <VolumeX {...props} />;
 }
 
 export function BellIcon() {
