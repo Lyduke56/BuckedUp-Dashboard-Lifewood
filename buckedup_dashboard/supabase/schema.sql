@@ -255,6 +255,25 @@ create table product_status_history (
   entered_at timestamptz not null default now()
 );
 
+-- product_id is a foreign key but Postgres never indexes the referencing
+-- side automatically (only products.id itself, via its primary key) --
+-- without this, every "this product's history" lookup (useStageAge's
+-- per-product grouping, Bucky's delete/restore snapshot, the proactive-
+-- alerts function's per-product "latest status" correlated subquery) is a
+-- full table scan. Table has no retention/archival policy and grows
+-- forever by design (every status change, permanently) -- indexing is
+-- the low-risk fix for query speed as it grows; actually deleting old
+-- rows is a separate, real data-retention decision (this table also
+-- backs useDailyProgress's historical trend charts) deliberately left
+-- alone here.
+create index product_status_history_product_entered_idx
+  on product_status_history (product_id, entered_at desc);
+-- Serves the date-range scans that don't filter by product_id at all
+-- (useDailyProgress, get_daily_production) -- a composite index leading
+-- with product_id doesn't help those.
+create index product_status_history_entered_idx
+  on product_status_history (entered_at);
+
 -- Security definer so logging never depends on the calling role having
 -- direct insert rights on the history table — it shouldn't have any.
 create or replace function log_status_change()
