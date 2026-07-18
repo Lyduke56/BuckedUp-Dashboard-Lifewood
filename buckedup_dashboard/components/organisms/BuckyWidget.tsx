@@ -6,12 +6,12 @@ import { Bot, Send, X, User, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
-import ReactMarkdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useMounted } from "@/lib/useMounted";
 import { useAuth } from "@/lib/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import { loadChatHistory, saveChatHistory, clearChatHistory } from "@/lib/bucky/chatHistory";
+import { renderMarkdown, isLeakedReasoning } from "@/lib/bucky/renderMarkdown";
+import { describeAction, describeToolResult } from "@/lib/bucky/toolCopy";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
@@ -53,150 +53,6 @@ const SUGGESTIONS: Record<UserRole, { label: string; prompt: string }[]> = {
     { label: "Deliverables to review?", prompt: "What deliverables are waiting on review right now?" },
   ],
 };
-
-// The model naturally reaches for markdown — bold, bullet lists, and
-// especially tables for anything list-shaped ("what's in production").
-// Rendering it for real (tables included, via remark-gfm) rather than
-// showing the raw "| Rank | Name |" syntax as a wall of text. Only applied
-// to Bucky's own messages — user-typed text renders as plain literal text,
-// see the isUser check at the call site, so a stray "_" or "*" someone
-// types isn't reinterpreted as formatting.
-const MARKDOWN_COMPONENTS: Components = {
-  table: ({ ...props }) => (
-    <div className="bucky-table-wrap">
-      <table {...props} />
-    </div>
-  ),
-  a: ({ ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-};
-
-function renderMarkdown(text: string) {
-  return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={MARKDOWN_COMPONENTS}>
-      {text}
-    </ReactMarkdown>
-  );
-}
-
-// Some free-tier reasoning models (e.g. gpt-oss) internally separate a
-// hidden "analysis"/chain-of-thought channel from the real "final" answer
-// using special tokens — when the provider doesn't strip that channel
-// correctly, it leaks through as a normal text part (seen live: a bubble
-// starting "Expert commentary (analysis)" full of stray ‹...› tokens and
-// self-narration like "We need to call tool X"). The system prompt now
-// tells the model not to do this, but that's not a guarantee on a free
-// model — this is the belt-and-suspenders backstop that drops any text
-// part matching the leak pattern entirely, rather than showing it.
-function isLeakedReasoning(text: string): boolean {
-  return (
-    /^expert commentary/i.test(text.trim()) ||
-    /[‹›]/.test(text) ||
-    /<\|.*?\|>/.test(text) ||
-    /\bwe need to call tool\b/i.test(text)
-  );
-}
-
-// Human-readable summary of a proposed action-tool call, shown in the
-// confirm/cancel card before it runs. Falls back to the raw tool name for
-// anything not explicitly described here (e.g. if a new action tool gets
-// added later without updating this).
-function withArticle(word: unknown): string {
-  const w = String(word);
-  return `${/^[aeiou]/i.test(w) ? "an" : "a"} ${w}`;
-}
-
-function describeAction(toolName: string, input: unknown): string {
-  const params = (input ?? {}) as Record<string, unknown>;
-  const product = params.rank != null ? `#${params.rank}` : String(params.id ?? "that product");
-  switch (toolName) {
-    case "create_user":
-      return `Create ${withArticle(params.role)} account for ${params.email}?`;
-    case "delete_user":
-      return `Delete ${params.email}'s account? This can't be undone.`;
-    case "change_role":
-      return `Change ${params.email}'s role to ${params.role}?`;
-    case "move_product_stage":
-      return `Move ${product} to ${params.newStatus}?`;
-    case "review_deliverable":
-      return params.decision === "accepted"
-        ? `Accept the deliverable for ${product}?`
-        : `Reject the deliverable for ${product}?`;
-    case "review_video":
-      return params.decision === "accepted"
-        ? `Accept and PUBLISH ${product}? This makes it publicly live.`
-        : `Reject ${product}'s video back to Editing?`;
-    case "create_product":
-      return typeof params.name === "string"
-        ? `Create a new product "${params.name}"?`
-        : params.catalogProductId
-          ? "Create a new product from the selected catalog item?"
-          : "Create a new product?";
-    case "delete_product":
-      return `Delete ${product}? This can't be undone and removes all its issues, deliverables, and version history.`;
-    case "update_production_plan":
-      return `Update the production plan${typeof params.name === "string" ? ` "${params.name}"` : ""}?`;
-    case "create_or_update_catalog_product":
-      return `${params.id ? "Update" : "Create"} the catalog product${typeof params.name === "string" ? ` "${params.name}"` : ""}?`;
-    case "delete_catalog_product":
-      return `Delete the catalog product${typeof params.name === "string" ? ` "${params.name}"` : ""}? This can't be undone — any linked video stays, just unlinked.`;
-    default:
-      return `Run ${toolName}?`;
-  }
-}
-
-// Human-readable summary of a tool's completed result, shown as the
-// <summary> of the collapsible output-available block. Read tools (list_*,
-// get_*) have no entry here and fall back to "Looked up {toolName}" —
-// accurate for them. Mutation tools that don't require approval (operator's
-// work-execution tools, see lib/bucky/tools/operator.ts) get a past-tense summary
-// instead, since "Looked up submit_deliverable" reads oddly for something
-// that just *did* something rather than fetched data.
-function describeToolResult(toolName: string, input: unknown): string {
-  const params = (input ?? {}) as Record<string, unknown>;
-  const product = typeof params.rank === "number" ? `#${params.rank}` : "a product";
-  switch (toolName) {
-    case "report_issue": {
-      const severity = typeof params.severity === "string" ? params.severity : "medium";
-      return `Reported ${withArticle(severity)} issue on #${params.rank}`;
-    }
-    case "resolve_issue":
-      return "Resolved an issue";
-    case "claim_product":
-      return `Claimed ${product}`;
-    case "submit_deliverable":
-      return `Submitted a deliverable for ${product}`;
-    case "submit_video_for_review":
-      return `Submitted ${product} for review`;
-    case "set_video_version":
-      return `Set a new video version for ${product}`;
-    case "create_user":
-      return `Created ${withArticle(typeof params.role === "string" ? params.role : "user")} account`;
-    case "delete_user":
-      return "Deleted a user account";
-    case "change_role":
-      return `Changed a user's role to ${params.role}`;
-    case "move_product_stage":
-      return `Moved ${product} to ${typeof params.newStatus === "string" ? params.newStatus : "a new stage"}`;
-    case "review_deliverable":
-      return params.decision === "accepted"
-        ? `Accepted the deliverable for ${product}`
-        : `Rejected the deliverable for ${product}`;
-    case "review_video":
-      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Editing`;
-    case "create_product":
-      return typeof params.name === "string" ? `Created "${params.name}"` : "Created a new product";
-    case "delete_product":
-      return `Deleted ${product}`;
-    case "update_production_plan":
-      return "Updated the production plan";
-    case "create_or_update_catalog_product":
-      return params.id ? "Updated a catalog product" : "Created a catalog product";
-    case "delete_catalog_product":
-      return "Deleted a catalog product";
-    default:
-      return `Looked up ${toolName}`;
-  }
-}
 
 // Only auto-resubmit after an approval decision if something was actually
 // *approved* — a denial needs no further model round-trip (nothing ran,

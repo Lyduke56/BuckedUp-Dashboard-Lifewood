@@ -16,6 +16,7 @@ import { VideoModal } from "@/components/organisms/VideoModal";
 import { AnalyticsView } from "@/components/templates/AnalyticsView";
 import { AdminView } from "@/components/templates/AdminView";
 import { PlanningView } from "@/components/templates/PlanningView";
+import { BuckyConversationsView } from "@/components/templates/BuckyConversationsView";
 import { BuckyWidget } from "@/components/organisms/BuckyWidget";
 import { ForcePasswordChangeView } from "@/components/auth/ForcePasswordChangeView";
 
@@ -164,6 +165,11 @@ export function Dashboard() {
         {role === "admin" ? (
           <div className={`view${activeView === "admin" ? " active" : ""}`}>
             <AdminView />
+          </div>
+        ) : null}
+        {role === "admin" ? (
+          <div className={`view${activeView === "bucky" ? " active" : ""}`}>
+            <BuckyConversationsView />
           </div>
         ) : null}
         {role === "lead" ? (

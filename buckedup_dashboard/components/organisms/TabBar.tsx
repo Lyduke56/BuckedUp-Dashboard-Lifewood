@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { UserRole, ViewId } from "@/lib/types";
 import {
   AnalyticsIcon,
+  BuckyIcon,
   CatalogIcon,
   FolderIcon,
   OverviewIcon,
@@ -35,11 +36,15 @@ const BASE_TABS: Tab[] = [
 const ADMIN_TAB: Tab = { id: "admin", label: "Admin", icon: UsersIcon };
 const PLANNING_TAB: Tab = { id: "planning", label: "Planning", icon: UsersIcon };
 const CATALOG_TAB: Tab = { id: "catalog", label: "Catalog", icon: CatalogIcon };
+// Admin-only: lets admins read back Bucky (the AI assistant)'s saved
+// conversations. Not shown to lead/operator — they're the ones being
+// reviewed, not the reviewer.
+const BUCKY_TAB: Tab = { id: "bucky", label: "Bucky", icon: BuckyIcon };
 
 export function TabBar({ activeView, onViewChange, role }: TabBarProps) {
   const tabs =
     role === "admin"
-      ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], ADMIN_TAB]
+      ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], ADMIN_TAB, BUCKY_TAB]
       : role === "lead"
         ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB]
         : BASE_TABS;

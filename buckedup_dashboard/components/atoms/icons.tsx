@@ -7,6 +7,7 @@ import {
   PlayCircle,
   BarChart2,
   Package,
+  Bot,
   type LucideProps,
 } from "lucide-react";
 
@@ -42,6 +43,10 @@ export function AnalyticsIcon(props: LucideProps) {
 
 export function CatalogIcon(props: LucideProps) {
   return <Package {...props} />;
+}
+
+export function BuckyIcon(props: LucideProps) {
+  return <Bot {...props} />;
 }
 
 export function BellIcon() {
