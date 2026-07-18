@@ -319,13 +319,20 @@ a {
   gap: 16px;
 }
 
+.brand-logo-container {
+  width: auto;
+  padding: 1px;
+  background-color: #fff;
+  border-radius: 4px;
+}
+
 .brand-logo {
-  height: 22px;
+  height: 25px;
   width: auto;
 }
 
 .logo-buckedup {
-  height: 28px;
+  height: 30px;
   width: auto;
   filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.55)) drop-shadow(0 0 3px rgba(239, 68, 68, 0.2)) !important;
   transition: filter 0.3s ease;

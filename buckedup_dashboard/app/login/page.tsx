@@ -166,11 +166,13 @@ function LoginForm() {
       <div className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
-            <img
-              src="/lifewood-full-cream.svg"
-              alt="Lifewood"
-              className="brand-logo login-brand-logo"
-            />
+            <div className="brand-logo-container">
+              <img
+                src="/lifewood.svg"
+                alt="Lifewood"
+                className="brand-logo login-brand-logo"
+              />
+            </div>
             <span className="brand-divider-line login-brand-divider" />
             <img
               src="/buckedup-alt.svg"
