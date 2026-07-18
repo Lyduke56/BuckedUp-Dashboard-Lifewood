@@ -931,6 +931,89 @@ select cron.schedule(
   $cron$select bucky_check_proactive_alerts();$cron$
 );
 
+-- Bucky's own undo window for delete_product -- captures a snapshot of the
+-- product plus its child rows (except notifications, which a lead's own
+-- session can't even read cross-user under RLS, and which are low-value
+-- transient state anyway) before the real delete happens, so a mistaken
+-- delete can be reversed within a short grace window. Deliberately lives
+-- entirely in Bucky's own table/function, not a soft-delete flag on
+-- products itself -- the rest of the dashboard keeps behaving exactly as
+-- it does today.
+create table bucky_deleted_product_snapshots (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete set null,
+  product_name text not null,
+  product_rank integer not null,
+  snapshot jsonb not null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  restored_at timestamptz
+);
+create index bucky_deleted_product_snapshots_expiry_idx
+  on bucky_deleted_product_snapshots (expires_at)
+  where restored_at is null;
+
+alter table bucky_deleted_product_snapshots enable row level security;
+
+-- Shared team resource (products aren't personal data), so any lead can
+-- see and restore any snapshot, not just their own.
+create policy "Lead read" on bucky_deleted_product_snapshots for select
+  using (get_my_role() = 'lead');
+create policy "Lead insert" on bucky_deleted_product_snapshots for insert
+  with check (get_my_role() = 'lead' and user_id = auth.uid());
+-- Narrow: a lead session can only ever delete a row whose window has
+-- already closed -- lets list_recent_deletions self-clean without a
+-- separate cron job, and can never be used to destroy a still-valid
+-- snapshot early.
+create policy "Lead delete expired" on bucky_deleted_product_snapshots for delete
+  using (get_my_role() = 'lead' and expires_at < now());
+
+-- Security definer: a plain client insert can't do this restore --
+-- product_status_history has no insert policy at all (only its own
+-- trigger writes it), and stage_deliverables' lead-insert policy requires
+-- submitted_by = auth.uid(), which would wrongly reassign authorship to
+-- whoever clicks restore. Self-checks the caller's role since security
+-- definer bypasses RLS entirely for its own writes -- same shape as
+-- review_stage_deliverable()/submit_video_for_review() elsewhere in this
+-- file.
+create or replace function restore_deleted_product(p_snapshot_id uuid)
+returns uuid as $$
+declare
+  v_row bucky_deleted_product_snapshots;
+  v_snapshot jsonb;
+  v_new_id uuid;
+begin
+  if get_my_role() <> 'lead' then
+    raise exception 'Only leads can restore a deleted product';
+  end if;
+
+  select * into v_row from bucky_deleted_product_snapshots
+    where id = p_snapshot_id and restored_at is null and expires_at > now();
+  if v_row.id is null then
+    raise exception 'No restorable snapshot found (already restored, or the undo window has expired)';
+  end if;
+
+  v_snapshot := v_row.snapshot;
+
+  insert into products
+    select * from jsonb_populate_record(null::products, v_snapshot->'product')
+    returning id into v_new_id;
+
+  insert into issues
+    select * from jsonb_populate_recordset(null::issues, coalesce(v_snapshot->'issues', '[]'::jsonb));
+  insert into product_status_history
+    select * from jsonb_populate_recordset(null::product_status_history, coalesce(v_snapshot->'product_status_history', '[]'::jsonb));
+  insert into video_versions
+    select * from jsonb_populate_recordset(null::video_versions, coalesce(v_snapshot->'video_versions', '[]'::jsonb));
+  insert into stage_deliverables
+    select * from jsonb_populate_recordset(null::stage_deliverables, coalesce(v_snapshot->'stage_deliverables', '[]'::jsonb));
+
+  update bucky_deleted_product_snapshots set restored_at = now() where id = p_snapshot_id;
+
+  return v_new_id;
+end;
+$$ language plpgsql security definer set search_path = public;
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;

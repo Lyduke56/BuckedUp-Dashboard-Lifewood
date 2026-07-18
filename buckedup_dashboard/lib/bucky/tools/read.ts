@@ -504,5 +504,34 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           return { catalogProducts: data };
         }),
     }),
+
+    list_recent_deletions: tool({
+      description:
+        "List products recently deleted through Bucky that are still within their undo window and can be brought back with restore_product. Lead-only in practice (nothing shows up for other roles).",
+      inputSchema: z.object({}),
+      execute: () =>
+        safe(async () => {
+          // Self-cleaning: the RLS "Lead delete expired" policy only ever
+          // permits deleting rows whose window has already closed, so this
+          // is safe to run unconditionally before listing — mirrors
+          // lib/bucky/rateLimit.ts's own clean-before-count pattern. A
+          // no-op (and silently ignored) for non-lead callers, since only
+          // lead has that delete policy at all.
+          await supabase
+            .from("bucky_deleted_product_snapshots")
+            .delete()
+            .lt("expires_at", new Date().toISOString());
+
+          const { data, error } = await supabase
+            .from("bucky_deleted_product_snapshots")
+            .select("id, product_name, product_rank, created_at, expires_at")
+            .is("restored_at", null)
+            .gt("expires_at", new Date().toISOString())
+            .order("created_at", { ascending: false })
+            .limit(20);
+          if (error) return { error: error.message };
+          return { deletions: data };
+        }),
+    }),
   };
 }

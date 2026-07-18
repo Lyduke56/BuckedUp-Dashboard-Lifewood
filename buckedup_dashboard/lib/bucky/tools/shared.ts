@@ -31,6 +31,12 @@ export function escapeIlikePattern(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
+// How long a Bucky-deleted product stays restorable before the grace
+// window closes (see delete_product/restore_product/list_recent_deletions
+// in lead.ts/read.ts, and restore_deleted_product() in schema.sql). A
+// named constant so it's trivial to retune later.
+export const UNDO_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 // The three document/text pipeline stages that get a lead-reviewed
 // deliverable (Storyboarding/Scripting/Prompting) — the Editing->Published
 // leg uses video_versions instead, not this table (see schema.sql).

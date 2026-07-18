@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       ...createBuckyReadTools(supabase),
       ...createBuckyActionTools(supabase, request, role),
       ...createBuckyOperatorActionTools(supabase, role, user.id),
-      ...createBuckyLeadActionTools(supabase, role),
+      ...createBuckyLeadActionTools(supabase, role, user.id),
     },
     // Mutating actions never run on the model's say-so alone — the tool
     // call only proposes the action; execute() only actually runs once the

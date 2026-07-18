@@ -2,7 +2,15 @@ import { tool } from "ai";
 import { z } from "zod";
 import { STATUS_ORDER } from "@/lib/data";
 import type { UserRole } from "@/lib/types";
-import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, escapeIlikePattern, DOC_STAGES, type SupabaseServerClient } from "./shared";
+import {
+  safe,
+  PRODUCT_LOCATOR_SHAPE,
+  buildIssueTools,
+  escapeIlikePattern,
+  DOC_STAGES,
+  UNDO_WINDOW_MS,
+  type SupabaseServerClient,
+} from "./shared";
 
 // Lead's pipeline-management tools. Most require toolApproval (see
 // route.ts) — team-visible workflow changes, not self-scoped routine work
@@ -12,7 +20,7 @@ import { safe, PRODUCT_LOCATOR_SHAPE, buildIssueTools, escapeIlikePattern, DOC_S
 // through the caller's own session client (RLS-enforced) — lead's real DB
 // permissions are the actual authority here, this just gives chat access
 // to what the UI already allows.
-function buildLeadActionTools(supabase: SupabaseServerClient) {
+function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
   return {
     ...buildIssueTools(supabase),
 
@@ -228,19 +236,83 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
 
     delete_product: tool({
       description:
-        "Delete a product. This is irreversible and cascades to its issues, deliverables, video versions, and status history. Requires confirmation before it runs.",
+        "Delete a product. Cascades to its issues, deliverables, video versions, and status history. Recoverable for a short window afterward — if this turns out to be a mistake, call restore_product with the product's name. Requires confirmation before it runs.",
       inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
       execute: ({ rank, id }) =>
         safe(async () => {
           if (!rank && !id) return { error: "Provide either rank or id." };
-          let query = supabase.from("products").select("id, name");
+          let query = supabase.from("products").select("*");
           query = id ? query.eq("id", id) : query.eq("rank", rank as number);
           const { data: product, error } = await query.maybeSingle();
           if (error) return { error: error.message };
           if (!product) return { error: "No product found." };
+
+          // Snapshot everything that would cascade away before deleting,
+          // so restore_product can bring it all back. notifications is
+          // deliberately excluded — its RLS is recipient-only for select,
+          // so a lead's own session can't even read another user's rows
+          // tied to this product, and it's low-value transient state
+          // anyway (see plan notes for the full reasoning).
+          const [issuesRes, historyRes, versionsRes, deliverablesRes] = await Promise.all([
+            supabase.from("issues").select("*").eq("product_id", product.id),
+            supabase.from("product_status_history").select("*").eq("product_id", product.id),
+            supabase.from("video_versions").select("*").eq("product_id", product.id),
+            supabase.from("stage_deliverables").select("*").eq("product_id", product.id),
+          ]);
+          if (issuesRes.error) return { error: issuesRes.error.message };
+          if (historyRes.error) return { error: historyRes.error.message };
+          if (versionsRes.error) return { error: versionsRes.error.message };
+          if (deliverablesRes.error) return { error: deliverablesRes.error.message };
+
+          const { error: snapshotError } = await supabase.from("bucky_deleted_product_snapshots").insert({
+            user_id: userId,
+            product_name: product.name,
+            product_rank: product.rank,
+            snapshot: {
+              product,
+              issues: issuesRes.data ?? [],
+              product_status_history: historyRes.data ?? [],
+              video_versions: versionsRes.data ?? [],
+              stage_deliverables: deliverablesRes.data ?? [],
+            },
+            expires_at: new Date(Date.now() + UNDO_WINDOW_MS).toISOString(),
+          });
+          if (snapshotError) return { error: snapshotError.message };
+
           const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
           if (deleteError) return { error: deleteError.message };
-          return { deleted: true, product: product.name };
+          return { deleted: true, product: product.name, restorableForHours: UNDO_WINDOW_MS / 3_600_000 };
+        }),
+    }),
+
+    restore_product: tool({
+      description:
+        "Restore a product that was recently deleted through Bucky, within its undo window. Call list_recent_deletions first if you don't already know its name from this conversation. Runs immediately, no confirmation needed — restoring is safe and additive.",
+      inputSchema: z.object({
+        productName: z.string().describe("The deleted product's former name — restores the most recent matching deletion."),
+      }),
+      execute: ({ productName }) =>
+        safe(async () => {
+          const { data: snapshot, error } = await supabase
+            .from("bucky_deleted_product_snapshots")
+            .select("id")
+            .ilike("product_name", escapeIlikePattern(productName))
+            .is("restored_at", null)
+            .gt("expires_at", new Date().toISOString())
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (error) return { error: error.message };
+          if (!snapshot) {
+            return {
+              error: `No restorable deletion found for "${productName}" — it may already be restored, or its undo window may have closed. Call list_recent_deletions to see what's still restorable.`,
+            };
+          }
+          const { data: restoredId, error: rpcError } = await supabase.rpc("restore_deleted_product", {
+            p_snapshot_id: snapshot.id,
+          });
+          if (rpcError) return { error: rpcError.message };
+          return { restored: true, product: productName, id: restoredId };
         }),
     }),
 
@@ -373,7 +445,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
 
     delete_catalog_product: tool({
       description:
-        "Delete a BuckedUp catalog product. This is irreversible. Only removes the catalog listing — if a video is linked to it, the video itself isn't deleted, only unlinked. Requires confirmation before it runs.",
+        "Delete a BuckedUp catalog product. Hides the listing rather than destroying it — it's recoverable any time afterward with restore_catalog_product, and any product still linked to it keeps that link. Requires confirmation before it runs.",
       inputSchema: z.object({
         id: z.string().uuid().optional(),
         name: z.string().optional().describe("Exact name match — used only if id isn't given."),
@@ -381,7 +453,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
       execute: ({ id, name }) =>
         safe(async () => {
           if (!id && !name) return { error: "Provide either id or name." };
-          let query = supabase.from("catalog_products").select("id, name");
+          let query = supabase.from("catalog_products").select("id, name").eq("is_active", true);
           // escapeIlikePattern makes this a real case-insensitive EXACT
           // match, not a wildcard pattern — a name containing a literal
           // "%" or "_" must match only that literal name, never silently
@@ -389,15 +461,47 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
           query = id ? query.eq("id", id) : query.ilike("name", escapeIlikePattern(name as string));
           const { data: matches, error } = await query;
           if (error) return { error: error.message };
-          if (!matches || matches.length === 0) return { error: "No catalog product found." };
+          if (!matches || matches.length === 0) return { error: "No active catalog product found." };
           if (matches.length > 1) {
             return {
               error: `Multiple catalog products match "${name}" — be more specific or provide the exact id. Matches: ${matches.map((m) => m.name).join(", ")}`,
             };
           }
-          const { error: deleteError } = await supabase.from("catalog_products").delete().eq("id", matches[0].id);
-          if (deleteError) return { error: deleteError.message };
+          const { error: updateError } = await supabase
+            .from("catalog_products")
+            .update({ is_active: false })
+            .eq("id", matches[0].id);
+          if (updateError) return { error: updateError.message };
           return { deleted: true, product: matches[0].name };
+        }),
+    }),
+
+    restore_catalog_product: tool({
+      description:
+        "Restore a catalog product that was deleted through Bucky. Runs immediately, no confirmation needed — restoring is safe and additive.",
+      inputSchema: z.object({
+        id: z.string().uuid().optional(),
+        name: z.string().optional().describe("Exact name match — used only if id isn't given."),
+      }),
+      execute: ({ id, name }) =>
+        safe(async () => {
+          if (!id && !name) return { error: "Provide either id or name." };
+          let query = supabase.from("catalog_products").select("id, name").eq("is_active", false);
+          query = id ? query.eq("id", id) : query.ilike("name", escapeIlikePattern(name as string));
+          const { data: matches, error } = await query;
+          if (error) return { error: error.message };
+          if (!matches || matches.length === 0) return { error: "No deleted catalog product found matching that." };
+          if (matches.length > 1) {
+            return {
+              error: `Multiple deleted catalog products match "${name}" — be more specific or provide the exact id. Matches: ${matches.map((m) => m.name).join(", ")}`,
+            };
+          }
+          const { error: updateError } = await supabase
+            .from("catalog_products")
+            .update({ is_active: true })
+            .eq("id", matches[0].id);
+          if (updateError) return { error: updateError.message };
+          return { restored: true, product: matches[0].name };
         }),
     }),
   };
@@ -407,7 +511,8 @@ function buildLeadActionTools(supabase: SupabaseServerClient) {
 export function createBuckyLeadActionTools(
   supabase: SupabaseServerClient,
   role: UserRole,
+  userId: string,
 ): ReturnType<typeof buildLeadActionTools> {
   if (role !== "lead") return {} as ReturnType<typeof buildLeadActionTools>;
-  return buildLeadActionTools(supabase);
+  return buildLeadActionTools(supabase, userId);
 }

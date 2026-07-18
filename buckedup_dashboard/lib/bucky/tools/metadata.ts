@@ -39,6 +39,7 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   get_issue_summary: { mutating: false, approval: "none" },
   get_deliverable_summary: { mutating: false, approval: "none" },
   get_ownership_breakdown: { mutating: false, approval: "none" },
+  list_recent_deletions: { mutating: false, approval: "none" },
   // admin (governance)
   create_user: { mutating: true, approval: "user-approval" },
   delete_user: { mutating: true, approval: "user-approval" },
@@ -61,6 +62,10 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   update_production_plan: { mutating: true, approval: "user-approval" },
   create_or_update_catalog_product: { mutating: true, approval: "user-approval" },
   delete_catalog_product: { mutating: true, approval: "user-approval" },
+  // restoring is safe/additive — same risk tier as the operator
+  // work-execution tools above, no confirm step needed
+  restore_product: { mutating: true, approval: "none" },
+  restore_catalog_product: { mutating: true, approval: "none" },
 };
 
 // Derived, not hand-written — route.ts passes this straight to streamText's
