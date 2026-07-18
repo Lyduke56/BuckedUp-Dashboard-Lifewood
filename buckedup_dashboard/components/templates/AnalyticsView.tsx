@@ -26,9 +26,10 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
+  // Filter products by the selected date range (based on createdAt).
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      if (!p.createdAt) return true; // Fallback if no createdAt
+      if (!p.createdAt) return true;
       const createdDate = new Date(p.createdAt);
       if (startDate && createdDate < new Date(startDate)) return false;
       if (endDate) {
@@ -39,6 +40,19 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
       return true;
     });
   }, [products, startDate, endDate]);
+
+  // Slice the daily-progress series to the same date window the global
+  // date-range filter controls. The hook always fetches from plan start →
+  // today; we just window the result here so no extra DB round-trip is
+  // needed when the user adjusts the range.
+  const filteredDailyProgress = useMemo(() => {
+    if (!startDate && !endDate) return dailyProgress;
+    return dailyProgress.filter((p) => {
+      if (startDate && p.date < startDate) return false;
+      if (endDate && p.date > endDate) return false;
+      return true;
+    });
+  }, [dailyProgress, startDate, endDate]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,7 +99,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
           </div>
           <div className="chart-mt">
             <DailyProgressChart
-              points={dailyProgress}
+              points={filteredDailyProgress}
               dailyTarget={plan?.categoryTargets ? Object.values(plan.categoryTargets).reduce((sum, val) => sum + Number(val), 0) : undefined}
             />
           </div>
