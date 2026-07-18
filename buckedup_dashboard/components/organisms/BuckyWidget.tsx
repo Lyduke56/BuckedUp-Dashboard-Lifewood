@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm";
 import { useMounted } from "@/lib/useMounted";
 import { useAuth } from "@/lib/useAuth";
 import { createClient } from "@/lib/supabase/client";
+import { loadChatHistory, saveChatHistory, clearChatHistory } from "@/lib/bucky/chatHistory";
 import { useStageAge } from "@/lib/useStageAge";
 import { useProductionPlan } from "@/lib/useProductionPlan";
 import { useDailyProgress } from "@/lib/useDailyProgress";
@@ -290,37 +291,74 @@ export function BuckyWidget({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const storageKey = user?.id ? `bucky-chat-${user.id}` : null;
+  // Pre-Phase-10 storage key — only ever read once, for the one-time
+  // migration below, and removed as soon as that migration runs. Not the
+  // source of truth anymore; bucky_messages (Supabase) is.
+  const legacyStorageKey = user?.id ? `bucky-chat-${user.id}` : null;
 
-  // Loads any saved conversation once we know who's logged in. useChat's
-  // own `messages` seed option only applies once, at construction inside a
-  // useRef — updating it on a later render is silently ignored unless `id`
-  // also changes — so this uses setMessages() instead, which correctly
-  // notifies useChat's internal state and triggers a re-render.
+  // Loads the saved conversation from the database once we know who's
+  // logged in. useChat's own `messages` seed option only applies once, at
+  // construction inside a useRef — updating it on a later render is
+  // silently ignored unless `id` also changes — so this uses setMessages()
+  // instead, which correctly notifies useChat's internal state and
+  // triggers a re-render.
   const [historyLoaded, setHistoryLoaded] = useState(false);
   useEffect(() => {
-    if (!storageKey) return;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        setMessages(JSON.parse(saved));
-      } catch {
-        // Corrupted entry — ignore and start fresh rather than crashing.
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const serverHistory = await loadChatHistory(supabase, user.id);
+      if (cancelled) return;
+      if (serverHistory.length > 0) {
+        setMessages(serverHistory);
+      } else if (legacyStorageKey) {
+        // One-time migration: no server-side history yet for this user,
+        // but there might be a pre-Phase-10 localStorage conversation.
+        // Upload it once, then remove the local copy so there's a single
+        // source of truth going forward.
+        const saved = localStorage.getItem(legacyStorageKey);
+        if (saved) {
+          try {
+            const legacyMessages = JSON.parse(saved) as UIMessage[];
+            if (legacyMessages.length > 0) {
+              setMessages(legacyMessages);
+              await saveChatHistory(supabase, user.id, legacyMessages);
+            }
+          } catch {
+            // Corrupted entry — ignore and start fresh rather than crashing.
+          }
+          localStorage.removeItem(legacyStorageKey);
+        }
       }
-    }
-    setHistoryLoaded(true);
-  }, [storageKey, setMessages]);
+      if (!cancelled) setHistoryLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, legacyStorageKey, setMessages]);
 
-  // Saves on every conversation change, including a user message sent but
-  // not yet answered (not just on response completion), so an early reload
-  // mid-stream doesn't lose it. The historyLoaded gate is load-bearing, not
-  // just tidy: without it this would fire on the very first render with the
-  // fresh Chat instance's empty messages array, before the load effect
-  // above has run, and clobber any real saved history with [].
+  // Saves on every conversation change, debounced. An active stream can
+  // update `messages` many times per second (once per chunk) — unlike the
+  // localStorage write this replaces, a database write has real
+  // latency/cost, so writing on every token would be excessive. Waiting
+  // for 600ms of no further change collapses that down to roughly one
+  // write per natural pause (message sent, response finished, an approval
+  // confirmed/denied) instead of dozens. Known, accepted tradeoff: an
+  // early reload within that 600ms window can lose whatever hadn't saved
+  // yet — a small regression from the instant write this replaces, not
+  // hidden. The historyLoaded gate is load-bearing, not just tidy: without
+  // it this would fire on the very first render with the fresh Chat
+  // instance's empty messages array, before the load effect above has
+  // run, and clobber any real saved history with [].
   useEffect(() => {
-    if (!storageKey || !historyLoaded) return;
-    localStorage.setItem(storageKey, JSON.stringify(messages));
-  }, [messages, storageKey, historyLoaded]);
+    if (!user?.id || !historyLoaded) return;
+    const userId = user.id;
+    const timeout = setTimeout(() => {
+      void saveChatHistory(createClient(), userId, messages);
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, [messages, user?.id, historyLoaded]);
 
   // Clicking the header trash icon used to clear instantly, which read as
   // ambiguous — easy to mistake for closing/deleting Bucky itself rather
@@ -332,7 +370,8 @@ export function BuckyWidget({
 
   const clearConversation = () => {
     setMessages([]);
-    if (storageKey) localStorage.removeItem(storageKey);
+    if (user?.id) void clearChatHistory(createClient(), user.id);
+    if (legacyStorageKey) localStorage.removeItem(legacyStorageKey);
     setConfirmingClear(false);
   };
 

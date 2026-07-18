@@ -722,6 +722,41 @@ create policy "Own insert" on bucky_rate_limit_log for insert
 create policy "Own delete" on bucky_rate_limit_log for delete
   using (user_id = auth.uid());
 
+-- Bucky's chat history, per message (not one blob per user) — moved off
+-- localStorage so a conversation follows the user across devices and is
+-- durably readable by an admin if ever needed. id is the AI SDK's own
+-- generated message id, used directly as the primary key rather than a
+-- separate mapping. Saved from the client (BuckyWidget.tsx), not
+-- app/api/bucky/chat/route.ts — same as the localStorage version it
+-- replaces, this is a "save my own conversation" concern, not a
+-- server-route one.
+create table bucky_messages (
+  id text primary key,
+  user_id uuid not null references profiles(id) on delete cascade,
+  role text not null check (role in ('user', 'assistant', 'system')),
+  parts jsonb not null,
+  metadata jsonb,
+  created_at timestamptz not null default now()
+);
+create index bucky_messages_user_created_idx
+  on bucky_messages (user_id, created_at asc);
+
+alter table bucky_messages enable row level security;
+
+-- Two permissive select policies (own OR admin) — Postgres ORs these
+-- together, doesn't conflict. Update/delete stay own-only: an admin can
+-- read a conversation, not tamper with it.
+create policy "Own select" on bucky_messages for select
+  using (user_id = auth.uid());
+create policy "Admin read" on bucky_messages for select
+  using (get_my_role() = 'admin');
+create policy "Own insert" on bucky_messages for insert
+  with check (user_id = auth.uid());
+create policy "Own update" on bucky_messages for update
+  using (user_id = auth.uid());
+create policy "Own delete" on bucky_messages for delete
+  using (user_id = auth.uid());
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
