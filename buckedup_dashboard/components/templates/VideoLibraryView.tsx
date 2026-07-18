@@ -86,6 +86,7 @@ export function VideoLibraryView({
     useState<StatusFilter>("all");
   const [mineOnly, setMineOnly] = useState(false);
   const [rejectedOnly, setRejectedOnly] = useState(false);
+  const [currentSort, setCurrentSort] = useState<"highest" | "lowest" | "oldest">("highest");
   const [searchTerm, setSearchTerm] = useState("");
   const [layout, setLayout] = useState<LibraryLayout>("table");
   // Which category folder is open in Grid view (null = show the folders).
@@ -180,7 +181,7 @@ export function VideoLibraryView({
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
-    return products.filter((product) => {
+    const filtered = products.filter((product) => {
       // Admin only ever sees Published items, regardless of the pills.
       if (isAdmin && productBucket(product) !== "published") {
         return false;
@@ -211,6 +212,21 @@ export function VideoLibraryView({
       }
       return true;
     });
+
+    return filtered.sort((a, b) => {
+      if (currentSort === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      const priorityMap: Record<string, number> = { "High": 3, "Medium": 2, "Low": 1 };
+      const valA = priorityMap[a.priority ?? "Low"] || 1;
+      const valB = priorityMap[b.priority ?? "Low"] || 1;
+      
+      if (valA !== valB) {
+        return currentSort === "highest" ? valB - valA : valA - valB;
+      }
+      // fallback to rank (creation order roughly)
+      return a.rank - b.rank;
+    });
   }, [
     products,
     isAdmin,
@@ -221,6 +237,7 @@ export function VideoLibraryView({
     rejectedOnly,
     user,
     searchTerm,
+    currentSort,
   ]);
 
   const handleCategoryChange = (value: string) => {
@@ -421,6 +438,23 @@ export function VideoLibraryView({
                 <path d="M21 21l-4.3-4.3" />
               </svg>
             </div>
+            <select
+              value={currentSort}
+              onChange={(e) => setCurrentSort(e.target.value as any)}
+              style={{
+                height: "38px",
+                borderRadius: "12px",
+                padding: "0 12px",
+                border: "1px solid var(--border-color)",
+                backgroundColor: "var(--bg-card)",
+                color: "var(--ink)",
+                fontSize: "14px",
+              }}
+            >
+              <option value="highest">Priority (Highest First)</option>
+              <option value="lowest">Priority (Lowest First)</option>
+              <option value="oldest">Oldest First</option>
+            </select>
             {canManageCatalog ? (
               <div style={{ display: "flex", gap: 8 }}>
                 <button
@@ -494,7 +528,7 @@ export function VideoLibraryView({
               <div className="video-list">
               {filteredProducts.map((product, index) => {
                 const displayRank = index + 1;
-                const priority = displayRank <= 10 ? "High" : displayRank <= 20 ? "Medium" : "Low";
+                const priority = product.priority ?? "Low";
                 const priorityClass = priority === "High" ? "bg-red-500/10 text-red-500 border-red-500/20" : priority === "Medium" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-500 border-blue-500/20";
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
@@ -536,7 +570,7 @@ export function VideoLibraryView({
                       className="video-list-card"
                       onClick={() => onOpenModal(modalKey)}
                     >
-                      <div className="vlc-rank" title={`Database ID: ${product.rank}`}>{displayRank}</div>
+                      <div className="vlc-rank" title={`Queue Index: ${displayRank}`}>{displayRank}</div>
 
                       <div className="vlc-thumb">
                         {product.thumbnailUrl ? (

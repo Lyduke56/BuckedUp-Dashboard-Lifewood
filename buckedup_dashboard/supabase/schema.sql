@@ -104,6 +104,7 @@ $$ language plpgsql security definer set search_path = public;
 create table products (
   id uuid primary key default gen_random_uuid(),
   rank integer not null unique,
+  priority text not null default 'Low' check (priority in ('High', 'Medium', 'Low')),
   name text not null,
   category text not null,
   subcategory text not null,

@@ -39,6 +39,7 @@ interface ProductRow {
   thumbnail_url: string | null;
   catalog_product_id: string | null;
   created_at: string;
+  priority: "High" | "Medium" | "Low";
 }
 
 function toProduct(row: ProductRow): Product {
@@ -64,6 +65,7 @@ function toProduct(row: ProductRow): Product {
     thumbnailUrl: row.thumbnail_url,
     catalogProductId: row.catalog_product_id ?? null,
     createdAt: row.created_at,
+    priority: row.priority ?? "Low",
     items: [
       {
         name: type ? `${row.name} — ${type}` : row.name,

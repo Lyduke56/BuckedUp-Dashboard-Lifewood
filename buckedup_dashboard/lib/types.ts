@@ -63,6 +63,7 @@ export type DeliveryType = "pipeline" | "link";
 export interface Product {
   id: string;
   rank: number;
+  priority: "High" | "Medium" | "Low";
   name: string;
   category: string;
   subcategory: string;

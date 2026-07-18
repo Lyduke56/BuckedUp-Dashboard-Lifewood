@@ -21,7 +21,7 @@ interface RequestVideoModalProps {
 }
 
 interface FormState {
-  rank: string;
+  priority: "High" | "Medium" | "Low";
   language: string;
   contentType: string;
   contentAngle: string;
@@ -39,7 +39,7 @@ export function RequestVideoModal({
   const { catalog, loading: catalogLoading } = useCatalog();
 
   const [form, setForm] = useState<FormState>({
-    rank: String(nextRank),
+    priority: "Low",
     language: "English",
     contentType: "",
     contentAngle: "",
@@ -78,7 +78,7 @@ export function RequestVideoModal({
       return;
     }
 
-    const rank = Number(form.rank);
+    const rank = nextRank;
     if (!Number.isFinite(rank)) {
       setError("A valid rank number is required.");
       return;
@@ -94,6 +94,7 @@ export function RequestVideoModal({
 
     const { error: insErr } = await supabase.from("products").insert({
       rank,
+      priority: form.priority,
       name: activeCatalogProduct.name,
       category: activeCatalogProduct.category,
       subcategory: activeCatalogProduct.subcategory,
@@ -274,15 +275,17 @@ export function RequestVideoModal({
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="form-row-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="form-group flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Rank *</label>
-                <input
+                <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Priority *</label>
+                <select
                   className="form-input w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--castleton)] focus:ring-2 focus:ring-[var(--castleton)]/20 transition-all"
-                  type="number"
-                  min={1}
-                  value={form.rank}
-                  onChange={(e) => update("rank", e.target.value)}
+                  value={form.priority}
+                  onChange={(e) => update("priority", e.target.value as "High" | "Medium" | "Low")}
                   required
-                />
+                >
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
               </div>
               <div className="form-group flex flex-col gap-1.5">
                 <label className="form-label text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">Language</label>
