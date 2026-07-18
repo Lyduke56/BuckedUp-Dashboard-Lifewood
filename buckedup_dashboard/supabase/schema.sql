@@ -757,6 +757,178 @@ create policy "Own update" on bucky_messages for update
 create policy "Own delete" on bucky_messages for delete
   using (user_id = auth.uid());
 
+-- Server-side scheduled proactive alerts: the same stale-item/pacing
+-- checks BuckyWidget.tsx already runs client-side (Phase 5), but on a
+-- daily schedule via pg_cron, so they fire even if nobody has the
+-- dashboard open. Delivered through the existing notifications table/bell
+-- rather than email, since this app's deployment target (and therefore
+-- any public URL to link back to) isn't knowable from this repo.
+create extension if not exists pg_cron;
+
+alter table notifications drop constraint if exists notifications_type_check;
+alter table notifications add constraint notifications_type_check
+  check (type in ('issue_reported', 'rejected', 'assigned', 'bucky_stale_item', 'bucky_pacing_behind'));
+
+-- Once-per-recipient-per-type-per-day dedup for Bucky's own alert types
+-- only -- deliberately not applied to the pre-existing event-driven types,
+-- which can legitimately fire more than once a day for the same
+-- recipient. A real stored column, not an expression index on
+-- created_at::date -- Postgres requires index expressions to be
+-- IMMUTABLE, and a timestamptz -> date cast is timezone-dependent
+-- (STABLE at best), so it can't be used directly in an index. DEFAULT
+-- current_date, evaluated once per row at insert time, sidesteps that.
+alter table notifications add column if not exists created_date date not null default current_date;
+
+create unique index if not exists notifications_bucky_dedup_idx
+  on notifications (recipient_id, type, created_date)
+  where type in ('bucky_stale_item', 'bucky_pacing_behind');
+
+-- Security definer, same convention as notify_issue_reported()/
+-- notify_product_changes() above -- notifications has no client insert
+-- policy at all, so this needs to bypass RLS to write. Mirrors Phase 5's
+-- exact thresholds (3-day staleness, same "in production" stage
+-- definition, same daily-target precedence as useDailyProgress.ts) so
+-- the scheduled and live-in-chat versions never disagree.
+create or replace function bucky_check_proactive_alerts()
+returns void as $$
+declare
+  v_stale_days constant integer := 3;
+  v_default_daily_target constant integer := 3;
+  v_today constant date := current_date;
+  v_lead_message text;
+  v_operator_message text;
+  v_recipient record;
+  v_active_plan record;
+  v_today_target integer;
+  v_today_published integer;
+begin
+  -- 1. Lead stale-item check: products stuck in 'In Review' >= 3 days.
+  -- Team-wide (review is a lead responsibility), one shared notification
+  -- per lead.
+  with lead_stale as (
+    select p.rank, p.name, latest.entered_at,
+      round(extract(epoch from (now() - latest.entered_at)) / 86400.0, 1) as days
+    from products p
+    join lateral (
+      select status, entered_at
+      from product_status_history h
+      where h.product_id = p.id
+      order by h.entered_at desc
+      limit 1
+    ) latest on true
+    where p.status = 'In Review'
+      and latest.status = 'In Review'
+      and latest.entered_at <= now() - (v_stale_days || ' days')::interval
+    order by latest.entered_at asc
+    limit 5
+  )
+  select string_agg(
+    format('#%s "%s" (%sd)', rank, name, days),
+    E'\n' order by entered_at asc
+  )
+  into v_lead_message
+  from lead_stale;
+
+  if v_lead_message is not null then
+    for v_recipient in select id from profiles where role = 'lead' loop
+      insert into notifications (recipient_id, type, message, product_id)
+      values (
+        v_recipient.id,
+        'bucky_stale_item',
+        E'Some items have been waiting in review for a while:\n' || v_lead_message,
+        null
+      )
+      on conflict (recipient_id, type, created_date)
+        where type in ('bucky_stale_item', 'bucky_pacing_behind')
+        do nothing;
+    end loop;
+  end if;
+
+  -- 2. Operator stale-item check: each operator's own claimed products
+  -- stuck (in any active stage, not just In Review) >= 3 days. Scoped
+  -- per operator, run once per operator.
+  for v_recipient in select id from profiles where role = 'operator' loop
+    with operator_stale as (
+      select p.rank, p.name, latest.status, latest.entered_at,
+        round(extract(epoch from (now() - latest.entered_at)) / 86400.0, 1) as days
+      from products p
+      join lateral (
+        select status, entered_at
+        from product_status_history h
+        where h.product_id = p.id
+        order by h.entered_at desc
+        limit 1
+      ) latest on true
+      where p.owner_id = v_recipient.id
+        and p.status = latest.status
+        and latest.status not in ('Not Started', 'Published')
+        and latest.entered_at <= now() - (v_stale_days || ' days')::interval
+      order by latest.entered_at asc
+      limit 5
+    )
+    select string_agg(
+      format('#%s "%s" (%sd in %s)', rank, name, days, status),
+      E'\n' order by entered_at asc
+    )
+    into v_operator_message
+    from operator_stale;
+
+    if v_operator_message is not null then
+      insert into notifications (recipient_id, type, message, product_id)
+      values (
+        v_recipient.id,
+        'bucky_stale_item',
+        E'Some of your assigned videos have been stuck for a while:\n' || v_operator_message,
+        null
+      )
+      on conflict (recipient_id, type, created_date)
+        where type in ('bucky_stale_item', 'bucky_pacing_behind')
+        do nothing;
+    end if;
+    v_operator_message := null;
+  end loop;
+
+  -- 3. Pacing check: today's published count vs. today's target, same
+  -- precedence as useDailyProgress.ts (plan's daily_accumulative_targets
+  -- for today -> daily_target_history for today -> DAILY_VIDEO_TARGET
+  -- fallback). Team-wide fact, notifies every lead and operator.
+  select * into v_active_plan from production_plans where is_active = true limit 1;
+
+  v_today_target := coalesce(
+    (v_active_plan.daily_accumulative_targets ->> to_char(v_today, 'YYYY-MM-DD'))::integer,
+    (select target from daily_target_history where date = v_today),
+    v_default_daily_target
+  );
+
+  select count(*) into v_today_published
+  from product_status_history
+  where status = 'Published'
+    and entered_at::date = v_today;
+
+  if v_today_published < v_today_target then
+    for v_recipient in select id from profiles where role in ('lead', 'operator') loop
+      insert into notifications (recipient_id, type, message, product_id)
+      values (
+        v_recipient.id,
+        'bucky_pacing_behind',
+        format('Production is behind pace today: %s of %s videos published so far.', v_today_published, v_today_target),
+        null
+      )
+      on conflict (recipient_id, type, created_date)
+        where type in ('bucky_stale_item', 'bucky_pacing_behind')
+        do nothing;
+    end loop;
+  end if;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+-- Daily at 9am UTC (pg_cron's default), easy to retune later.
+select cron.schedule(
+  'bucky-proactive-alerts',
+  '0 9 * * *',
+  $cron$select bucky_check_proactive_alerts();$cron$
+);
+
 -- Realtime: the dashboard subscribes to postgres_changes on these tables
 -- so multiple editors see writes live, instead of polling.
 alter publication supabase_realtime add table products;
