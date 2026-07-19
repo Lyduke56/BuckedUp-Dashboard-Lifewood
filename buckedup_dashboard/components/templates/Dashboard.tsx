@@ -7,6 +7,7 @@ import { parseModalKey } from "@/lib/utils";
 import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import { useCatalog } from "@/lib/useCatalog";
+import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
@@ -19,14 +20,17 @@ import { PlanningView } from "@/components/templates/PlanningView";
 import { BuckyConversationsView } from "@/components/templates/BuckyConversationsView";
 import { BuckyWidget } from "@/components/organisms/BuckyWidget";
 import { ForcePasswordChangeView } from "@/components/auth/ForcePasswordChangeView";
+import { ReviewsView } from "@/components/templates/ReviewsView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
+  const [reviewRankToOpen, setReviewRankToOpen] = useState<number | null>(null);
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
+  const { currentByKey } = useStageDeliverables();
   const { role, mustChangePassword } = useAuth();
 
   // Bucky's product-selection context (Phase 3b). libraryFocus covers
@@ -101,6 +105,28 @@ export function Dashboard() {
     setActiveView("library");
   };
 
+  const pendingReviewsCount = useMemo(() => {
+    if (role !== "lead" && role !== "admin") return 0;
+    
+    let count = 0;
+    for (const product of products) {
+      if (product.deliveryType !== "pipeline") continue;
+      
+      const status = product.items[0]?.status;
+      if (!status) continue;
+      
+      if (status === "In Review") {
+        count++;
+      } else {
+        const deliverable = currentByKey.get(`${product.id}:${status}`);
+        if (deliverable && deliverable.decision === "pending") {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [products, currentByKey, role]);
+
   // Replaces the entire dashboard shell (not layered over it) whenever an
   // admin-created account hasn't set its own password yet — nothing else
   // mounts, so there's nothing to accidentally interact with underneath.
@@ -120,6 +146,7 @@ export function Dashboard() {
           activeView={activeView}
           onViewChange={switchView}
           role={role}
+          pendingReviewsCount={pendingReviewsCount}
         />
       </div>
       <div className="content">
@@ -161,15 +188,30 @@ export function Dashboard() {
         <div className={`view${activeView === "library" ? " active" : ""}`}>
           <VideoLibraryView
             products={products}
+            currentByKey={currentByKey}
             loading={loading}
             error={error}
             onOpenModal={setModalKey}
             externalSearch={librarySearch}
             onExternalSearchApplied={() => setLibrarySearch(null)}
+            externalReviewRank={reviewRankToOpen}
+            onExternalReviewRankApplied={() => setReviewRankToOpen(null)}
             theme={theme}
             onProductFocus={setLibraryFocus}
           />
         </div>
+        {(role === "lead" || role === "admin") ? (
+          <div className={`view${activeView === "reviews" ? " active" : ""}`}>
+            <ReviewsView 
+              products={products} 
+              currentByKey={currentByKey} 
+              onReviewProduct={(rank) => {
+                setReviewRankToOpen(rank);
+                switchView("library");
+              }}
+            />
+          </div>
+        ) : null}
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>
           <AnalyticsView products={products} />
         </div>
@@ -179,13 +221,13 @@ export function Dashboard() {
           </div>
         ) : null}
         {role === "admin" ? (
-          <div className={`view${activeView === "bucky" ? " active" : ""}`}>
-            <BuckyConversationsView />
-          </div>
-        ) : null}
-        {role === "lead" ? (
           <div className={`view${activeView === "planning" ? " active" : ""}`}>
             <PlanningView />
+          </div>
+        ) : null}
+        {role === "admin" ? (
+          <div className={`view${activeView === "bucky" ? " active" : ""}`}>
+            <BuckyConversationsView />
           </div>
         ) : null}
       </div>

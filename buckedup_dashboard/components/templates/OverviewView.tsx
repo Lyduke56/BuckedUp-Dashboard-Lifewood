@@ -32,11 +32,17 @@ export function OverviewView({
     ? products.filter(p => p.ownerId === user?.id)
     : products;
 
+  const subtitle =
+    role === "operator"
+      ? "Your assigned items and personal production progress."
+      : undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
         title={projectName} 
         overline="CURRENT PIPELINE"
+        subtitle={subtitle}
       />
       <ProjectProgressCard products={userProducts} isPersonal={role === "operator"} />
       <KpiRow products={userProducts} isLoading={isLoading} hasError={hasError} />
