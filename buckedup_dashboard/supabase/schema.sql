@@ -754,12 +754,13 @@ create policy "Own delete" on bucky_rate_limit_log for delete
 -- replaces, this is a "save my own conversation" concern, not a
 -- server-route one.
 create table bucky_messages (
-  id text primary key,
+  id text not null,
   user_id uuid not null references profiles(id) on delete cascade,
   role text not null check (role in ('user', 'assistant', 'system')),
   parts jsonb not null,
   metadata jsonb,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (id, user_id)
 );
 create index bucky_messages_user_created_idx
   on bucky_messages (user_id, created_at asc);

@@ -95,6 +95,7 @@ export function BuckyTranscriptModal({ userId, userEmail, onClose }: BuckyTransc
                               width={38}
                               height={38}
                               alt="Bucky"
+                              style={{ width: "38px", height: "38px" }}
                               className="rounded-full w-full h-full object-contain p-1 pointer-events-none bg-white"
                               draggable={false}
                             />

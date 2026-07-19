@@ -54,7 +54,7 @@ export async function saveChatHistory(
     parts: m.parts,
     metadata: m.metadata ?? null,
   }));
-  const { error } = await supabase.from("bucky_messages").upsert(rows, { onConflict: "id" });
+  const { error } = await supabase.from("bucky_messages").upsert(rows, { onConflict: "id,user_id" });
   if (error) console.error("bucky-chat-history save failed:", error);
 }
 
