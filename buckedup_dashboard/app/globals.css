@@ -1888,6 +1888,32 @@ a {
   border-top-left-radius: 4px;
 }
 
+/* A tool call still in flight -- a gentle breathing pulse (not the same
+   bounce as .bucky-typing's dots below, this is a longer/subtler cycle
+   since the text itself is already changing) so it reads as "actively
+   working on it" rather than a static, possibly-stuck line. */
+.bucky-msg-thinking {
+  animation: buckyThinkingPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes buckyThinkingPulse {
+
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bucky-msg-thinking {
+    animation: none;
+  }
+}
+
 /* Suggested prompts chips */
 .bucky-suggestions {
   display: flex;

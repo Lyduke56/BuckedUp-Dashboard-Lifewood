@@ -59,7 +59,8 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     }),
 
     get_product: tool({
-      description: "Get full detail on a single product by its rank number or id, including open issue count.",
+      description:
+        "Get full detail on a single product by its rank number or id, including open issue count and a ready-to-use markdown table.",
       inputSchema: z.object({
         rank: z.number().int().optional(),
         id: z.string().uuid().optional(),
@@ -77,7 +78,40 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             .select("id", { count: "exact", head: true })
             .eq("product_id", product.id)
             .eq("status", "open");
-          return { product, openIssues: openIssues ?? 0 };
+
+          // Same pre-computed-answer pattern as get_production_breakdown —
+          // this tool used to hand the model a raw row and rely on it to
+          // both format AND correctly retype every field into prose;
+          // confirmed live (more than once) to occasionally garble a
+          // value while doing so (e.g. a real date mangled into nonsense).
+          // A ready-made table the model is told to paste as-is removes
+          // the retyping step entirely for the values that matter.
+          const markdownTable = [
+            "| Field | Value |",
+            "|---|---|",
+            `| Name | ${product.name} |`,
+            `| Rank | ${product.rank} |`,
+            `| Category | ${product.category} |`,
+            `| Subcategory | ${product.subcategory} |`,
+            `| Content type | ${product.content_type ?? "none"} |`,
+            `| Language | ${product.language} |`,
+            `| Content angle | ${product.content_angle ?? "none"} |`,
+            `| Status | ${product.status} |`,
+            `| Delivery type | ${product.delivery_type} |`,
+            `| Priority | ${product.priority ?? "none"} |`,
+            `| Owner | ${product.owner ?? "Unclaimed"} |`,
+            `| Review status | ${product.review_status ?? "none"} |`,
+            `| Rejection reason | ${product.rejection_reason ?? "none"} |`,
+            `| Publish date | ${product.publish_date ?? "none yet"} |`,
+            `| Video URL | ${product.video_url ?? "none yet"} |`,
+            `| Product URL | ${product.product_url ?? "none"} |`,
+            `| Catalog link | ${product.catalog_product_id ?? "none"} |`,
+            `| Created | ${product.created_at} |`,
+            `| Updated | ${product.updated_at} |`,
+            `| Open issues | ${openIssues ?? 0} |`,
+          ].join("\n");
+
+          return { product, openIssues: openIssues ?? 0, markdownTable };
         }),
     }),
 
@@ -126,7 +160,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 
     get_analytics_summary: tool({
       description:
-        "Get an overall statistics summary: stage funnel counts (stageFunnel is CUMULATIVE — count of products at or past each stage, not currently sitting in it — for current occupancy use get_production_breakdown instead), review-status distribution, rejection rate by category, and progress against the active production plan's targets. Use for 'give me a summary/statistics'.",
+        "Get an overall statistics summary: stage funnel counts (stageFunnel is CUMULATIVE — count of products at or past each stage, not currently sitting in it — for current occupancy use get_production_breakdown instead), review-status distribution, rejection rate by category, and progress against the active production plan's targets, including a ready-to-use markdown table. Use for 'give me a summary/statistics'.",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -171,20 +205,65 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             ]),
           );
 
+          const fullReviewStatusDistribution = { ...reviewStatusDistribution, Other: otherReviewStatus };
+
+          // Same pre-computed-answer pattern as get_production_breakdown —
+          // this tool used to hand the model several raw breakdown
+          // objects and rely on it to correctly retype every number into
+          // prose; confirmed live (more than once, on sibling tools) that
+          // a small free model can garble a value while doing so. A
+          // ready-made set of tables the model is told to paste as-is
+          // removes that retyping step for the numbers that matter.
+          const stageFunnelTable = [
+            "| Stage | At or past |",
+            "|---|---|",
+            ...STATUS_ORDER.map((stage) => `| ${stage} | ${stageFunnel[stage]} |`),
+          ].join("\n");
+
+          const reviewStatusTable = [
+            "| Review status | Count |",
+            "|---|---|",
+            ...Object.entries(fullReviewStatusDistribution).map(([status, count]) => `| ${status} | ${count} |`),
+          ].join("\n");
+
+          const rejectionTable =
+            Object.keys(rejectionRateByCategory).length > 0
+              ? [
+                  "| Category | Rejection rate |",
+                  "|---|---|",
+                  ...Object.entries(rejectionRateByCategory).map(([category, rate]) => `| ${category} | ${rate}% |`),
+                ].join("\n")
+              : "No categories with products yet.";
+
+          const activePlan = plan
+            ? {
+                name: plan.name,
+                totalVideoTarget: plan.total_video_target,
+                deadline: plan.deadline,
+                categoryTargets: plan.category_targets,
+                languageTargets: plan.language_targets,
+              }
+            : null;
+
+          const planTable = activePlan
+            ? [
+                "| Field | Value |",
+                "|---|---|",
+                `| Name | ${activePlan.name} |`,
+                `| Total video target | ${activePlan.totalVideoTarget} |`,
+                `| Deadline | ${activePlan.deadline} |`,
+              ].join("\n")
+            : "No active production plan.";
+
+          const markdownTable = `**Stage funnel (cumulative — at or past each stage)**\n${stageFunnelTable}\n\n**Review status**\n${reviewStatusTable}\n\n**Rejection rate by category**\n${rejectionTable}\n\n**Active production plan**\n${planTable}`;
+
           return {
             totalProducts: rows.length,
             stageFunnel,
-            reviewStatusDistribution: { ...reviewStatusDistribution, Other: otherReviewStatus },
+            reviewStatusDistribution: fullReviewStatusDistribution,
             rejectionRatePercentByCategory: rejectionRateByCategory,
-            activePlan: plan
-              ? {
-                  name: plan.name,
-                  totalVideoTarget: plan.total_video_target,
-                  deadline: plan.deadline,
-                  categoryTargets: plan.category_targets,
-                  languageTargets: plan.language_targets,
-                }
-              : null,
+            activePlan,
+            markdownTable,
           };
         }),
     }),
@@ -353,7 +432,8 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     }),
 
     get_production_plan: tool({
-      description: "Get the currently active production plan: targets, deadline, and pacing.",
+      description:
+        "Get the currently active production plan: targets, deadline, and pacing, including a ready-to-use markdown table.",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -363,7 +443,38 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             .eq("is_active", true)
             .maybeSingle();
           if (error) return { error: error.message };
-          return { plan: data };
+          if (!data) return { plan: null };
+
+          // Same pre-computed-answer pattern as get_production_breakdown —
+          // this tool used to hand the model a raw row and rely on it to
+          // correctly retype every field into prose; confirmed live that
+          // a small free model can garble a value while doing so (a real
+          // deadline date mangled into nonsense). A ready-made table the
+          // model is told to paste as-is removes that retyping step for
+          // the values that matter.
+          const categoryTargetsStr =
+            Object.entries(data.category_targets ?? {})
+              .map(([category, target]) => `${category}: ${target}`)
+              .join(", ") || "none";
+          const languageTargetsStr =
+            Object.entries(data.language_targets ?? {})
+              .map(([language, target]) => `${language}: ${target}`)
+              .join(", ") || "none";
+
+          const markdownTable = [
+            "| Field | Value |",
+            "|---|---|",
+            `| Name | ${data.name} |`,
+            `| Active | ${data.is_active ? "Yes" : "No"} |`,
+            `| Total video target | ${data.total_video_target} |`,
+            `| Start date | ${data.start_date} |`,
+            `| Deadline | ${data.deadline} |`,
+            `| Language targets | ${languageTargetsStr} |`,
+            `| Category targets | ${categoryTargetsStr} |`,
+            `| Notes | ${data.notes ?? "none"} |`,
+          ].join("\n");
+
+          return { plan: data, markdownTable };
         }),
     }),
 
@@ -388,7 +499,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     // systemPrompt.ts) to output as-is rather than rebuilding.
     get_production_breakdown: tool({
       description:
-        "Get a live count of products at each pipeline stage, including a ready-to-use markdown table. Use this for 'what's in production', 'how many are in each stage', or any stage-by-stage breakdown — the counting is already done for you, don't call list_products and count by hand.",
+        "Get a live count of products at each pipeline stage, including two ready-to-use markdown tables. Use this for 'what's in production', 'how many are in each stage', or any stage-by-stage breakdown — the counting is already done for you, don't call list_products and count by hand. For a question scoped to 'in production'/'actively being worked on', output activeMarkdownTable (just the 5 active stages). For a request for the full/complete breakdown across every stage, output markdownTable (all 7 stages) instead — don't just always use one or the other.",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -402,10 +513,8 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             byStage[row.status] = (byStage[row.status] ?? 0) + 1;
           }
 
-          const inProduction = STATUS_ORDER.filter((s) => ACTIVE_STAGES.has(s)).reduce(
-            (sum, s) => sum + (byStage[s] ?? 0),
-            0,
-          );
+          const activeStageList = STATUS_ORDER.filter((s) => ACTIVE_STAGES.has(s));
+          const inProduction = activeStageList.reduce((sum, s) => sum + (byStage[s] ?? 0), 0);
 
           const markdownTable = [
             "| Stage | Count |",
@@ -413,7 +522,14 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
             ...STATUS_ORDER.map((stage) => `| ${stage} | ${byStage[stage] ?? 0} |`),
           ].join("\n");
 
-          return { byStage, inProduction, total: rows.length, markdownTable };
+          const activeMarkdownTable = [
+            "| Stage | Count |",
+            "|---|---|",
+            ...activeStageList.map((stage) => `| ${stage} | ${byStage[stage] ?? 0} |`),
+            `| **In production (total)** | **${inProduction}** |`,
+          ].join("\n");
+
+          return { byStage, inProduction, total: rows.length, markdownTable, activeMarkdownTable };
         }),
     }),
 

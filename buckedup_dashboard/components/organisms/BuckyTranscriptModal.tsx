@@ -8,7 +8,7 @@ import { isToolUIPart, type UIMessage } from "ai";
 import { useMounted } from "@/lib/useMounted";
 import { createClient } from "@/lib/supabase/client";
 import { loadChatHistory } from "@/lib/bucky/chatHistory";
-import { renderMarkdown, isLeakedReasoning } from "@/lib/bucky/renderMarkdown";
+import { renderMarkdown, isLeakedReasoning, extractVerifiedTables, substituteVerifiedTables } from "@/lib/bucky/renderMarkdown";
 import { describeAction, describeToolResult } from "@/lib/bucky/toolCopy";
 
 interface BuckyTranscriptModalProps {
@@ -101,7 +101,9 @@ export function BuckyTranscriptModal({ userId, userEmail, onClose }: BuckyTransc
                           )}
                         </div>
                         <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
-                          {isUser ? part.text : renderMarkdown(part.text)}
+                          {isUser
+                            ? part.text
+                            : renderMarkdown(substituteVerifiedTables(part.text, extractVerifiedTables(message)))}
                         </div>
                       </div>
                     );

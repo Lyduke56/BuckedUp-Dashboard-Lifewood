@@ -147,7 +147,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
         contentType: z.string().optional(),
         contentAngle: z.string().optional(),
         productUrl: z.string().optional().describe("Ignored if catalogProductId is given."),
-        ownerEmail: z.string().email().optional(),
+        ownerEmail: z.string().optional().describe("The owner's email address."),
         publishDate: z.string().optional().describe("YYYY-MM-DD"),
         deliveryType: z.enum(["pipeline", "link"]).default("pipeline"),
         videoUrl: z.string().url().optional().describe("Required when deliveryType is 'link'."),

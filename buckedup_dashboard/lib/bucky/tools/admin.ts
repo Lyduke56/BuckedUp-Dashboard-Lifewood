@@ -35,7 +35,7 @@ function buildAdminActionTools(supabase: SupabaseServerClient, request: Request)
       description:
         "Create a new user account by inviting them via email, with the given role. Requires admin confirmation before it actually runs.",
       inputSchema: z.object({
-        email: z.string().email(),
+        email: z.string().describe("The new account's email address."),
         role: ROLE_SCHEMA.describe("operator, lead, or admin"),
       }),
       execute: ({ email, role }) =>
@@ -53,7 +53,7 @@ function buildAdminActionTools(supabase: SupabaseServerClient, request: Request)
 
     delete_user: tool({
       description: "Delete a user account by email. Requires admin confirmation before it actually runs.",
-      inputSchema: z.object({ email: z.string().email() }),
+      inputSchema: z.object({ email: z.string().describe("The account's email address.") }),
       execute: ({ email }) =>
         safe(async () => {
           const found = await findUserIdByEmail(email);
@@ -73,7 +73,7 @@ function buildAdminActionTools(supabase: SupabaseServerClient, request: Request)
     change_role: tool({
       description: "Change an existing user's role by email. Requires admin confirmation before it actually runs.",
       inputSchema: z.object({
-        email: z.string().email(),
+        email: z.string().describe("The account's email address."),
         role: ROLE_SCHEMA.describe("operator, lead, or admin"),
       }),
       execute: ({ email, role }) =>
