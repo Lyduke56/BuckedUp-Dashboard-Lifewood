@@ -117,9 +117,10 @@ export function Dashboard() {
       
       if (status === "In Review") {
         count++;
-      } else {
-        const deliverable = currentByKey.get(`${product.id}:${status}`);
-        if (deliverable && deliverable.decision === "pending") {
+      } else if (status === "Design") {
+        const sb = currentByKey.get(`${product.id}:Storyboarding`);
+        const sc = currentByKey.get(`${product.id}:Scripting`);
+        if ((sb && sb.decision === "pending") || (sc && sc.decision === "pending")) {
           count++;
         }
       }

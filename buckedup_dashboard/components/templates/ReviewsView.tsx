@@ -11,6 +11,17 @@ interface ReviewsViewProps {
   onReviewProduct: (rank: number) => void;
 }
 
+type InboxItem = {
+  product: Product;
+  stage: string;
+  itemKey: string;
+  storyboardDel?: StageDeliverable | null;
+  scriptDel?: StageDeliverable | null;
+  reviewedAt?: string | null;
+  submittedAt?: string | null;
+  submittedBy?: string | null;
+};
+
 // Helper to safely format relative time natively
 function timeAgo(dateStr?: string | null) {
   if (!dateStr) return "";
@@ -120,12 +131,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
 
   // Compute the list of pending items
   const pendingItems = useMemo(() => {
-    const items: Array<{
-      product: Product;
-      deliverable: StageDeliverable | null;
-      stage: string;
-      itemKey: string;
-    }> = [];
+    const items: InboxItem[] = [];
 
     for (const p of products) {
       if (p.deliveryType !== "pipeline") continue;
@@ -134,22 +140,28 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
       if (!status) continue;
       
       if (status === "In Review") {
-        // Find the "Editing" deliverable, since that's what was submitted to reach "In Review"
-        const deliverable = currentByKey.get(`${p.id}:Editing`) || null;
         items.push({
           product: p,
-          deliverable,
-          stage: status,
-          itemKey: `${p.id}:${status}-${deliverable?.id || 'none'}`
+          stage: "In Review",
+          itemKey: `${p.id}:In Review`,
+          submittedBy: p.ownerId
         });
-      } else {
-        const deliverable = currentByKey.get(`${p.id}:${status}`);
-        if (deliverable && deliverable.decision === "pending") {
+      } else if (status === "Design") {
+        const sb = currentByKey.get(`${p.id}:Storyboarding`) || null;
+        const sc = currentByKey.get(`${p.id}:Scripting`) || null;
+        if ((sb && sb.decision === "pending") || (sc && sc.decision === "pending")) {
+          const sbTime = sb?.submittedAt ? new Date(sb.submittedAt).getTime() : 0;
+          const scTime = sc?.submittedAt ? new Date(sc.submittedAt).getTime() : 0;
+          const latestSubmit = sbTime > scTime ? sb?.submittedAt : sc?.submittedAt;
+          
           items.push({
             product: p,
-            deliverable,
-            stage: status,
-            itemKey: `${p.id}:${status}-${deliverable.id}`
+            stage: "Design",
+            itemKey: `${p.id}:Design`,
+            storyboardDel: sb,
+            scriptDel: sc,
+            submittedAt: latestSubmit,
+            submittedBy: sb?.submittedBy || sc?.submittedBy,
           });
         }
       }
@@ -157,8 +169,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
 
     // Sort newest first based on submission time (if available), fallback to rank
     return items.sort((a, b) => {
-      const timeA = a.deliverable?.submittedAt ? new Date(a.deliverable.submittedAt).getTime() : 0;
-      const timeB = b.deliverable?.submittedAt ? new Date(b.deliverable.submittedAt).getTime() : 0;
+      const timeA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const timeB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
       if (timeA !== timeB) return timeB - timeA;
       return b.product.rank - a.product.rank;
     });
@@ -166,39 +178,58 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
 
   // Compute the list of reviewed items
   const reviewedItems = useMemo(() => {
-    const items: Array<{
-      product: Product;
-      deliverable: StageDeliverable;
-      stage: string;
-      itemKey: string;
-    }> = [];
+    const items: InboxItem[] = [];
 
-    for (const deliverable of currentByKey.values()) {
-      if (deliverable.decision !== "pending") {
-        const product = products.find(p => p.id === deliverable.productId);
-        if (product) {
-          items.push({
-            product,
-            deliverable,
-            stage: deliverable.stage,
-            itemKey: `${product.id}:${deliverable.stage}-${deliverable.id}`
-          });
-        }
+    for (const p of products) {
+      if (p.deliveryType !== "pipeline") continue;
+      
+      // 1. Check historical video reviews
+      if (p.reviewStatus === "Accepted" || p.reviewStatus === "Rejected") {
+        items.push({
+          product: p,
+          stage: "In Review",
+          itemKey: `${p.id}:In Review-historical`,
+          reviewedAt: p.publishDate || p.createdAt,
+          submittedBy: p.ownerId,
+        });
+      }
+      
+      // 2. Check historical Design reviews
+      const sb = currentByKey.get(`${p.id}:Storyboarding`);
+      const sc = currentByKey.get(`${p.id}:Scripting`);
+      
+      const hasReviewedDesign = (sb && sb.decision !== "pending") || (sc && sc.decision !== "pending");
+      const isCurrentlyPendingDesign = p.items[0]?.status === "Design" && ((sb && sb.decision === "pending") || (sc && sc.decision === "pending"));
+      
+      if (hasReviewedDesign && !isCurrentlyPendingDesign) {
+         const sbTime = sb?.reviewedAt ? new Date(sb.reviewedAt).getTime() : 0;
+         const scTime = sc?.reviewedAt ? new Date(sc.reviewedAt).getTime() : 0;
+         const latestReview = sbTime > scTime ? sb?.reviewedAt : sc?.reviewedAt;
+         
+         items.push({
+            product: p,
+            stage: "Design",
+            itemKey: `${p.id}:Design-historical`,
+            storyboardDel: sb,
+            scriptDel: sc,
+            reviewedAt: latestReview,
+            submittedBy: sb?.submittedBy || sc?.submittedBy,
+         });
       }
     }
 
     // Sort newest first based on reviewedAt
     return items.sort((a, b) => {
-      const timeA = a.deliverable.reviewedAt ? new Date(a.deliverable.reviewedAt).getTime() : 0;
-      const timeB = b.deliverable.reviewedAt ? new Date(b.deliverable.reviewedAt).getTime() : 0;
+      const timeA = a.reviewedAt ? new Date(a.reviewedAt).getTime() : 0;
+      const timeB = b.reviewedAt ? new Date(b.reviewedAt).getTime() : 0;
       return timeB - timeA;
     });
   }, [products, currentByKey]);
 
-  const matchesFilters = (item: { product: Product; deliverable: StageDeliverable | null; stage: string }) => {
+  const matchesFilters = (item: InboxItem) => {
     if (searchQuery && !item.product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (filterStage !== "all" && item.stage !== filterStage) return false;
-    if (filterOperator !== "all" && item.deliverable?.submittedBy !== filterOperator) return false;
+    if (filterOperator !== "all" && item.submittedBy !== filterOperator) return false;
     return true;
   };
 
@@ -211,19 +242,19 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
 
   const uniqueOperators = useMemo(() => {
     const ops = new Set<string>();
-    pendingItems.forEach(i => i.deliverable?.submittedBy && ops.add(i.deliverable.submittedBy));
-    reviewedItems.forEach(i => i.deliverable?.submittedBy && ops.add(i.deliverable.submittedBy));
+    pendingItems.forEach(i => i.submittedBy && ops.add(i.submittedBy));
+    reviewedItems.forEach(i => i.submittedBy && ops.add(i.submittedBy));
     return Array.from(ops);
   }, [pendingItems, reviewedItems]);
 
   const uniqueStages = useMemo(() => {
     // Always include standard reviewable stages so the dropdown doesn't feel empty
-    const stg = new Set<string>(["Storyboarding", "Scripting", "Prompting", "In Review"]);
+    const stg = new Set<string>(["Design", "In Review"]);
     pendingItems.forEach(i => stg.add(i.stage));
     reviewedItems.forEach(i => stg.add(i.stage));
     
     // Sort them in pipeline order roughly
-    const order = ["Storyboarding", "Scripting", "Prompting", "Editing", "In Review"];
+    const order = ["Design", "In Review"];
     return Array.from(stg).sort((a, b) => {
       const idxA = order.indexOf(a);
       const idxB = order.indexOf(b);
@@ -381,7 +412,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                 const isPending = activeTab === "pending";
                 // For pending, it's unread if not clicked. For reviewed, it's always read.
                 const isUnread = isPending ? !clickedItemKeys.has(item.itemKey) : false;
-                const profile = item.deliverable?.submittedBy ? profiles.find(p => p.id === item.deliverable?.submittedBy) : null;
+                const profile = item.submittedBy ? profiles.find(p => p.id === item.submittedBy) : null;
                 const senderName = profile?.email || "Unknown Operator";
                 
                 // E.g. "Editing for The Bucky Challenge"
@@ -425,7 +456,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                           />
                         </div>
                       )}
-
+                      
                       {/* Read/Unread Indicator & Sender */}
                       <div className="w-[180px] shrink-0 flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full shrink-0 ${isUnread ? "bg-amber-500" : "opacity-0"}`} />
@@ -434,51 +465,43 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                             {senderName.charAt(0).toUpperCase()}
                           </div>
                           <span className={`truncate text-sm ${isUnread ? "text-primary font-bold" : "text-secondary font-medium"}`}>
-                            {senderName.split('@')[0]}
+                            {item.stage === "In Review" ? "Video Review" : `${item.stage} Deliverables`}
                           </span>
                         </div>
                       </div>
 
-                      {/* Subject */}
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
-                        <span className={`truncate text-sm ${isUnread ? "text-primary font-semibold" : "text-secondary"}`}>
-                          {subject}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-secondary shrink-0">
-                          {item.product.category}
-                        </span>
-                        {!isPending && item.deliverable?.decision && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${
-                            item.deliverable.decision === "accepted" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                          }`}>
-                            {item.deliverable.decision.toUpperCase()}
-                          </span>
-                        )}
+                      {/* Product Name */}
+                      <div className={`flex-1 truncate text-sm ${isUnread ? "text-primary font-semibold" : "text-secondary"}`}>
+                        {item.product.name}
                       </div>
 
-                      {/* Timestamp & Action */}
-                      <div className="shrink-0 flex items-center gap-4">
-                        <span className={`text-xs w-[100px] text-right ${isUnread ? "text-primary font-medium" : "text-secondary"}`}>
-                          {timeAgo(isPending ? item.deliverable?.submittedAt : item.deliverable?.reviewedAt)}
-                        </span>
-                        {isPending && (
-                          <button 
-                            className="btn btn-primary btn-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleItemClick(item.product.rank, item.itemKey);
-                            }}
-                          >
-                            Review
-                          </button>
+                      {/* Status / Actions / Time */}
+                      <div className="w-[150px] shrink-0 flex items-center justify-end gap-4 text-xs">
+                        {isPending ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-500/80 font-medium whitespace-nowrap">{timeAgo(item.submittedAt)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-secondary whitespace-nowrap">{timeAgo(item.reviewedAt)}</span>
+                          </div>
                         )}
+                        <button 
+                          className={`btn ${isPending ? "btn-primary" : "btn-outline"} px-3 py-1.5 rounded-md text-xs whitespace-nowrap`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleItemClick(item.product.rank, item.itemKey);
+                          }}
+                        >
+                          {isPending ? "Review" : "Details"}
+                        </button>
                       </div>
                     </div>
 
-                    {/* Expanded View for Reviewed Items */}
+                    {/* Expandable Details for Reviewed Items */}
                     <AnimatePresence>
-                      {isExpanded && !isPending && item.deliverable && (
-                        <motion.div 
+                      {isExpanded && (
+                        <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -486,34 +509,84 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                           className="overflow-hidden"
                         >
                           <div className="p-6 bg-green-500/[0.02] border-t border-black/5 dark:border-white/5 pl-[232px]">
-                            <div className="flex flex-col gap-4 max-w-3xl">
-                              <div>
-                                <h4 className="text-sm font-semibold text-primary mb-1">Decision Note</h4>
-                                <p className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">
-                                  {item.deliverable.decisionNote || <span className="italic opacity-50">No note provided</span>}
-                                </p>
-                              </div>
-                              
-                              <div>
-                                <h4 className="text-sm font-semibold text-primary mb-1">Deliverable Content</h4>
-                                <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
-                                  {item.deliverable.kind === "text" ? (
-                                    <p className="whitespace-pre-wrap">{item.deliverable.textContent}</p>
-                                  ) : item.deliverable.fileUrl ? (
-                                    <a 
-                                      href={item.deliverable.fileUrl} 
-                                      target="_blank" 
-                                      rel="noreferrer"
-                                      className="text-accent hover:underline inline-flex items-center gap-2"
-                                    >
-                                      📄 View Submitted Document
-                                    </a>
-                                  ) : (
-                                    <span className="italic opacity-50">No file attached</span>
-                                  )}
+                            <div className="mb-6 flex items-center gap-2">
+                              <span className="text-xs text-secondary font-medium uppercase tracking-wider">Submitted By:</span>
+                              <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-md">
+                                <div className="w-5 h-5 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-secondary">
+                                  {senderName.charAt(0).toUpperCase()}
                                 </div>
+                                <span className="text-sm font-medium text-primary">{senderName}</span>
                               </div>
                             </div>
+                            
+                            {item.stage === "Design" ? (
+                              <div className="flex flex-col gap-6 max-w-3xl">
+                                {item.storyboardDel && (
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-primary mb-1">Storyboard</h4>
+                                    <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                      {item.storyboardDel.kind === "text" ? (
+                                        <p className="whitespace-pre-wrap">{item.storyboardDel.textContent}</p>
+                                      ) : item.storyboardDel.fileUrl ? (
+                                        <a href={item.storyboardDel.fileUrl} target="_blank" rel="noopener noreferrer" className="text-green-500 underline">View File</a>
+                                      ) : "No content provided."}
+                                    </div>
+                                    <div className="mt-2 text-xs">
+                                      <span className={`font-semibold ${item.storyboardDel.decision === "accepted" ? "text-green-500" : item.storyboardDel.decision === "rejected" ? "text-red-500" : "text-amber-500"}`}>
+                                        Status: {item.storyboardDel.decision}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                                {item.scriptDel && (
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-primary mb-1">Script</h4>
+                                    <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                      {item.scriptDel.kind === "text" ? (
+                                        <p className="whitespace-pre-wrap">{item.scriptDel.textContent}</p>
+                                      ) : item.scriptDel.fileUrl ? (
+                                        <a href={item.scriptDel.fileUrl} target="_blank" rel="noopener noreferrer" className="text-green-500 underline">View File</a>
+                                      ) : "No content provided."}
+                                    </div>
+                                    <div className="mt-2 text-xs">
+                                      <span className={`font-semibold ${item.scriptDel.decision === "accepted" ? "text-green-500" : item.scriptDel.decision === "rejected" ? "text-red-500" : "text-amber-500"}`}>
+                                        Status: {item.scriptDel.decision}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                                {item.storyboardDel?.decisionNote || item.scriptDel?.decisionNote ? (
+                                  <div className="pt-4 border-t border-black/5 dark:border-white/5">
+                                    <h4 className="text-sm font-semibold text-primary mb-1">Decision Note</h4>
+                                    <p className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">
+                                      {item.storyboardDel?.decisionNote || item.scriptDel?.decisionNote}
+                                    </p>
+                                  </div>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-4 max-w-3xl">
+                                <div>
+                                  <h4 className="text-sm font-semibold text-primary mb-1">Video Output</h4>
+                                  <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                    {item.product.items[0]?.videoUrl ? (
+                                      <a href={item.product.items[0].videoUrl} target="_blank" rel="noopener noreferrer" className="text-green-500 underline">View Video File</a>
+                                    ) : "No video uploaded."}
+                                  </div>
+                                </div>
+                                {item.product.rejectionReason && (
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-primary mb-1">Rejection Note</h4>
+                                    <p className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">{item.product.rejectionReason}</p>
+                                  </div>
+                                )}
+                                <div className="text-xs">
+                                  <span className={`font-semibold ${item.product.reviewStatus === "Accepted" ? "text-green-500" : item.product.reviewStatus === "Rejected" ? "text-red-500" : "text-amber-500"}`}>
+                                    Status: {item.product.reviewStatus || "Pending"}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}
