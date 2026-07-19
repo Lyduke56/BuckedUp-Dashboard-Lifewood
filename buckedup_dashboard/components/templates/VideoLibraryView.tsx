@@ -12,6 +12,7 @@ import {
   type PipelineStatus,
   type Product,
   type StatusFilter,
+  type StageDeliverable,
 } from "@/lib/types";
 import {
   categoryCountProducts,
@@ -24,7 +25,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
-import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { KanbanBoard } from "@/components/organisms/KanbanBoard";
 import { CategoryFolderGrid } from "@/components/molecules/CategoryFolderGrid";
 import { ProductThumbnailGrid } from "@/components/molecules/ProductThumbnailGrid";
@@ -62,10 +62,13 @@ export type LibraryProductFocus = { product: Product; source: "review" | "produc
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
   products: Product[];
+  currentByKey: Map<string, StageDeliverable>;
   loading: boolean;
   error: string | null;
   externalSearch?: string | null;
   onExternalSearchApplied?: () => void;
+  externalReviewRank?: number | null;
+  onExternalReviewRankApplied?: () => void;
   theme: "dark" | "light";
   onProductFocus?: (focus: LibraryProductFocus | null) => void;
 }
@@ -73,10 +76,13 @@ interface VideoLibraryViewProps {
 export function VideoLibraryView({
   onOpenModal,
   products,
+  currentByKey,
   loading,
   error,
   externalSearch,
   onExternalSearchApplied,
+  externalReviewRank,
+  onExternalReviewRankApplied,
   theme,
   onProductFocus,
 }: VideoLibraryViewProps) {
@@ -114,6 +120,8 @@ export function VideoLibraryView({
     if (externalSearch) onExternalSearchApplied?.();
   }, [externalSearch, onExternalSearchApplied]);
 
+  // (Moved below state declarations)
+
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
   const [formModal, setFormModal] = useState<{
     mode: "add" | "edit";
@@ -124,6 +132,25 @@ export function VideoLibraryView({
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Same pattern for jumping straight into a review modal from the Reviews tab.
+  const [appliedReviewRank, setAppliedReviewRank] = useState<number | null | undefined>(undefined);
+  
+  if (externalReviewRank !== undefined && externalReviewRank !== appliedReviewRank) {
+    setAppliedReviewRank(externalReviewRank);
+    if (externalReviewRank !== null) {
+      const product = products.find(p => p.rank === externalReviewRank);
+      if (product) {
+        setReviewModal(product);
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (externalReviewRank !== undefined && externalReviewRank !== null) {
+      onExternalReviewRankApplied?.();
+    }
+  }, [externalReviewRank, onExternalReviewRankApplied]);
 
   // Reports which product (if any) is currently being worked on — via the
   // review, production, or edit-form modal — up to Dashboard for Bucky's
@@ -148,7 +175,6 @@ export function VideoLibraryView({
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
-  const { currentByKey } = useStageDeliverables();
   const isAuthenticated = !!user;
 
   // Default "My Items" to ON for operators so they see their own work first.
@@ -159,19 +185,18 @@ export function VideoLibraryView({
       setMineOnly(true);
     }
   }, [role]);
-  // Lead: full catalog access (add/edit/delete products, move stage via
-  // ProductFormModal's Stage field) plus reviewing submitted deliverables.
+  // Lead and Admin: full catalog access (add/edit/delete products, move
+  // stage via ProductFormModal's Stage field) plus reviewing submitted
+  // deliverables. Admin has identical library powers to Lead — the sole
+  // difference is Admin also manages user accounts (Lead cannot).
   // Operator: execution-only — submits the deliverable for the current
-  // stage, never moves the stage itself. Admin: governance-only, no
-  // catalog access. See supabase/schema.sql's
+  // stage, never moves the stage itself. See supabase/schema.sql's
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
-  const canManageCatalog = role === "lead";
-  // Admin is governance-only: they can view the catalog but only its
-  // Published slice, with no write affordances and no Board (nothing to
-  // drag). Enforced in-page here rather than via a separate cut-down
-  // component so the same filter/RowDetail machinery is reused.
-  const isAdmin = role === "admin";
+  const canManageCatalog = role === "lead" || role === "admin";
+  // Admin now has full library access (same as Lead), so no special
+  // restrictions or filtered views apply — isAdmin is unused.
+  const isAdmin = false;
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
   const profileEmailById = useMemo(
@@ -555,7 +580,7 @@ export function VideoLibraryView({
                   product.deliveryType === "pipeline" &&
                   OPERATOR_SUBMIT_STAGES.includes(item.status);
                 const canReview =
-                  role === "lead" &&
+                  (role === "lead" || role === "admin") &&
                   product.deliveryType === "pipeline" &&
                   LEAD_REVIEW_STAGES.includes(item.status);
                 // A Lead's "needs attention": a pending doc deliverable, or a

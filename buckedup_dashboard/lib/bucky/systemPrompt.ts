@@ -10,6 +10,7 @@ const VIEW_LABELS: Record<ViewId, string> = {
   admin: "Admin",
   planning: "Planning",
   bucky: "Bucky",
+  reviews: "Reviews",
 };
 
 // The pipeline product the user currently has open, if any — resolved by

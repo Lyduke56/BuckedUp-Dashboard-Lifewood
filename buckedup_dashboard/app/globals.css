@@ -28,7 +28,7 @@
   --castleton: #10b981;
   --castleton-glow: rgba(16, 185, 129, 0.15);
 
-  --saffron: #ff9f1c;
+  --saffron: #f59e0b;
   --earth-yellow: #f43f5e;
   --rose-glow: rgba(244, 63, 94, 0.15);
 
@@ -75,8 +75,8 @@
   --active-tab-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 
   /* Progress Card & Pill custom variables (Dark mode) */
-  --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%);
-  --progress-card-bar-glow: 0 0 12px rgba(255, 179, 71, 0.5);
+  --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #d97706 100%);
+  --progress-card-bar-glow: 0 0 12px rgba(245, 158, 11, 0.5);
   --progress-card-mouse-glow: radial-gradient(circle, rgba(255, 179, 71, 0.25) 0%, transparent 70%);
   --progress-card-shimmer-color: rgba(255, 179, 71, 0.12);
 
@@ -844,7 +844,7 @@ a {
 
 .kpi-card.c-progress {
   border: 1px solid rgba(255, 159, 28, 0.22) !important;
-  border-left: 5px solid #ff9f1c !important;
+  border-left: 5px solid #f59e0b !important;
   box-shadow: 0 8px 24px rgba(255, 159, 28, 0.05), inset 0 0 12px rgba(255, 159, 28, 0.05) !important;
 }
 
@@ -907,7 +907,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-progress {
   border: 1.5px solid rgba(217, 131, 36, 0.28) !important;
-  border-left: 5px solid #ff9f1c !important;
+  border-left: 5px solid #f59e0b !important;
   box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
 }
 
