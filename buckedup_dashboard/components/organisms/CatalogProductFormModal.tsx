@@ -227,41 +227,59 @@ export function CatalogProductFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="modal-body flex-1 p-6 overflow-y-auto flex flex-col gap-5">
-          {/* Thumbnail */}
-          <div className="catalog-thumb-row flex items-start gap-4 mb-2">
-            <div
-              className="catalog-thumb-preview w-24 h-24 rounded-2xl bg-black/40 border border-dashed border-white/20 hover:border-[var(--castleton)] cursor-pointer overflow-hidden flex items-center justify-center transition-all flex-shrink-0"
-              onClick={() => thumbnailInputRef.current?.click()}
-              title="Click to upload thumbnail"
-            >
-              {thumbnailPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumbnailPreview} alt="Thumbnail preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 16 }} />
-              ) : (
-                <div className="catalog-thumb-placeholder flex flex-col items-center gap-1.5 text-[var(--ink-soft)]">
-                  <ImageIcon size={28} className="opacity-40" />
-                  <span className="text-[11px] opacity-60 font-semibold">Upload image</span>
-                </div>
-              )}
+          {/* Thumbnail & Active status toggle */}
+          <div className="catalog-thumb-row flex items-center justify-between gap-4 mb-2 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center gap-4 flex-1">
+              <div
+                className="catalog-thumb-preview w-16 h-16 rounded-2xl bg-black/40 border border-dashed border-white/20 hover:border-[var(--castleton)] cursor-pointer overflow-hidden flex items-center justify-center transition-all flex-shrink-0"
+                onClick={() => thumbnailInputRef.current?.click()}
+                title="Click to upload thumbnail"
+              >
+                {thumbnailPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumbnailPreview} alt="Thumbnail preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 12 }} />
+                ) : (
+                  <div className="catalog-thumb-placeholder flex flex-col items-center gap-1 text-[var(--ink-soft)]">
+                    <ImageIcon size={20} className="opacity-40" />
+                    <span className="text-[10px] opacity-60 font-semibold">Upload</span>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                style={{ display: "none" }}
+                onChange={handleThumbnailChange}
+              />
+              <div className="catalog-thumb-meta flex flex-col gap-1 justify-center py-1">
+                <p className="form-help text-xs text-[var(--ink-soft)] m-0">Thumbnail image (optional).</p>
+                {thumbnailPreview && (
+                  <button
+                    type="button"
+                    className="btn-ghost-sm text-[10px] font-semibold px-2 py-1 rounded bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white self-start transition-all"
+                    onClick={() => { setThumbnailFile(null); setThumbnailPreview(null); }}
+                  >
+                    Remove image
+                  </button>
+                )}
+              </div>
             </div>
-            <input
-              ref={thumbnailInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              style={{ display: "none" }}
-              onChange={handleThumbnailChange}
-            />
-            <div className="catalog-thumb-meta flex-1 flex flex-col gap-2 justify-center py-1">
-              <p className="form-help text-xs text-[var(--ink-soft)] m-0">Product thumbnail (optional). Recommended PNG/JPG/WebP, max 5MB.</p>
-              {thumbnailPreview && (
-                <button
-                  type="button"
-                  className="btn-ghost-sm text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[var(--ink-soft)] hover:text-white self-start transition-all"
-                  onClick={() => { setThumbnailFile(null); setThumbnailPreview(null); }}
-                >
-                  Remove image
-                </button>
-              )}
+
+            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+              <label className="form-label text-xs font-bold text-white uppercase tracking-wider m-0">Active Status</label>
+              <button
+                type="button"
+                className="toggle-btn relative w-11 h-6 rounded-full transition-colors flex-shrink-0 border"
+                style={{
+                  backgroundColor: form.isActive ? "var(--saffron)" : "rgba(255, 255, 255, 0.1)",
+                  borderColor: form.isActive ? "var(--saffron)" : "rgba(255, 255, 255, 0.2)"
+                }}
+                onClick={() => update("isActive", !form.isActive)}
+                aria-pressed={form.isActive}
+              >
+                <span className={`toggle-thumb absolute top-1 left-1 w-3.5 h-3.5 rounded-full bg-white transition-transform ${form.isActive ? "translate-x-5" : "translate-x-0"}`} />
+              </button>
             </div>
           </div>
 
@@ -383,21 +401,7 @@ export function CatalogProductFormModal({
             </div>
           </div>
 
-          {/* Is Active toggle */}
-          <div className="form-group flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5">
-            <label className="form-label text-xs font-bold text-white uppercase tracking-wider m-0">Active in Catalog</label>
-            <button
-              type="button"
-              className={`toggle-btn relative w-11 h-6 rounded-full transition-colors flex-shrink-0 border ${form.isActive ? "bg-[var(--castleton)] border-[var(--castleton)]" : "bg-white/10 border-white/20"}`}
-              onClick={() => update("isActive", !form.isActive)}
-              aria-pressed={form.isActive}
-            >
-              <span className={`toggle-thumb absolute top-1 left-1 w-3.5 h-3.5 rounded-full bg-white transition-transform ${form.isActive ? "translate-x-5" : "translate-x-0"}`} />
-            </button>
-            <span className="form-help text-xs text-[var(--ink-soft)] m-0 flex-1">
-              {form.isActive ? "Visible to all users across dashboard" : "Hidden (discontinued product)"}
-            </span>
-          </div>
+
 
           {error && <p className="form-error text-xs font-semibold text-[#dc3545] p-3 rounded-xl bg-[#dc3545]/10 border border-[#dc3545]/20">{error}</p>}
 

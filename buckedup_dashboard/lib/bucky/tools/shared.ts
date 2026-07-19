@@ -37,12 +37,12 @@ export function escapeIlikePattern(value: string): string {
 // named constant so it's trivial to retune later.
 export const UNDO_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-// The three document/text pipeline stages that get a lead-reviewed
-// deliverable (Storyboarding/Scripting/Prompting) — the Editing->Published
+// The two document/text pipeline stages that get a lead-reviewed
+// deliverable (Storyboarding/Scripting) — the Production->Published
 // leg uses video_versions instead, not this table (see schema.sql).
 // Shared by lead.ts (review_deliverable's stage validation) and read.ts
 // (get_deliverable_summary's stage x decision breakdown).
-export const DOC_STAGES = ["Storyboarding", "Scripting", "Prompting"] as const;
+export const DOC_STAGES = ["Storyboarding", "Scripting"] as const;
 
 // Shared by every product-locating tool below (operator's and lead's) —
 // mirrors get_product's same-shaped params so the model can reuse whichever

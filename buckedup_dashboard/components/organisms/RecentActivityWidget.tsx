@@ -11,10 +11,8 @@ interface RecentActivityWidgetProps {
 /** Colour + icon for each pipeline stage in the operator's status view. */
 const STAGE_STYLE: Record<string, { bg: string; text: string; border: string; icon: React.ReactNode }> = {
   "Not Started":   { bg: "rgba(150,150,150,0.10)", text: "var(--ink-soft)",    border: "rgba(150,150,150,0.25)", icon: <CircleDashed size={13} /> },
-  "Storyboarding": { bg: "rgba(129,140,248,0.10)", text: "#818cf8",           border: "rgba(129,140,248,0.25)", icon: <BookOpen size={13} /> },
-  "Scripting":     { bg: "rgba(96,165,250,0.10)",  text: "#60a5fa",           border: "rgba(96,165,250,0.25)",  icon: <FileText size={13} /> },
-  "Prompting":     { bg: "rgba(251,191,36,0.10)",  text: "#fbbf24",           border: "rgba(251,191,36,0.25)",  icon: <Wand2 size={13} /> },
-  "Editing":       { bg: "rgba(56,189,248,0.10)",  text: "#38bdf8",           border: "rgba(56,189,248,0.25)",  icon: <Pencil size={13} /> },
+  "Design":        { bg: "rgba(129,140,248,0.10)", text: "#818cf8",           border: "rgba(129,140,248,0.25)", icon: <BookOpen size={13} /> },
+  "Production":    { bg: "rgba(56,189,248,0.10)",  text: "#38bdf8",           border: "rgba(56,189,248,0.25)",  icon: <Video size={13} /> },
   "In Review":     { bg: "rgba(253,224,71,0.10)",  text: "#fde047",           border: "rgba(253,224,71,0.25)",  icon: <Eye size={13} /> },
   "Published":     { bg: "var(--castleton-glow)",   text: "var(--castleton)",  border: "var(--glass-border)",    icon: <CheckCircle2 size={13} /> },
 };
@@ -44,7 +42,7 @@ function stagePill(stage: string) {
 export function RecentActivityWidget({ products, isOperatorView, onNavigateToProduct }: RecentActivityWidgetProps) {
   if (isOperatorView) {
     // Operator view: show all assigned products sorted by stage progress (most advanced first)
-    const STAGE_ORDER = ["Published", "In Review", "Editing", "Prompting", "Scripting", "Storyboarding", "Not Started"];
+    const STAGE_ORDER = ["Published", "In Review", "Production", "Design", "Not Started"];
     const sorted = [...products]
       .sort((a, b) => {
         const ai = STAGE_ORDER.indexOf(a.items[0]?.status ?? "Not Started");

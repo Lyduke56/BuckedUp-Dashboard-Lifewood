@@ -106,12 +106,16 @@ export function ProductFormModal({
   const canEditThumbnail = !isOperator;
 
   const currentStatus = product ? product.items[0].status : null;
-  const currentDeliverable = product && currentStatus ? (currentByKey.get(`${product.id}:${currentStatus}`) ?? null) : null;
-  const isDeliverableStage = currentStatus && (DELIVERABLE_STAGES as string[]).includes(currentStatus);
+  const [activeSubStage, setActiveSubStage] = useState<"Storyboarding" | "Scripting">("Storyboarding");
 
-  const [delKind, setDelKind] = useState<"file" | "text">(
-    currentStatus === "Prompting" ? "text" : "file",
-  );
+  const currentDeliverable = product && currentStatus
+    ? (currentStatus === "Design"
+        ? (currentByKey.get(`${product.id}:${activeSubStage}`) ?? null)
+        : null)
+    : null;
+  const isDeliverableStage = currentStatus === "Design";
+
+  const [delKind, setDelKind] = useState<"file" | "text">("file");
   const [delText, setDelText] = useState("");
   const [delError, setDelError] = useState<string | null>(null);
   const [delSubmitting, setDelSubmitting] = useState(false);
@@ -124,14 +128,13 @@ export function ProductFormModal({
   const [lastSyncedStatus, setLastSyncedStatus] = useState(currentStatus);
   if (currentStatus !== lastSyncedStatus) {
     setLastSyncedStatus(currentStatus);
-    setDelKind(currentStatus === "Prompting" ? "text" : "file");
+    setDelKind("file");
   }
 
   const handleDeliverableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!product || !currentStatus) return;
+    if (!product || currentStatus !== "Design") return;
 
-    const effectiveKind = currentStatus === "Prompting" ? "text" : delKind;
     const file = delFileInputRef.current?.files?.[0] ?? null;
 
     if (file && file.size > 25 * 1024 * 1024) {
@@ -139,11 +142,11 @@ export function ProductFormModal({
       return;
     }
 
-    if (effectiveKind === "file" && !file) {
+    if (delKind === "file" && !file) {
       setDelError("Choose a file to upload.");
       return;
     }
-    if (effectiveKind === "text" && !delText.trim()) {
+    if (delKind === "text" && !delText.trim()) {
       setDelError("Enter the deliverable text.");
       return;
     }
@@ -156,8 +159,8 @@ export function ProductFormModal({
     const uid = userData.user?.id ?? null;
 
     let fileUrl: string | null = null;
-    if (effectiveKind === "file" && file) {
-      const path = `${product.id}/${currentStatus}/${Date.now()}-${file.name}`;
+    if (delKind === "file" && file) {
+      const path = `${product.id}/${activeSubStage}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage
         .from("stage-documents")
         .upload(path, file, { contentType: file.type });
@@ -172,10 +175,10 @@ export function ProductFormModal({
 
     const { error: insErr } = await supabase.from("stage_deliverables").insert({
       product_id: product.id,
-      stage: currentStatus,
-      kind: effectiveKind,
+      stage: activeSubStage,
+      kind: delKind,
       file_url: fileUrl,
-      text_content: effectiveKind === "text" ? delText.trim() : null,
+      text_content: delKind === "text" ? delText.trim() : null,
       submitted_by: uid,
     });
 
@@ -692,8 +695,7 @@ export function ProductFormModal({
           </form>
 
           {/* RIGHT COLUMN: Video Versions & Thumbnail Portal */}
-          {!isOperator && (
-            <div className="modal-right-column">
+          <div className="modal-right-column">
             {mode === "edit" && product ? (
               <VideoVersionsPanel
                 productId={product.id}
@@ -740,7 +742,7 @@ export function ProductFormModal({
             {mode === "edit" && product && currentStatus && isOperator && (
               <div className="operator-deliverables-panel" style={{ marginTop: "20px", borderTop: "1px solid var(--line)", paddingTop: "20px" }}>
                 <div className="content-angle-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <span>Stage Deliverable ({currentStatus})</span>
+                  <span>Stage Deliverable ({currentStatus === "Design" ? activeSubStage : currentStatus})</span>
                   {currentDeliverable && (
                     <span className="status-pill" style={{
                       backgroundColor:
@@ -776,9 +778,41 @@ export function ProductFormModal({
                   <div className="issue-empty" style={{ marginTop: "12px", color: "var(--ink-soft)" }}>
                     Only the assigned owner can submit deliverables for this product.
                   </div>
-                ) : isDeliverableStage ? (
-                  <form onSubmit={handleDeliverableSubmit} style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {currentStatus !== "Prompting" && (
+                ) : currentStatus === "Design" ? (
+                  <div style={{ marginTop: "12px" }}>
+                    {/* Tab Selector inside ProductFormModal */}
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                          activeSubStage === "Storyboarding"
+                            ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
+                            : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
+                        }`}
+                        onClick={() => {
+                          setActiveSubStage("Storyboarding");
+                          setDelError(null);
+                        }}
+                      >
+                        Storyboard
+                      </button>
+                      <button
+                        type="button"
+                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                          activeSubStage === "Scripting"
+                            ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
+                            : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
+                        }`}
+                        onClick={() => {
+                          setActiveSubStage("Scripting");
+                          setDelError(null);
+                        }}
+                      >
+                        Script
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleDeliverableSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       <label className="form-field" style={{ margin: 0 }}>
                         <span>Deliverable type</span>
                         <select
@@ -789,43 +823,41 @@ export function ProductFormModal({
                           <option value="text">Text</option>
                         </select>
                       </label>
-                    )}
 
-                    {(currentStatus === "Prompting" ? "text" : delKind) === "file" ? (
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>File</span>
-                        <input ref={delFileInputRef} type="file" accept={DOC_ACCEPT} />
-                      </label>
-                    ) : (
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>{currentStatus === "Prompting" ? "Prompt" : "Text"}</span>
-                        <textarea
-                          value={delText}
-                          onChange={(event) => setDelText(event.target.value)}
-                          rows={4}
-                          placeholder={
-                            currentStatus === "Prompting"
-                              ? "The prompt(s) for this stage…"
-                              : "Paste the deliverable text…"
-                          }
-                        />
-                      </label>
-                    )}
+                      {delKind === "file" ? (
+                        <label className="form-field" style={{ margin: 0 }}>
+                          <span>File</span>
+                          <input ref={delFileInputRef} type="file" accept={DOC_ACCEPT} />
+                        </label>
+                      ) : (
+                        <label className="form-field" style={{ margin: 0 }}>
+                          <span>Text Content</span>
+                          <textarea
+                            value={delText}
+                            onChange={(event) => setDelText(event.target.value)}
+                            rows={4}
+                            placeholder={`Paste the ${activeSubStage.toLowerCase()} text…`}
+                          />
+                        </label>
+                      )}
 
-                    <button type="submit" className="issue-submit-btn" disabled={delSubmitting} style={{ marginTop: "4px" }}>
-                      {delSubmitting ? "Submitting…" : "Submit deliverable"}
-                    </button>
-                  </form>
-                ) : currentStatus === "Editing" ? (
+                      <button type="submit" className="issue-submit-btn" disabled={delSubmitting} style={{ marginTop: "4px" }}>
+                        {delSubmitting ? "Submitting…" : `Submit ${activeSubStage === "Storyboarding" ? "Storyboard" : "Script"}`}
+                      </button>
+                    </form>
+                  </div>
+                ) : currentStatus === "Production" ? (
                   <div style={{ marginTop: "12px" }}>
                     <div className="form-hint" style={{ marginBottom: "8px" }}>
-                      Uploaded the final cut? Submit it for the Lead&apos;s review.
+                      {product.items[0].videoUrl
+                        ? "Uploaded the final cut? Submit it for the Lead's review."
+                        : "Upload a video cut above to enable submission."}
                     </div>
                     <button
                       type="button"
                       className="issue-submit-btn"
                       style={{ width: "100%" }}
-                      disabled={delSubmittingReview}
+                      disabled={delSubmittingReview || !product.items[0].videoUrl}
                       onClick={handleVideoSubmitForReview}
                     >
                       {delSubmittingReview ? "Submitting…" : "Submit for review"}
@@ -842,8 +874,7 @@ export function ProductFormModal({
                 )}
               </div>
             )}
-        </div>
-      )}
+          </div>
       </div>
     </div>
   </div>,
