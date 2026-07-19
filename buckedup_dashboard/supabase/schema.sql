@@ -232,12 +232,12 @@ alter table issues enable row level security;
 create policy "Public read" on products for select using (true);
 create policy "Public read" on issues for select using (true);
 
-create policy "Lead insert" on products for insert
-  with check (get_my_role() = 'lead');
+create policy "Lead and admin insert" on products for insert
+  with check (get_my_role() in ('lead', 'admin'));
 create policy "Authenticated update" on products for update
   using (auth.role() = 'authenticated');
-create policy "Lead delete" on products for delete
-  using (get_my_role() = 'lead');
+create policy "Lead and admin delete" on products for delete
+  using (get_my_role() in ('lead', 'admin'));
 
 create policy "Authenticated insert" on issues for insert
   with check (auth.role() = 'authenticated');
@@ -479,10 +479,10 @@ create policy "Operator submit own current stage" on stage_deliverables for inse
         and p.status = stage
     )
   );
-create policy "Lead submit any" on stage_deliverables for insert
-  with check (get_my_role() = 'lead' and submitted_by = auth.uid());
-create policy "Lead review" on stage_deliverables for update
-  using (get_my_role() = 'lead');
+create policy "Lead and admin submit any" on stage_deliverables for insert
+  with check (get_my_role() in ('lead', 'admin') and submitted_by = auth.uid());
+create policy "Lead and admin review" on stage_deliverables for update
+  using (get_my_role() in ('lead', 'admin'));
 
 -- Keep a single is_current row per (product, stage) on resubmission.
 -- security definer because the operator who inserts a new row has no
@@ -518,7 +518,9 @@ returns void as $$
 declare
   v_product_id uuid;
   v_stage text;
-  v_next text;
+  v_product_status text;
+  v_storyboarding_accepted boolean;
+  v_scripting_accepted boolean;
 begin
   if p_decision not in ('accepted', 'rejected') then
     raise exception 'decision must be accepted or rejected';
@@ -538,33 +540,46 @@ begin
   where id = p_deliverable_id;
 
   if p_decision = 'accepted' then
-    v_next := case v_stage
-      when 'Storyboarding' then 'Scripting'
-      when 'Scripting'     then 'Prompting'
-      when 'Prompting'     then 'Editing'
-      else null
-    end;
-    if v_next is not null then
-      perform set_config('app.allow_stage_advance', 'on', true);
-      update products set status = v_next where id = v_product_id;
+    select status into v_product_status from products where id = v_product_id;
+    if v_product_status = 'Design' then
+      select exists (
+        select 1 from stage_deliverables
+        where product_id = v_product_id
+          and stage = 'Storyboarding'
+          and is_current = true
+          and decision = 'accepted'
+      ) into v_storyboarding_accepted;
+
+      select exists (
+        select 1 from stage_deliverables
+        where product_id = v_product_id
+          and stage = 'Scripting'
+          and is_current = true
+          and decision = 'accepted'
+      ) into v_scripting_accepted;
+
+      if v_storyboarding_accepted and v_scripting_accepted then
+        perform set_config('app.allow_stage_advance', 'on', true);
+        update products set status = 'Production' where id = v_product_id;
+      end if;
     end if;
   end if;
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- submit_video_for_review(): the Editing-leg equivalent of an Operator
--- "submitting" — moves the product Editing -> In Review. security definer
+-- submit_video_for_review(): the Production-leg equivalent of an Operator
+-- "submitting" — moves the product Production -> In Review. security definer
 -- plus the app.allow_stage_advance flag (honored by
 -- enforce_product_update_permissions above) so it can advance the stage,
 -- but validates the caller owns the product (or is a Lead) and it's
--- actually in Editing. This is the only way an Operator advances a stage,
--- and it's a single fixed transition, not an arbitrary one.
+-- actually in Production. Verifies at least one video has been uploaded.
 create or replace function submit_video_for_review(p_product_id uuid)
 returns void as $$
 declare
   v_status text;
   v_owner uuid;
   v_role user_role := get_my_role();
+  v_has_video boolean;
 begin
   select status, owner_id into v_status, v_owner
   from products where id = p_product_id;
@@ -577,9 +592,19 @@ begin
   if v_role = 'operator' and v_owner is distinct from auth.uid() then
     raise exception 'not your product';
   end if;
-  if v_status <> 'Editing' then
-    raise exception 'product is not in Editing';
+  if v_status <> 'Production' then
+    raise exception 'product is not in Production';
   end if;
+
+  select exists (
+    select 1 from video_versions
+    where product_id = p_product_id
+  ) into v_has_video;
+
+  if not v_has_video then
+    raise exception 'You must upload at least one video version before submitting for review';
+  end if;
+
   perform set_config('app.allow_stage_advance', 'on', true);
   update products set status = 'In Review' where id = p_product_id;
 end;
@@ -665,12 +690,12 @@ create trigger production_plans_set_updated_at
 alter table production_plans enable row level security;
 
 create policy "Public read" on production_plans for select using (true);
-create policy "Lead insert" on production_plans for insert
-  with check (get_my_role() = 'lead');
-create policy "Lead update" on production_plans for update
-  using (get_my_role() = 'lead');
-create policy "Lead delete" on production_plans for delete
-  using (get_my_role() = 'lead');
+create policy "Admin insert" on production_plans for insert
+  with check (get_my_role() = 'admin');
+create policy "Admin update" on production_plans for update
+  using (get_my_role() = 'admin');
+create policy "Admin delete" on production_plans for delete
+  using (get_my_role() = 'admin');
 
 -- Durable audit trail for Bucky (the AI assistant)'s mutating tool calls —
 -- who, what tool, with what arguments, and what happened. Append-only, no

@@ -59,19 +59,18 @@ create policy "Public read"
   on catalog_products for select
   using (true);
 
--- Only Leads may write. Admins are governance-only and have no catalog
--- write access, consistent with the products table permission model.
-create policy "Lead insert"
+-- Leads and Admins may write, consistent with the products table permission model.
+create policy "Lead and admin insert"
   on catalog_products for insert
-  with check (get_my_role() = 'lead');
+  with check (get_my_role() in ('lead', 'admin'));
 
-create policy "Lead update"
+create policy "Lead and admin update"
   on catalog_products for update
-  using (get_my_role() = 'lead');
+  using (get_my_role() in ('lead', 'admin'));
 
-create policy "Lead delete"
+create policy "Lead and admin delete"
   on catalog_products for delete
-  using (get_my_role() = 'lead');
+  using (get_my_role() in ('lead', 'admin'));
 
 -- ============================================================
 -- 4. Auto-maintain updated_at (reuses the existing trigger fn)

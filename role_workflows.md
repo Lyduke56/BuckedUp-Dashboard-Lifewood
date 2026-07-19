@@ -403,8 +403,8 @@ flowchart LR
 
 ## 🟥 ADMIN WORKFLOW
 
-> **Admin = Governance & Corporate Planning.**  
-> Admins manage user accounts (`profiles`), import corporate Excel spreadsheets (`PlanningView`), and audit AI execution logs (`Bucky`). They have **no write access to the day-to-day video production pipeline**. In the Video Library, they only see Published items.
+> **Admin = Governance, Corporate Planning & Shared Operational Parity.**  
+> Admins share full operational parity with Leads across the day-to-day video production pipeline (`Video Library across all stages`, `Catalog management`, and `Approvals Inbox`). In addition, Admins exclusively manage user accounts (`profiles`), import corporate Excel spreadsheets (`PlanningView`), and audit AI execution logs (`Bucky`).
 
 ### Access & Entry
 
@@ -421,9 +421,9 @@ flowchart TD
     H --> I["Overview tab - default landing"]
     I --> J{Select navigation}
     J --> TAB1[Overview]
-    J --> TAB2["Approvals Inbox (Reviews) - QA visibility"]
-    J --> TAB3["Catalog - view only"]
-    J --> TAB4["Video Library - Published only"]
+    J --> TAB2["Approvals Inbox (Reviews) - full QA & stage review power"]
+    J --> TAB3["Catalog - Add/edit/delete product SKUs"]
+    J --> TAB4["Video Library - all stages & full pipeline management"]
     J --> TAB5[Analytics]
     J --> TAB6["Planning - Admin exclusive Excel target imports"]
     J --> TAB7["Admin - exclusive User Governance"]
@@ -527,22 +527,22 @@ flowchart TD
 | **View Overview** | ✅ | ✅ | ✅ | — |
 | **View Approvals Inbox (`reviews`)** | ❌ | ✅ | ✅ | TabBar role check (`role === 'lead' || role === 'admin'`) |
 | **Browse Catalog** | ✅ | ✅ | ✅ | — |
-| **Add/edit/delete catalog items** | ❌ | ✅ | ❌ | `catalog_products` RLS & UI check |
-| **Request video from catalog** | ❌ | ✅ | ❌ | `products` insert RLS |
-| **View Library — all stages** | ✅ | ✅ | ❌ (Published only) | UI filter (`isAdmin && status !== 'Published'`) |
-| **Board (Kanban) layout** | ✅ (view only) | ✅ + drag | ❌ | UI (`canMoveStage = isLead`) |
-| **Submit document deliverables** | ✅ | ❌ | ❌ | `stage_deliverables` RLS |
-| **Upload video version (`video_versions`)** | ✅ (own items) | ✅ | ❌ | `video_versions` RLS |
-| **Submit for review (`RPC`)** | ✅ (own items) | ❌ | ❌ | `submit_video_for_review()` SQL validation |
-| **Review stage deliverables (`RPC`)** | ❌ | ✅ | ❌ | `review_stage_deliverable()` SQL check |
-| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ❌ | Automated SQL trigger / function |
-| **Accept video → publish** | ❌ | ✅ | ❌ | `products` update RLS |
-| **Reject video → back to Production** | ❌ | ✅ | ❌ | `products` update RLS (`rejection_reason`) |
-| **Add / edit / delete product** | ❌ | ✅ | ❌ | `enforce_product_update_permissions` trigger |
-| **Set priority (`High/Medium/Low`)** | ❌ | ✅ | ❌ | `products` update RLS |
-| **Report / resolve issues** | ✅ | ✅ | ✅ (Published only) | `issues` RLS |
+| **Add/edit/delete catalog items** | ❌ | ✅ | ✅ | `catalog_products` RLS & UI check |
+| **Request video from catalog** | ❌ | ✅ | ✅ | `products` insert RLS |
+| **View Library — all stages** | ✅ | ✅ | ✅ | Same video library for all roles |
+| **Board (Kanban) layout** | ✅ (view only) | ✅ + drag | ✅ + drag | UI & DB (`enforce_product_update_permissions`) |
+| **Submit document deliverables** | ✅ | ✅ | ✅ | `stage_deliverables` RLS |
+| **Upload video version (`video_versions`)** | ✅ (own items) | ✅ | ✅ | `video_versions` RLS |
+| **Submit for review (`RPC`)** | ✅ (own items) | ✅ | ✅ | `submit_video_for_review()` SQL validation |
+| **Review stage deliverables (`RPC`)** | ❌ | ✅ | ✅ | `review_stage_deliverable()` SQL check |
+| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ✅ | Automated SQL trigger / function |
+| **Accept video → publish** | ❌ | ✅ | ✅ | `products` update RLS |
+| **Reject video → back to Production** | ❌ | ✅ | ✅ | `products` update RLS (`rejection_reason`) |
+| **Add / edit / delete product** | ❌ | ✅ | ✅ | `enforce_product_update_permissions` trigger |
+| **Set priority (`High/Medium/Low`)** | ❌ | ✅ | ✅ | `products` update RLS |
+| **Report / resolve issues** | ✅ | ✅ | ✅ | `issues` RLS |
 | **View Analytics charts** | ❌ (redirects) | ✅ | ✅ | Route guard + UI check |
-| **View Planning tab (Excel imports)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) |
+| **View Planning tab (Excel imports)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) & DB RLS |
 | **View Admin tab (User governance)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) |
 | **View Bucky AI Audit Logs tab** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) |
 | **Bucky AI Assistant (`BuckyWidget`)** | ✅ | ✅ | ✅ | Contextual streaming chat |
