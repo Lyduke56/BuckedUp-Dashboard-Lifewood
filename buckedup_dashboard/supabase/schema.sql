@@ -697,6 +697,65 @@ create policy "Admin update" on production_plans for update
 create policy "Admin delete" on production_plans for delete
   using (get_my_role() = 'admin');
 
+-- Daily target history table: tracks active daily target snapshots over time
+create table if not exists daily_target_history (
+  id uuid primary key default gen_random_uuid(),
+  date date not null unique default current_date,
+  target integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table daily_target_history enable row level security;
+
+create policy "Public read daily target history" on daily_target_history
+  for select using (true);
+
+create policy "Lead and admin upsert daily target history" on daily_target_history
+  for all using (get_my_role() in ('lead', 'admin'));
+
+create or replace function sum_jsonb_values(val jsonb)
+returns integer as $$
+declare
+  r record;
+  total integer := 0;
+begin
+  if val is null then
+    return 0;
+  end if;
+  for r in select value from jsonb_each_text(val) loop
+    total := total + coalesce(nullif(r.value, '')::integer, 0);
+  end loop;
+  return total;
+exception
+  when others then
+    return 0;
+end;
+$$ language plpgsql immutable;
+
+create or replace function log_daily_target_history()
+returns trigger as $$
+declare
+  v_target integer;
+  v_today date := current_date;
+begin
+  if new.is_active then
+    v_target := sum_jsonb_values(new.category_targets);
+    insert into daily_target_history (date, target)
+    values (v_today, v_target)
+    on conflict (date) do update
+    set target = excluded.target;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists production_plans_log_daily_target on production_plans;
+create trigger production_plans_log_daily_target
+  after insert or update of category_targets, is_active on production_plans
+  for each row
+  execute function log_daily_target_history();
+
 -- Durable audit trail for Bucky (the AI assistant)'s mutating tool calls —
 -- who, what tool, with what arguments, and what happened. Append-only, no
 -- update/delete policy, same convention as notifications/product_status_history.
