@@ -22,32 +22,48 @@ export function AppHeader({
   return (
     <header className="app-header">
       <div className="brand-row">
-        <img
-          src="/lifewood-full-cream.svg"
-          alt="Lifewood"
-          className="brand-logo"
-        />
+        <div className="brand-logo-container">
+          <img
+            src="/lifewood.svg"
+            alt="Lifewood"
+            className="brand-logo"
+          />
+        </div>
         <span className="brand-divider-line" />
         <img
           src="/buckedup-alt.svg"
           alt="BuckedUp"
           className="brand-logo logo-buckedup"
         />
-        <span style={{
-          fontSize: '16px',
-          fontWeight: 700,
-          color: 'var(--header-text)',
-          marginLeft: '48px',
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
-          borderLeft: '1px solid var(--header-border)',
-          paddingLeft: '8px',
-          height: '14px',
+        <div style={{
           display: 'inline-flex',
-          alignItems: 'center'
+          flexDirection: 'column',
+          justifyContent: 'center',
+          marginLeft: '10px',
+          borderLeft: '1px solid var(--header-border)',
+          paddingLeft: '12px',
+          lineHeight: '1.2'
         }} className="hidden md:inline-flex select-none">
-          BuckedUp AIGC Video Monitoring
-        </span>
+          <span style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: 'var(--header-text)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase'
+          }}>
+            BuckedUp AIGC Video Monitoring
+          </span>
+          <span style={{
+            fontSize: '10px',
+            fontWeight: 500,
+            color: 'var(--header-text)',
+            opacity: 0.65,
+            marginTop: '2px',
+            letterSpacing: '0.03em'
+          }}>
+            Powered by Lifewood PH
+          </span>
+        </div>
       </div>
       <div className="app-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 

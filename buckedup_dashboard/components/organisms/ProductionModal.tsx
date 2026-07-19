@@ -5,62 +5,55 @@ import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { useMounted } from "@/lib/useMounted";
 import {
-  DELIVERABLE_STAGES,
   type DeliverableKind,
   type DeliverableStage,
   type Product,
   type StageDeliverable,
 } from "@/lib/types";
 import { VideoVersionsPanel } from "@/components/organisms/VideoVersionsPanel";
+import { useStageDeliverables } from "@/lib/useStageDeliverables";
 
 interface ProductionModalProps {
   product: Product;
-  currentDeliverable: StageDeliverable | null;
   onClose: () => void;
 }
 
 const DOC_ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-function isDeliverableStage(status: string): status is DeliverableStage {
-  return (DELIVERABLE_STAGES as string[]).includes(status);
-}
-
-// Operator-facing "submit deliverable" modal. Branches on the product's
-// current stage: the three document/text stages write a stage_deliverables
-// row; the Editing stage uploads a video version and can submit it for
-// review. Operators never move the stage directly — advancement happens
-// when a Lead accepts (doc stages) or via submit_video_for_review (video).
 export function ProductionModal({
   product,
-  currentDeliverable,
   onClose,
 }: ProductionModalProps) {
   const mounted = useMounted();
+  const { currentByKey } = useStageDeliverables();
   const status = product.items[0].status;
 
-  // Prompting is text-only; Storyboarding/Scripting allow either.
-  const [kind, setKind] = useState<DeliverableKind>(
-    status === "Prompting" ? "text" : "file",
-  );
+  // Tabs for the Design stage: toggle between Storyboarding and Scripting deliverables
+  const [activeSubStage, setActiveSubStage] = useState<"Storyboarding" | "Scripting">("Storyboarding");
+
+  // Input states for Design stage deliverables submission
+  const [kind, setKind] = useState<DeliverableKind>("file");
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Retrieve current active deliverable based on selected Design sub-stage
+  const currentDeliverable = currentByKey.get(`${product.id}:${activeSubStage}`) ?? null;
+
   const submitDoc = async (event: FormEvent) => {
     event.preventDefault();
-    if (!isDeliverableStage(status)) return;
+    if (status !== "Design") return;
 
-    const effectiveKind = status === "Prompting" ? "text" : kind;
     const file = fileInputRef.current?.files?.[0] ?? null;
 
-    if (effectiveKind === "file" && !file) {
+    if (kind === "file" && !file) {
       setError("Choose a file to upload.");
       return;
     }
-    if (effectiveKind === "text" && !text.trim()) {
+    if (kind === "text" && !text.trim()) {
       setError("Enter the deliverable text.");
       return;
     }
@@ -73,8 +66,8 @@ export function ProductionModal({
     const uid = userData.user?.id ?? null;
 
     let fileUrl: string | null = null;
-    if (effectiveKind === "file" && file) {
-      const path = `${product.id}/${status}/${Date.now()}-${file.name}`;
+    if (kind === "file" && file) {
+      const path = `${product.id}/${activeSubStage}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage
         .from("stage-documents")
         .upload(path, file, { contentType: file.type });
@@ -89,10 +82,10 @@ export function ProductionModal({
 
     const { error: insErr } = await supabase.from("stage_deliverables").insert({
       product_id: product.id,
-      stage: status,
-      kind: effectiveKind,
+      stage: activeSubStage,
+      kind: kind,
       file_url: fileUrl,
-      text_content: effectiveKind === "text" ? text.trim() : null,
+      text_content: kind === "text" ? text.trim() : null,
       submitted_by: uid,
     });
 
@@ -101,7 +94,10 @@ export function ProductionModal({
       setError(insErr.message);
       return;
     }
-    onClose();
+
+    // Reset input fields
+    setText("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const submitVideoForReview = async () => {
@@ -121,26 +117,27 @@ export function ProductionModal({
 
   if (!mounted) return null;
 
-  const decisionBanner =
-    currentDeliverable && isDeliverableStage(status) ? (
-      <div
-        className="callout"
-        style={{
-          gridColumn: "1 / -1",
-          borderLeftColor:
-            currentDeliverable.decision === "rejected"
-              ? "#dc3545"
-              : currentDeliverable.decision === "accepted"
-                ? "var(--castleton)"
-                : "var(--saffron)",
-        }}
-      >
-        Current submission: <strong>{currentDeliverable.decision}</strong>
-        {currentDeliverable.decision === "rejected" && currentDeliverable.decisionNote
-          ? ` — ${currentDeliverable.decisionNote}`
-          : null}
-      </div>
-    ) : null;
+  const hasVideo = !!product.items[0].videoUrl;
+
+  const decisionBanner = currentDeliverable ? (
+    <div
+      className="callout"
+      style={{
+        gridColumn: "1 / -1",
+        borderLeftColor:
+          currentDeliverable.decision === "rejected"
+            ? "#dc3545"
+            : currentDeliverable.decision === "accepted"
+              ? "var(--castleton)"
+              : "var(--saffron)",
+      }}
+    >
+      Current {activeSubStage} submission: <strong>{currentDeliverable.decision}</strong>
+      {currentDeliverable.decision === "rejected" && currentDeliverable.decisionNote
+        ? ` — ${currentDeliverable.decisionNote}`
+        : null}
+    </div>
+  ) : null;
 
   return createPortal(
     <div
@@ -159,12 +156,44 @@ export function ProductionModal({
           <span>Stage: {status}</span>
         </div>
 
-        {isDeliverableStage(status) ? (
-          <form className="form-grid" onSubmit={submitDoc} style={{ marginTop: "16px" }}>
-            {error ? <div className="callout form-error">{error}</div> : null}
-            {decisionBanner}
+        {status === "Design" ? (
+          <div style={{ marginTop: "16px" }}>
+            {/* Design stage sub-tabs */}
+            <div className="flex gap-2 border-b border-[var(--glass-border)] pb-2 mb-4">
+              <button
+                type="button"
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeSubStage === "Storyboarding"
+                    ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
+                    : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
+                }`}
+                onClick={() => {
+                  setActiveSubStage("Storyboarding");
+                  setError(null);
+                }}
+              >
+                Storyboard
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeSubStage === "Scripting"
+                    ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
+                    : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
+                }`}
+                onClick={() => {
+                  setActiveSubStage("Scripting");
+                  setError(null);
+                }}
+              >
+                Script
+              </button>
+            </div>
 
-            {status === "Prompting" ? null : (
+            <form className="form-grid" onSubmit={submitDoc}>
+              {error ? <div className="callout form-error">{error}</div> : null}
+              {decisionBanner}
+
               <label className="form-field form-field-wide">
                 <span>Deliverable type</span>
                 <select
@@ -175,37 +204,33 @@ export function ProductionModal({
                   <option value="text">Text</option>
                 </select>
               </label>
-            )}
 
-            {(status === "Prompting" ? "text" : kind) === "file" ? (
-              <label className="form-field form-field-wide">
-                <span>File</span>
-                <input ref={fileInputRef} type="file" accept={DOC_ACCEPT} />
-              </label>
-            ) : (
-              <label className="form-field form-field-wide">
-                <span>{status === "Prompting" ? "Prompt" : "Text"}</span>
-                <textarea
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  rows={6}
-                  placeholder={
-                    status === "Prompting"
-                      ? "The prompt(s) for this stage…"
-                      : "Paste the deliverable text…"
-                  }
-                />
-              </label>
-            )}
+              {kind === "file" ? (
+                <label className="form-field form-field-wide">
+                  <span>File</span>
+                  <input ref={fileInputRef} type="file" accept={DOC_ACCEPT} />
+                </label>
+              ) : (
+                <label className="form-field form-field-wide">
+                  <span>Text Content</span>
+                  <textarea
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    rows={6}
+                    placeholder={`Paste the ${activeSubStage.toLowerCase()} text…`}
+                  />
+                </label>
+              )}
 
-            <div className="form-actions">
-              <span />
-              <button type="submit" className="issue-submit-btn" disabled={submitting}>
-                {submitting ? "Submitting…" : "Submit deliverable"}
-              </button>
-            </div>
-          </form>
-        ) : status === "Editing" ? (
+              <div className="form-actions">
+                <span />
+                <button type="submit" className="issue-submit-btn" disabled={submitting}>
+                  {submitting ? "Submitting…" : `Submit ${activeSubStage === "Storyboarding" ? "Storyboard" : "Script"}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : status === "Production" ? (
           <>
             {error ? (
               <div className="callout form-error" style={{ marginTop: "16px" }}>
@@ -215,12 +240,14 @@ export function ProductionModal({
             <VideoVersionsPanel productId={product.id} onVersionAdded={() => {}} />
             <div className="form-actions" style={{ marginTop: "16px" }}>
               <span className="form-hint">
-                Uploaded the final cut? Submit it for the Lead&apos;s review.
+                {hasVideo
+                  ? "Are you satisfied with your uploaded video? Submit it to the Lead for final review."
+                  : "Upload a video cut above to enable submission."}
               </span>
               <button
                 type="button"
                 className="issue-submit-btn"
-                disabled={submittingReview}
+                disabled={submittingReview || !hasVideo}
                 onClick={submitVideoForReview}
               >
                 {submittingReview ? "Submitting…" : "Submit for review"}

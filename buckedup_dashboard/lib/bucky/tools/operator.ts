@@ -46,12 +46,13 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
 
     submit_deliverable: tool({
       description:
-        "Submit a text deliverable for a product you own, for whichever of Storyboarding/Scripting/Prompting it's currently in. File attachments aren't supported through chat — use the dashboard UI for those. Runs immediately, no confirmation needed.",
+        "Submit a text deliverable (Storyboarding or Scripting) for a product you own during its Design stage. File attachments aren't supported through chat — use the dashboard UI for those. Runs immediately, no confirmation needed.",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
+        stage: z.enum(["Storyboarding", "Scripting"]).describe("The deliverable stage to submit: 'Storyboarding' or 'Scripting'."),
         textContent: z.string().min(1),
       }),
-      execute: ({ rank, id, textContent }) =>
+      execute: ({ rank, id, stage, textContent }) =>
         safe(async () => {
           if (!rank && !id) return { error: "Provide either rank or id." };
           let query = supabase.from("products").select("id, name, status, owner_id");
@@ -62,26 +63,26 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           if (product.owner_id !== userId) {
             return { error: `You can only submit a deliverable for a product you own — ${product.name} isn't yours.` };
           }
-          if (!["Storyboarding", "Scripting", "Prompting"].includes(product.status)) {
+          if (product.status !== "Design") {
             return {
-              error: `${product.name} is currently in "${product.status}" — deliverables can only be submitted during Storyboarding, Scripting, or Prompting.`,
+              error: `${product.name} is currently in "${product.status}" — deliverables can only be submitted during the Design stage.`,
             };
           }
           const { error: insertError } = await supabase.from("stage_deliverables").insert({
             product_id: product.id,
-            stage: product.status,
+            stage,
             kind: "text",
             text_content: textContent.trim(),
             submitted_by: userId,
           });
           if (insertError) return { error: insertError.message };
-          return { submitted: true, product: product.name, stage: product.status };
+          return { submitted: true, product: product.name, stage };
         }),
     }),
 
     submit_video_for_review: tool({
       description:
-        "Submit a product's video for review, moving it from Editing to In Review. The server checks ownership and stage automatically and returns a clear error if either doesn't hold — don't try to pre-verify ownership yourself from a product's owner_id (you can't reliably tell if a raw id is 'you'), just call this directly when asked. Runs immediately, no confirmation needed.",
+        "Submit a product's video for review, moving it from Production to In Review. The server checks ownership and stage automatically and returns a clear error if either doesn't hold — don't try to pre-verify ownership yourself from a product's owner_id (you can't reliably tell if a raw id is 'you'), just call this directly when asked. Runs immediately, no confirmation needed.",
       inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
       execute: ({ rank, id }) =>
         safe(async () => {

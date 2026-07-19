@@ -34,10 +34,10 @@ import { ProductionModal } from "@/components/organisms/ProductionModal";
 import { ProductReviewModal } from "@/components/organisms/ProductReviewModal";
 import { StageHistoryLog } from "@/components/organisms/StageHistoryLog";
 
-// Stages an Operator can submit a deliverable for (the 3 doc/text stages
-// plus Editing's video). A Lead reviews the same set plus In Review.
-const OPERATOR_SUBMIT_STAGES = [...DELIVERABLE_STAGES, "Editing"] as string[];
-const LEAD_REVIEW_STAGES = [...DELIVERABLE_STAGES, "Editing", "In Review"] as string[];
+// Stages an Operator can submit a deliverable for (Design and Production).
+// A Lead reviews in Design and In Review stages.
+const OPERATOR_SUBMIT_STAGES = ["Design", "Production"] as string[];
+const LEAD_REVIEW_STAGES = ["Design", "In Review"] as string[];
 
 type LibraryLayout = "table" | "board" | "grid";
 
@@ -248,7 +248,7 @@ export function VideoLibraryView({
 
   // Lead-only inline stage change from the list row (Lead has unrestricted
   // status write per enforce_product_update_permissions). Also the natural
-  // spot for the Not Started -> Storyboarding kickoff. The realtime
+  // spot for the Not Started -> Design kickoff. The realtime
   // products subscription refreshes the list.
   const handleInlineStage = async (product: Product, next: PipelineStatus) => {
     if (product.items[0].status === next) return;
@@ -541,8 +541,11 @@ export function VideoLibraryView({
                 ).length;
 
                 // Deliverable-flow flags for this row (Phase D).
-                const currentDeliverable =
-                  currentByKey.get(`${product.id}:${item.status}`) ?? null;
+                const isDesign = item.status === "Design";
+                const isReview = item.status === "In Review";
+                const storyboardDel = currentByKey.get(`${product.id}:Storyboarding`) ?? null;
+                const scriptDel = currentByKey.get(`${product.id}:Scripting`) ?? null;
+
                 // Operators may only submit for products they own (the
                 // stage_deliverables insert RLS requires owner_id = auth.uid),
                 // so don't show a doomed button for others' items.
@@ -558,8 +561,10 @@ export function VideoLibraryView({
                 // A Lead's "needs attention": a pending doc deliverable, or a
                 // video parked in In Review.
                 const awaitingReview =
-                  currentDeliverable?.decision === "pending" ||
-                  item.status === "In Review";
+                  isReview ||
+                  (isDesign &&
+                    (storyboardDel?.decision === "pending" ||
+                      scriptDel?.decision === "pending"));
                 const publishedText = product.publishDate
                   ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
                   : "—";
@@ -790,11 +795,6 @@ export function VideoLibraryView({
       {productionModal ? (
         <ProductionModal
           product={productionModal}
-          currentDeliverable={
-            currentByKey.get(
-              `${productionModal.id}:${productionModal.items[0].status}`,
-            ) ?? null
-          }
           onClose={() => setProductionModal(null)}
         />
       ) : null}
@@ -802,11 +802,6 @@ export function VideoLibraryView({
       {reviewModal ? (
         <ProductReviewModal
           product={reviewModal}
-          currentDeliverable={
-            currentByKey.get(
-              `${reviewModal.id}:${reviewModal.items[0].status}`,
-            ) ?? null
-          }
           onClose={() => setReviewModal(null)}
         />
       ) : null}

@@ -44,30 +44,24 @@ export const CATEGORY_TREE: Record<string, string[]> = {
 
 export const STATUS_ORDER: PipelineStatus[] = [
   "Not Started",
-  "Storyboarding",
-  "Scripting",
-  "Prompting",
-  "Editing",
+  "Design",
+  "Production",
   "In Review",
   "Published",
 ];
 
 export const STATUS_CLASS: Record<PipelineStatus, string> = {
-  "Not Started": "st-not-started",
-  Storyboarding: "st-storyboarding",
-  Scripting: "st-scripting",
-  Prompting: "st-prompting",
-  Editing: "st-editing",
-  "In Review": "st-in-review",
-  Published: "st-published",
+  "Not Started": "not-started",
+  Design: "design",
+  Production: "production",
+  "In Review": "in-review",
+  Published: "published",
 };
 
 export const STATUS_HEX: Record<PipelineStatus, string> = {
   "Not Started": "#E5E5E5",
-  Storyboarding: "#FFDCA8",
-  Scripting: "#FFC370",
-  Prompting: "#FFB347",
-  Editing: "#8CA496",
+  Design: "#FFC370",
+  Production: "#8CA496",
   "In Review": "#417256",
   Published: "#046241",
 };
@@ -81,10 +75,8 @@ export const STATUS_HEX: Record<PipelineStatus, string> = {
 // than reusing STATUS_HEX verbatim.
 export const STATUS_HEX_LIGHT: Record<PipelineStatus, string> = {
   "Not Started": "#B8B8B8",
-  Storyboarding: "#E8A94F",
-  Scripting: "#E0954A",
-  Prompting: "#D9822E",
-  Editing: "#5C8A72",
+  Design: "#E0954A",
+  Production: "#5C8A72",
   "In Review": "#2F5940",
   Published: "#046241",
 };

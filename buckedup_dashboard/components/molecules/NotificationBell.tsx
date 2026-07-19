@@ -41,10 +41,10 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
             className="notification-backdrop"
             onClick={() => setOpen(false)}
           />
-          <div className="notification-dropdown">
-            <div className="notification-dropdown-header">
-              <span>Notifications</span>
-              <div style={{ display: "flex", gap: "12px" }}>
+          <div className="notification-dropdown" style={{ width: "380px" }}>
+            <div className="notification-dropdown-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: "16px" }}>
+              <span style={{ whiteSpace: "nowrap" }}>Notifications</span>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 {unreadCount > 0 ? (
                   <button type="button" onClick={() => markAllRead()}>
                     Mark all read
