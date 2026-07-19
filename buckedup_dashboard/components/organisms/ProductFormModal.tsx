@@ -113,8 +113,8 @@ export function ProductFormModal({
 
   const currentDeliverable = product && currentStatus
     ? (currentStatus === "Design"
-        ? (currentByKey.get(`${product.id}:${activeSubStage}`) ?? null)
-        : null)
+      ? (currentByKey.get(`${product.id}:${activeSubStage}`) ?? null)
+      : null)
     : null;
   const isDeliverableStage = currentStatus === "Design";
 
@@ -190,7 +190,7 @@ export function ProductFormModal({
       setDelError(insErr.message);
       return;
     }
-    
+
     // Clear the form
     setDelText("");
     if (delFileInputRef.current) delFileInputRef.current.value = "";
@@ -701,34 +701,34 @@ export function ProductFormModal({
               </div>
             </div>
 
-             <div className="form-actions">
-                <>
-                  {mode === "edit" && !isOperator ? (
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={handleDelete}
-                      disabled={deleting || submitting}
-                    >
-                      {deleting ? "Deleting…" : "Delete"}
-                    </button>
-                  ) : (
-                    <span />
-                  )}
-                  {!isOperator && (
-                    <button
-                      type="submit"
-                      className="issue-submit-btn"
-                      disabled={submitting || deleting}
-                    >
-                      {submitting
-                        ? "Saving…"
-                        : mode === "edit"
-                          ? "Save changes"
-                          : "Add product"}
-                    </button>
-                  )}
-                </>
+            <div className="form-actions">
+              <>
+                {mode === "edit" && !isOperator ? (
+                  <button
+                    type="button"
+                    className="delete-btn"
+                    onClick={handleDelete}
+                    disabled={deleting || submitting}
+                  >
+                    {deleting ? "Deleting…" : "Delete"}
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {!isOperator && (
+                  <button
+                    type="submit"
+                    className="issue-submit-btn"
+                    disabled={submitting || deleting}
+                  >
+                    {submitting
+                      ? "Saving…"
+                      : mode === "edit"
+                        ? "Save changes"
+                        : "Add product"}
+                  </button>
+                )}
+              </>
             </div>
           </form>
 
@@ -775,147 +775,10 @@ export function ProductFormModal({
                 </button>
               </div>
             ) : null}
-
-            {/* Operator/Stage Deliverables Section */}
-            {mode === "edit" && product && currentStatus && isOperator && (
-              <div className="operator-deliverables-panel" style={{ marginTop: "20px", borderTop: "1px solid var(--line)", paddingTop: "20px" }}>
-                <div className="content-angle-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <span>Stage Deliverable ({currentStatus === "Design" ? activeSubStage : currentStatus})</span>
-                  {currentDeliverable && (
-                    <span className="status-pill" style={{
-                      backgroundColor:
-                        currentDeliverable.decision === "accepted"
-                          ? "var(--castleton)20"
-                          : currentDeliverable.decision === "rejected"
-                            ? "#dc354520"
-                            : "var(--saffron)20",
-                      color:
-                        currentDeliverable.decision === "accepted"
-                          ? "var(--castleton)"
-                          : currentDeliverable.decision === "rejected"
-                            ? "#dc3545"
-                            : "var(--saffron)",
-                      border: "none",
-                      fontSize: "10px",
-                      textTransform: "uppercase"
-                    }}>
-                      {currentDeliverable.decision}
-                    </span>
-                  )}
-                </div>
-
-                {delError ? <div className="callout form-error" style={{ margin: "8px 0" }}>{delError}</div> : null}
-
-                {currentDeliverable?.decision === "rejected" && currentDeliverable.decisionNote && (
-                  <div className="callout form-error" style={{ margin: "8px 0", backgroundColor: "#dc354510", color: "#dc3545", borderColor: "#dc354530" }}>
-                    <strong>Rejection reason:</strong> {currentDeliverable.decisionNote}
-                  </div>
-                )}
-
-                {product.ownerId !== user?.id && product.ownerId ? (
-                  <div className="issue-empty" style={{ marginTop: "12px", color: "var(--ink-soft)" }}>
-                    Only the assigned owner can submit deliverables for this product.
-                  </div>
-                ) : currentStatus === "Design" ? (
-                  <div style={{ marginTop: "12px" }}>
-                    {/* Tab Selector inside ProductFormModal */}
-                    <div className="flex gap-2 mb-3">
-                      <button
-                        type="button"
-                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                          activeSubStage === "Storyboarding"
-                            ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
-                            : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
-                        }`}
-                        onClick={() => {
-                          setActiveSubStage("Storyboarding");
-                          setDelError(null);
-                        }}
-                      >
-                        Storyboard
-                      </button>
-                      <button
-                        type="button"
-                        className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                          activeSubStage === "Scripting"
-                            ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
-                            : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
-                        }`}
-                        onClick={() => {
-                          setActiveSubStage("Scripting");
-                          setDelError(null);
-                        }}
-                      >
-                        Script
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleDeliverableSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>Deliverable type</span>
-                        <select
-                          value={delKind}
-                          onChange={(event) => setDelKind(event.target.value as "file" | "text")}
-                        >
-                          <option value="file">File (PDF or DOCX)</option>
-                          <option value="text">Text</option>
-                        </select>
-                      </label>
-
-                      {delKind === "file" ? (
-                        <label className="form-field" style={{ margin: 0 }}>
-                          <span>File</span>
-                          <input ref={delFileInputRef} type="file" accept={DOC_ACCEPT} />
-                        </label>
-                      ) : (
-                        <label className="form-field" style={{ margin: 0 }}>
-                          <span>Text Content</span>
-                          <textarea
-                            value={delText}
-                            onChange={(event) => setDelText(event.target.value)}
-                            rows={4}
-                            placeholder={`Paste the ${activeSubStage.toLowerCase()} text…`}
-                          />
-                        </label>
-                      )}
-
-                      <button type="submit" className="issue-submit-btn" disabled={delSubmitting} style={{ marginTop: "4px" }}>
-                        {delSubmitting ? "Submitting…" : `Submit ${activeSubStage === "Storyboarding" ? "Storyboard" : "Script"}`}
-                      </button>
-                    </form>
-                  </div>
-                ) : currentStatus === "Production" ? (
-                  <div style={{ marginTop: "12px" }}>
-                    <div className="form-hint" style={{ marginBottom: "8px" }}>
-                      {product.items[0].videoUrl
-                        ? "Uploaded the final cut? Submit it for the Lead's review."
-                        : "Upload a video cut above to enable submission."}
-                    </div>
-                    <button
-                      type="button"
-                      className="issue-submit-btn"
-                      style={{ width: "100%" }}
-                      disabled={delSubmittingReview || !product.items[0].videoUrl}
-                      onClick={handleVideoSubmitForReview}
-                    >
-                      {delSubmittingReview ? "Submitting…" : "Submit for review"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="issue-empty" style={{ marginTop: "12px" }}>
-                    {currentStatus === "In Review"
-                      ? "Awaiting Lead's review — nothing to submit."
-                      : currentStatus === "Published"
-                        ? "Published — no deliverables required."
-                        : "No deliverable required at this stage."}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
+        </div>
       </div>
-    </div>
-  </div>,
-  document.body,
-);
+    </div>,
+    document.body,
+  );
 }

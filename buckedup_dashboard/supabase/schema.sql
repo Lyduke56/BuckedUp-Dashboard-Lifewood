@@ -185,7 +185,7 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' then
+  if my_role in ('lead', 'admin') then
     return new;
   end if;
 
@@ -503,7 +503,10 @@ create policy "Operator submit own current stage" on stage_deliverables for inse
       select 1 from products p
       where p.id = product_id
         and p.owner_id = auth.uid()
-        and p.status = stage
+        and (
+          p.status = stage
+          or (p.status = 'Design' and stage in ('Storyboarding', 'Scripting'))
+        )
     )
   );
 create policy "Lead and admin submit any" on stage_deliverables for insert
@@ -566,6 +569,14 @@ begin
       reviewed_at = now()
   where id = p_deliverable_id;
 
+  if p_decision = 'rejected' then
+    perform set_config('app.allow_stage_advance', 'on', true);
+    update products
+    set review_status = 'Rejected',
+        rejection_reason = p_note
+    where id = v_product_id;
+  end if;
+
   if p_decision = 'accepted' then
     select status into v_product_status from products where id = v_product_id;
     if v_product_status = 'Design' then
@@ -587,7 +598,17 @@ begin
 
       if v_storyboarding_accepted and v_scripting_accepted then
         perform set_config('app.allow_stage_advance', 'on', true);
-        update products set status = 'Production' where id = v_product_id;
+        update products
+        set status = 'Production',
+            review_status = 'Accepted',
+            rejection_reason = null
+        where id = v_product_id;
+      else
+        perform set_config('app.allow_stage_advance', 'on', true);
+        update products
+        set review_status = 'Pending',
+            rejection_reason = null
+        where id = v_product_id;
       end if;
     end if;
   end if;
