@@ -24,6 +24,7 @@ interface ProductFormModalProps {
 
 interface FormState {
   rank: string;
+  priority: "High" | "Medium" | "Low";
   name: string;
   category: string;
   subcategory: string;
@@ -47,6 +48,7 @@ function initialState(
     const item = product.items[0];
     return {
       rank: String(product.rank ?? nextRank ?? 0),
+      priority: product.priority ?? "Low",
       name: product.name ?? "",
       category: product.category ?? "",
       subcategory: product.subcategory ?? "",
@@ -65,6 +67,7 @@ function initialState(
   const firstCategory = Object.keys(CATEGORY_TREE)[0];
   return {
     rank: String(nextRank),
+    priority: "Low",
     name: "",
     category: firstCategory,
     subcategory: CATEGORY_TREE[firstCategory][0],
@@ -285,7 +288,9 @@ export function ProductFormModal({
 
     const supabase = createClient();
     const payload = {
+      // is only for compatibility/unique constraint under the hood.
       rank,
+      priority: form.priority,
       name: form.name.trim(),
       category: form.category,
       subcategory: form.subcategory,
@@ -434,14 +439,16 @@ export function ProductFormModal({
             ) : null}
 
             <label className="form-field">
-              <span>Rank</span>
-              <input
-                type="number"
-                value={form.rank}
+              <span>Priority</span>
+              <select
+                value={form.priority}
                 disabled={isOperator}
-                onChange={(event) => update("rank", event.target.value)}
-                required
-              />
+                onChange={(event) => update("priority", event.target.value as "High" | "Medium" | "Low")}
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
             </label>
             <label className="form-field">
               <span>Name</span>
