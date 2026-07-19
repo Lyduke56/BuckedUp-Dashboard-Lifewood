@@ -10,12 +10,14 @@ import {
   OverviewIcon,
   UsersIcon,
 } from "@/components/atoms/icons";
+import { Inbox } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TabBarProps {
   activeView: ViewId;
   onViewChange: (view: ViewId) => void;
   role: UserRole | null;
+  pendingReviewsCount?: number;
 }
 
 interface TabIconProps {
@@ -41,12 +43,18 @@ const CATALOG_TAB: Tab = { id: "catalog", label: "Catalog", icon: CatalogIcon };
 // reviewed, not the reviewer.
 const BUCKY_TAB: Tab = { id: "bucky", label: "Bucky", icon: BuckyIcon };
 
-export function TabBar({ activeView, onViewChange, role }: TabBarProps) {
+export function TabBar({ activeView, onViewChange, role, pendingReviewsCount = 0 }: TabBarProps) {
+  const REVIEWS_TAB: Tab = { 
+    id: "reviews" as ViewId, 
+    label: pendingReviewsCount > 0 ? `Approvals (${pendingReviewsCount})` : "Approvals",
+    icon: (props) => <Inbox {...props} />
+  };
+
   const tabs =
     role === "admin"
-      ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], ADMIN_TAB, BUCKY_TAB]
+      ? [BASE_TABS[0], REVIEWS_TAB, CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB, ADMIN_TAB, BUCKY_TAB]
       : role === "lead"
-        ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB]
+        ? [BASE_TABS[0], REVIEWS_TAB, CATALOG_TAB, BASE_TABS[1], BASE_TABS[2]]
         : role === "operator"
           ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1]] // No Analytics for Operator
           : BASE_TABS;

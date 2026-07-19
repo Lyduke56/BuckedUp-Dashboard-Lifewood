@@ -540,16 +540,17 @@ begin
   if p_decision = 'accepted' then
     v_next := case v_stage
       when 'Storyboarding' then 'Scripting'
-      when 'Scripting' then 'Prompting'
-      when 'Prompting' then 'Editing'
+      when 'Scripting'     then 'Prompting'
+      when 'Prompting'     then 'Editing'
       else null
     end;
     if v_next is not null then
+      perform set_config('app.allow_stage_advance', 'on', true);
       update products set status = v_next where id = v_product_id;
     end if;
   end if;
 end;
-$$ language plpgsql;
+$$ language plpgsql security definer set search_path = public;
 
 -- submit_video_for_review(): the Editing-leg equivalent of an Operator
 -- "submitting" — moves the product Editing -> In Review. security definer
