@@ -157,6 +157,24 @@ body.light select {
   color-scheme: light;
 }
 
+/* Tell the browser to render the native date-picker calendar icon in a
+   light colour in dark mode (otherwise it blends into the dark background
+   and becomes invisible). Mirrors the identical rule for <select> above. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+[data-theme='light'] input[type="date"],
+[data-theme='light'] input[type="time"],
+[data-theme='light'] input[type="datetime-local"],
+body.light input[type="date"],
+body.light input[type="time"],
+body.light input[type="datetime-local"] {
+  color-scheme: light;
+}
+
 select option {
   background-color: var(--body-bg);
   color: var(--text-main);
@@ -443,6 +461,7 @@ a {
   padding: 28px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.4s ease;
+  min-width: 0;
 }
 
 .panel-glass {
@@ -2571,6 +2590,8 @@ a {
   flex-direction: column;
   gap: 16px;
   position: relative;
+  min-width: 0;
+  width: 100%;
 }
 
 .sample-data-badge {
@@ -2592,6 +2613,8 @@ a {
   display: flex;
   height: 220px;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .column-chart-axis {
@@ -2606,6 +2629,7 @@ a {
   font-weight: 600;
   text-align: right;
   width: 20px;
+  flex-shrink: 0;
 }
 
 .column-chart-plot {
@@ -2614,6 +2638,7 @@ a {
   justify-content: space-between;
   height: 100%;
   border-bottom: 1px solid var(--glass-border);
+  min-width: 0;
 }
 
 .column-group {
@@ -2622,6 +2647,7 @@ a {
   align-items: center;
   flex: 1;
   height: 100%;
+  min-width: 0;
 }
 
 /* Stacked per-day bar for the By stage / By category breakdown modes. */
@@ -2629,6 +2655,7 @@ a {
   flex: 1;
   width: 60%;
   max-width: 34px;
+  min-width: 2px;
   align-self: flex-end;
   display: flex;
   flex-direction: column-reverse;
@@ -2645,15 +2672,19 @@ a {
 .column-bars {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: min(4px, 0.4vw);
   height: calc(100% - 24px);
   /* offset label height */
   width: 100%;
+  max-width: 44px;
   justify-content: center;
+  min-width: 0;
 }
 
 .column-bar {
-  width: 20px;
+  flex: 1;
+  max-width: 20px;
+  min-width: 1px;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   position: relative;
