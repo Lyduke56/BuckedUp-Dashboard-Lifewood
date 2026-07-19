@@ -102,6 +102,9 @@ export function ProductFormModal({
   const { profiles } = useProfiles();
   const { user, role } = useAuth();
   const { currentByKey } = useStageDeliverables();
+  const hasStoryboard = product ? !!currentByKey.get(`${product.id}:Storyboarding`) : false;
+  const hasScript = product ? !!currentByKey.get(`${product.id}:Scripting`) : false;
+  const hasSubmittedAnyDeliverables = hasStoryboard || hasScript;
   const isOperator = role === "operator";
   const canEditThumbnail = !isOperator;
 
@@ -210,18 +213,43 @@ export function ProductFormModal({
 
   const handleClaimOwnership = async () => {
     if (!product || !user) return;
+    if (!window.confirm(`Are you sure you want to claim "${product.name}"?`)) {
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const supabase = createClient();
     const { error } = await supabase
       .from("products")
-      .update({ owner_id: user.id })
+      .update({ owner_id: user.id, status: "Design" })
       .eq("id", product.id);
     setSubmitting(false);
     if (error) {
       setError(error.message);
     } else {
       update("ownerId", user.id);
+      update("status", "Design");
+    }
+  };
+
+  const handleUnclaimOwnership = async () => {
+    if (!product || !user) return;
+    if (!window.confirm(`Are you sure you want to unclaim "${product.name}"?`)) {
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: null, status: "Not Started" })
+      .eq("id", product.id);
+    setSubmitting(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      update("ownerId", "");
+      update("status", "Not Started");
     }
   };
 
@@ -564,6 +592,16 @@ export function ProductFormModal({
                       onClick={handleClaimOwnership}
                     >
                       {submitting ? "Claiming..." : "Claim"}
+                    </button>
+                  )}
+                  {product?.ownerId === user?.id && !hasSubmittedAnyDeliverables && (
+                    <button
+                      type="button"
+                      className="issue-submit-btn issue-delete-btn"
+                      disabled={submitting}
+                      onClick={handleUnclaimOwnership}
+                    >
+                      {submitting ? "Unclaiming..." : "Unclaim"}
                     </button>
                   )}
                 </div>

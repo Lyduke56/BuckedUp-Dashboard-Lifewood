@@ -177,6 +177,35 @@ export function VideoLibraryView({
   const { profiles } = useProfiles();
   const isAuthenticated = !!user;
 
+  const handleClaim = async (productId: string, productName: string) => {
+    if (!user) return;
+    if (!window.confirm(`Are you sure you want to claim "${productName}"?`)) {
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: user.id, status: "Design" })
+      .eq("id", productId);
+    if (error) {
+      alert(`Claim failed: ${error.message}`);
+    }
+  };
+
+  const handleUnclaim = async (productId: string, productName: string) => {
+    if (!window.confirm(`Are you sure you want to unclaim "${productName}"?`)) {
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: null, status: "Not Started" })
+      .eq("id", productId);
+    if (error) {
+      alert(`Unclaim failed: ${error.message}`);
+    }
+  };
+
   // Default "My Items" to ON for operators so they see their own work first.
   const mineOnlyInitRef = useRef(false);
   useEffect(() => {
@@ -570,6 +599,7 @@ export function VideoLibraryView({
                 const isReview = item.status === "In Review";
                 const storyboardDel = currentByKey.get(`${product.id}:Storyboarding`) ?? null;
                 const scriptDel = currentByKey.get(`${product.id}:Scripting`) ?? null;
+                const hasSubmittedAnyDeliverables = !!storyboardDel || !!scriptDel;
 
                 // Operators may only submit for products they own (the
                 // stage_deliverables insert RLS requires owner_id = auth.uid),
@@ -646,6 +676,10 @@ export function VideoLibraryView({
                           Date Published: {publishedText}
                           <span className="vlc-meta-sep"> · </span>
                           {languageFlag(product.language)} {product.language}
+                          <span className="vlc-meta-sep"> · </span>
+                          Owner: <span style={{ color: product.ownerId ? "var(--castleton)" : "var(--ink-soft)", fontWeight: product.ownerId ? "bold" : "normal" }}>
+                            {product.ownerId ? (profileEmailById.get(product.ownerId) ?? "Assigned") : "Unassigned"}
+                          </span>
                         </div>
                         {product.contentAngle ? (
                           <div className="vlc-desc">{product.contentAngle}</div>
@@ -656,7 +690,7 @@ export function VideoLibraryView({
                         className="vlc-side"
                         onClick={(event) => event.stopPropagation()}
                       >
-                        <div className="vlc-side-top">
+                        <div className="vlc-side-top" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           {canManageCatalog ? (
                             <select
                               className="vlc-stage-select"
@@ -674,6 +708,51 @@ export function VideoLibraryView({
                             <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
                               {item.status}
                             </span>
+                          )}
+
+                          {role === "operator" && (
+                            <>
+                              {!product.ownerId && (
+                                <button
+                                  type="button"
+                                  className="issue-submit-btn"
+                                  style={{
+                                    padding: "4px 12px",
+                                    borderRadius: "8px",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                    height: "auto",
+                                    whiteSpace: "nowrap"
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleClaim(product.id, product.name);
+                                  }}
+                                >
+                                  Claim
+                                </button>
+                              )}
+                              {product.ownerId === user?.id && !hasSubmittedAnyDeliverables && (
+                                <button
+                                  type="button"
+                                  className="issue-submit-btn issue-delete-btn"
+                                  style={{
+                                    padding: "4px 12px",
+                                    borderRadius: "8px",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                    height: "auto",
+                                    whiteSpace: "nowrap"
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleUnclaim(product.id, product.name);
+                                  }}
+                                >
+                                  Unclaim
+                                </button>
+                              )}
+                            </>
                           )}
 
                           <div className="row-actions">

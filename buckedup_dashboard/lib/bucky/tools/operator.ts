@@ -37,7 +37,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           }
           const { error: updateError } = await supabase
             .from("products")
-            .update({ owner_id: userId })
+            .update({ owner_id: userId, status: "Design" })
             .eq("id", product.id);
           if (updateError) return { error: updateError.message };
           return { claimed: product.name };
