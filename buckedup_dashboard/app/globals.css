@@ -579,6 +579,19 @@ a {
   margin-bottom: 24px;
 }
 
+.content-angle-callout {
+  background: rgba(16, 185, 129, 0.05) !important;
+  border-left-color: var(--castleton) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme='light'] .content-angle-callout,
+body.light .content-angle-callout {
+  background: rgba(217, 131, 36, 0.05) !important;
+  border-left-color: var(--castleton) !important;
+  color: var(--text-main) !important;
+}
+
 .callout-inline {
   background: var(--glass-bg) !important;
   border-left: 3px solid var(--ink-soft) !important;
