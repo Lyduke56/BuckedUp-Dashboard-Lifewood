@@ -568,9 +568,9 @@ a {
 
 /* Callouts */
 .callout {
-  background: rgba(244, 63, 94, 0.06) !important;
-  border-left: 3px solid var(--earth-yellow) !important;
-  color: #fca5a5 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  border-left: 3px solid #3b82f6 !important;
+  color: #3b82f6 !important;
   padding: 16px 20px;
   border-radius: 14px;
   font-size: 13px;

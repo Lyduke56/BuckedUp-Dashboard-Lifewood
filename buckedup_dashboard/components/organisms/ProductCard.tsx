@@ -45,7 +45,9 @@ export function ProductCard({
 
   return (
     <div
-      className="card card-default flex flex-col h-full gap-4 transition-all hover:-translate-y-1 cursor-pointer"
+      className={`card card-default flex flex-col h-full gap-4 transition-all hover:-translate-y-1 cursor-pointer ${
+        product.isActive === false ? "opacity-50 grayscale" : ""
+      }`}
       onClick={() => onClick?.(product)}
     >
       <div className="relative">

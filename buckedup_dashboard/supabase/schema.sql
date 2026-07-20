@@ -31,6 +31,7 @@ create table profiles (
   -- ForcePasswordChangeView on their first login instead of using the
   -- admin-issued temporary password indefinitely.
   must_change_password boolean not null default false,
+  theme text not null default 'light',
   created_at timestamptz not null default now()
 );
 
@@ -97,6 +98,19 @@ returns void as $$
 begin
   update profiles
   set must_change_password = false
+  where id = auth.uid();
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create or replace function update_my_theme(new_theme text)
+returns void as $$
+begin
+  if new_theme not in ('light', 'dark') then
+    raise exception 'Invalid theme';
+  end if;
+
+  update profiles
+  set theme = new_theme
   where id = auth.uid();
 end;
 $$ language plpgsql security definer set search_path = public;
@@ -379,6 +393,14 @@ begin
     and new.owner_id is not null and new.owner_id <> auth.uid() then
     insert into notifications (recipient_id, type, message, product_id)
     values (new.owner_id, 'assigned', 'You were assigned "' || new.name || '"', new.id);
+  end if;
+
+  if new.status is distinct from old.status
+    and new.owner_id is not null
+    and new.owner_id = old.owner_id
+    and new.owner_id <> auth.uid() then
+    insert into notifications (recipient_id, type, message, product_id)
+    values (new.owner_id, 'stage_change', '"' || new.name || '" moved to ' || new.status, new.id);
   end if;
 
   return new;
@@ -923,7 +945,7 @@ create extension if not exists pg_cron;
 
 alter table notifications drop constraint if exists notifications_type_check;
 alter table notifications add constraint notifications_type_check
-  check (type in ('issue_reported', 'rejected', 'assigned', 'bucky_stale_item', 'bucky_pacing_behind'));
+  check (type in ('issue_reported', 'rejected', 'assigned', 'bucky_stale_item', 'bucky_pacing_behind', 'stage_change'));
 
 -- Once-per-recipient-per-type-per-day dedup for Bucky's own alert types
 -- only -- deliberately not applied to the pre-existing event-driven types,
