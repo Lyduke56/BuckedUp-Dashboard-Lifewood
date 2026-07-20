@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { STATUS_ORDER, REVIEW_STATUS_ORDER } from "@/lib/data";
-import type { IssueSeverity, IssueStatus, DeliverableDecision } from "@/lib/types";
+import type { IssueSeverity, IssueStatus, DeliverableDecision, UserRole } from "@/lib/types";
 import { safe, DOC_STAGES, type SupabaseServerClient } from "./shared";
 
 // "In production" / actively-worked-on stages — the 3 middle stages
@@ -433,53 +433,6 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
         }),
     }),
 
-    get_production_plan: tool({
-      description:
-        "Get the currently active production plan: targets, deadline, and pacing, including a ready-to-use markdown table.",
-      inputSchema: z.object({}),
-      execute: () =>
-        safe(async () => {
-          const { data, error } = await supabase
-            .from("production_plans")
-            .select("*")
-            .eq("is_active", true)
-            .maybeSingle();
-          if (error) return { error: error.message };
-          if (!data) return { plan: null };
-
-          // Same pre-computed-answer pattern as get_production_breakdown —
-          // this tool used to hand the model a raw row and rely on it to
-          // correctly retype every field into prose; confirmed live that
-          // a small free model can garble a value while doing so (a real
-          // deadline date mangled into nonsense). A ready-made table the
-          // model is told to paste as-is removes that retyping step for
-          // the values that matter.
-          const categoryTargetsStr =
-            Object.entries(data.category_targets ?? {})
-              .map(([category, target]) => `${category}: ${target}`)
-              .join(", ") || "none";
-          const languageTargetsStr =
-            Object.entries(data.language_targets ?? {})
-              .map(([language, target]) => `${language}: ${target}`)
-              .join(", ") || "none";
-
-          const markdownTable = [
-            "| Field | Value |",
-            "|---|---|",
-            `| Name | ${data.name} |`,
-            `| Active | ${data.is_active ? "Yes" : "No"} |`,
-            `| Total video target | ${data.total_video_target} |`,
-            `| Start date | ${data.start_date} |`,
-            `| Deadline | ${data.deadline} |`,
-            `| Language targets | ${languageTargetsStr} |`,
-            `| Category targets | ${categoryTargetsStr} |`,
-            `| Notes | ${data.notes ?? "none"} |`,
-          ].join("\n");
-
-          return { plan: data, markdownTable };
-        }),
-    }),
-
     list_users: tool({
       description: "List all user accounts and their roles (operator/lead/admin).",
       inputSchema: z.object({}),
@@ -652,4 +605,73 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
         }),
     }),
   };
+}
+
+// get_production_plan lives in its own role-gated builder, not the shared
+// read tools above — the rest of the dashboard deliberately hides targets/
+// pacing from operators (Planning and Analytics tabs are both absent for
+// that role in TabBar.tsx; Analytics is where the daily-target-vs-actual
+// chart lives), and Bucky was quietly contradicting that: any operator
+// could ask this directly, and the Phase 5/11 proactive-pacing-alert
+// volunteered it unprompted. Matches this codebase's standing rule that
+// the tool list itself is the security boundary, not prompt wording —
+// same role-gate-returns-{} pattern as the admin/operator/lead action
+// builders (see admin.ts/operator.ts/lead.ts).
+function buildPlanReadTools(supabase: SupabaseServerClient) {
+  return {
+    get_production_plan: tool({
+      description:
+        "Get the currently active production plan: targets, deadline, and pacing, including a ready-to-use markdown table.",
+      inputSchema: z.object({}),
+      execute: () =>
+        safe(async () => {
+          const { data, error } = await supabase
+            .from("production_plans")
+            .select("*")
+            .eq("is_active", true)
+            .maybeSingle();
+          if (error) return { error: error.message };
+          if (!data) return { plan: null };
+
+          // Same pre-computed-answer pattern as get_production_breakdown —
+          // this tool used to hand the model a raw row and rely on it to
+          // correctly retype every field into prose; confirmed live that
+          // a small free model can garble a value while doing so (a real
+          // deadline date mangled into nonsense). A ready-made table the
+          // model is told to paste as-is removes that retyping step for
+          // the values that matter.
+          const categoryTargetsStr =
+            Object.entries(data.category_targets ?? {})
+              .map(([category, target]) => `${category}: ${target}`)
+              .join(", ") || "none";
+          const languageTargetsStr =
+            Object.entries(data.language_targets ?? {})
+              .map(([language, target]) => `${language}: ${target}`)
+              .join(", ") || "none";
+
+          const markdownTable = [
+            "| Field | Value |",
+            "|---|---|",
+            `| Name | ${data.name} |`,
+            `| Active | ${data.is_active ? "Yes" : "No"} |`,
+            `| Total video target | ${data.total_video_target} |`,
+            `| Start date | ${data.start_date} |`,
+            `| Deadline | ${data.deadline} |`,
+            `| Language targets | ${languageTargetsStr} |`,
+            `| Category targets | ${categoryTargetsStr} |`,
+            `| Notes | ${data.notes ?? "none"} |`,
+          ].join("\n");
+
+          return { plan: data, markdownTable };
+        }),
+    }),
+  };
+}
+
+export function createBuckyPlanReadTools(
+  supabase: SupabaseServerClient,
+  role: UserRole,
+): ReturnType<typeof buildPlanReadTools> {
+  if (role !== "lead" && role !== "admin") return {} as ReturnType<typeof buildPlanReadTools>;
+  return buildPlanReadTools(supabase);
 }

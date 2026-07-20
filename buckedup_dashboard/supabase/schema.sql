@@ -1047,7 +1047,13 @@ begin
   -- 3. Pacing check: today's published count vs. today's target, same
   -- precedence as useDailyProgress.ts (plan's daily_accumulative_targets
   -- for today -> daily_target_history for today -> DAILY_VIDEO_TARGET
-  -- fallback). Team-wide fact, notifies every lead and operator.
+  -- fallback). Lead-only: pacing/targets are a Planning-tab concept, and
+  -- Planning (plus Analytics, where the daily-target-vs-actual chart
+  -- lives) is deliberately hidden from operators in the dashboard UI
+  -- (TabBar.tsx) -- this used to also notify operators, which quietly
+  -- contradicted that. Kept lead-only rather than lead+admin to match:
+  -- admin was never part of this alert's audience to begin with
+  -- (governance-focused, no proactive alerts of any kind).
   select * into v_active_plan from production_plans where is_active = true limit 1;
 
   v_today_target := coalesce(
@@ -1062,7 +1068,7 @@ begin
     and entered_at::date = v_today;
 
   if v_today_published < v_today_target then
-    for v_recipient in select id from profiles where role in ('lead', 'operator') loop
+    for v_recipient in select id from profiles where role = 'lead' loop
       insert into notifications (recipient_id, type, message, product_id)
       values (
         v_recipient.id,

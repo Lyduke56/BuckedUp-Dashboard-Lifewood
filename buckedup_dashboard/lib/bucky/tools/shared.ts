@@ -54,18 +54,28 @@ export const PRODUCT_LOCATOR_SHAPE = {
 
 // Shared by every tool that locates a product by rank or id. Hoisted to
 // module scope (rather than a per-builder closure) since both the operator
-// and lead action-tool builders need it.
+// and lead action-tool builders need it. Also returns the product's name —
+// not just its id — so callers can report a real name in their result
+// (e.g. submit_video_for_review/set_video_version) instead of the bare
+// rank/id the model happened to call the tool with; describeToolResult
+// (toolCopy.ts) prefers that resolved name over input-derived text once a
+// tool's real output is available. As a side effect, this now also
+// verifies an id-provided product actually exists (previously trusted the
+// id blindly and skipped the query entirely) — a strict improvement, not
+// a behavior change worth calling out separately, since every downstream
+// caller already treats "product not found" as a normal, expected error.
 export async function resolveProductId(
   supabase: SupabaseServerClient,
   rank: number | undefined,
   id: string | undefined,
-): Promise<{ id: string } | { error: string }> {
+): Promise<{ id: string; name: string } | { error: string }> {
   if (!rank && !id) return { error: "Provide either rank or id." };
-  if (id) return { id };
-  const { data, error } = await supabase.from("products").select("id").eq("rank", rank as number).maybeSingle();
+  let query = supabase.from("products").select("id, name");
+  query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+  const { data, error } = await query.maybeSingle();
   if (error) return { error: error.message };
   if (!data) return { error: "No product found." };
-  return { id: data.id };
+  return { id: data.id, name: data.name };
 }
 
 // Issue tools — shared by operator and lead (RLS allows any authenticated

@@ -412,15 +412,24 @@ export function BuckyWidget({
       }
     }
 
-    const pacingId = `bucky-alert-pacing-${user.id}-${dateKey}`;
-    if (!existingIds.has(pacingId)) {
-      const today = dailyProgress[dailyProgress.length - 1];
-      if (today) {
-        const target = today.target ?? DAILY_VIDEO_TARGET;
-        if (today.published < target) {
-          const behind = target - today.published;
-          const text = `Also — today's pace is behind target: ${today.published} of ${target} videos published so far, ${behind} to go.`;
-          newAlerts.push({ id: pacingId, role: "assistant", parts: [{ type: "text", text }] });
+    // Lead-only: pacing/targets are a Planning-tab concept, and Planning
+    // (along with Analytics, where the daily-target-vs-actual chart lives)
+    // is deliberately hidden from operators elsewhere in the dashboard
+    // (see TabBar.tsx) — this alert used to fire for operators too, which
+    // quietly contradicted that. The stale-item check above stays for both
+    // roles: it's about an operator's own claimed work, not company-wide
+    // targets, so it doesn't have the same reason to be hidden.
+    if (role === "lead") {
+      const pacingId = `bucky-alert-pacing-${user.id}-${dateKey}`;
+      if (!existingIds.has(pacingId)) {
+        const today = dailyProgress[dailyProgress.length - 1];
+        if (today) {
+          const target = today.target ?? DAILY_VIDEO_TARGET;
+          if (today.published < target) {
+            const behind = target - today.published;
+            const text = `Also — today's pace is behind target: ${today.published} of ${target} videos published so far, ${behind} to go.`;
+            newAlerts.push({ id: pacingId, role: "assistant", parts: [{ type: "text", text }] });
+          }
         }
       }
     }
@@ -675,7 +684,7 @@ export function BuckyWidget({
                     if (part.state === "output-available") {
                       return (
                         <details key={key} className="bucky-tool-json">
-                          <summary>{describeToolResult(toolName, part.input)}</summary>
+                          <summary>{describeToolResult(toolName, part.input, part.output)}</summary>
                           <pre>{JSON.stringify(part.output, null, 2)}</pre>
                         </details>
                       );

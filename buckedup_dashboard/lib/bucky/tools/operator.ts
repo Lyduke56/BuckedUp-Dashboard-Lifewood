@@ -129,7 +129,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           if ("error" in resolved) return resolved;
           const { error } = await supabase.rpc("submit_video_for_review", { p_product_id: resolved.id });
           if (error) return { error: error.message };
-          return { submittedForReview: true };
+          return { submittedForReview: true, product: resolved.name };
         }),
     }),
 
@@ -151,7 +151,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
             p_note: note ?? null,
           });
           if (error) return { error: error.message };
-          return { videoVersionSet: true };
+          return { videoVersionSet: true, product: resolved.name };
         }),
     }),
   };

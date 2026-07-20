@@ -129,7 +129,7 @@ export function BuckyTranscriptModal({ userId, userEmail, onClose }: BuckyTransc
                     if (part.state === "output-available") {
                       return (
                         <details key={key} className="bucky-tool-json">
-                          <summary>{describeToolResult(toolName, part.input)}</summary>
+                          <summary>{describeToolResult(toolName, part.input, part.output)}</summary>
                           <pre>{JSON.stringify(part.output, null, 2)}</pre>
                         </details>
                       );

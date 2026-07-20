@@ -28,10 +28,13 @@ These questions work the same for Admin, Lead, and Operator:
 | An overall summary of where things stand | "Give me a quick summary of where we stand." |
 | Open issues on any video | "What issues are currently open?" |
 | Storyboards/scripts waiting on review | "What deliverables are waiting on review right now?" |
-| The current production plan and deadline | "What's our current production plan and deadline?" |
 | Who's on the team | "Who's on the team, and what are their roles?" |
 | How many videos each person owns, or what's unclaimed | "How many videos does each operator own, and what's still unclaimed?" |
 | The BuckedUp product catalog | "Search the catalog for 'protein powder'." |
+
+**One exception**: the current production plan and deadline is **not**
+available to Operators — see the note under Operator below for why. It's
+covered under Admin and Lead instead.
 
 ---
 
@@ -53,11 +56,14 @@ Removes someone's access entirely.
 Switches an existing account between Operator, Lead, and Admin.
 > "Change mike@example.com's role to Lead."
 
-### Production plan (confirm first — Admin is the only role that can change it)
+### Production plan (Admin is the only role that can change it — reading it is instant, no confirmation needed)
 
-**4. Update the production plan**
+**4. Update the production plan** (confirm first)
 Change the deadline, targets, or notes — only what you mention gets changed, everything else (including any Excel-imported daily pacing schedule) stays as-is.
 > "Update our production plan — change the deadline to December 15th."
+
+**5. Check the production plan** (instant)
+> "What's our current production plan and deadline?"
 
 ### Pipeline & catalog
 
@@ -83,45 +89,49 @@ Logs a problem against a video.
 Marks a reported problem as fixed.
 > "Mark the audio sync issue on product #7 as resolved."
 
-**3. See what's been deleted and can still be restored**
+**3. Check the production plan**
+Read-only for Leads — targets, deadline, and pacing.
+> "What's our current production plan and deadline?"
+
+**4. See what's been deleted and can still be restored**
 Lists anything recently deleted through Bucky that's still within its undo window.
 > "What have I deleted recently that I can still restore?"
 
-**4. Bring back a deleted video**
+**5. Bring back a deleted video**
 Restores a deleted video and everything attached to it — issues, deliverables, video versions, history — exactly as it was. Works within 24 hours of deleting it; after that it's gone for good.
 > "Restore the product named Winter Sale Promo."
 
-**5. Bring back a deleted catalog product**
+**6. Bring back a deleted catalog product**
 Restores a deleted catalog listing. No time limit — catalog deletions stay recoverable indefinitely.
 > "Restore the catalog product named Old Logo Tee."
 
 ### Actions That Ask You to Confirm First
 
-**6. Move a video to a different stage**
+**7. Move a video to a different stage**
 Skips it straight to any of the 5 stages — useful for corrections, not for normal reviews. Also the tool to reach for if you published something by mistake and want it back in Production (this only fixes the record in this dashboard — if the video's already gone out publicly somewhere else, that part can't be undone).
 > "Move product #5 back to the Production stage."
 
-**7. Approve or reject a storyboard or script**
+**8. Approve or reject a storyboard or script**
 Both are written during the Design stage. Once **both** the storyboard and the script are approved, the video automatically moves on to Production. Rejecting keeps it in Design and records your note on the video.
 > "Approve the storyboard submitted for product #9."
 
-**8. Approve or reject a finished video**
+**9. Approve or reject a finished video**
 This is the big one — approving **publishes the video live**. Rejecting sends it back to Production for rework, with your note.
 > "Approve and publish the video for product #3."
 
-**9. Create a new video**
+**10. Create a new video**
 Start from scratch, or pull the details straight from a catalog item. You can set a priority (High/Medium/Low) too.
 > "Create a new high-priority product called 'Winter Sale Promo' in the Marketing category, Ads subcategory."
 
-**10. Delete a video**
+**11. Delete a video**
 Removes it completely, along with its issues and history — but it's recoverable for the next 24 hours if that turns out to be a mistake (see "Bring back a deleted video" above).
 > "Delete product #22, it was a duplicate."
 
-**11. Add or update a catalog product**
+**12. Add or update a catalog product**
 Add a new BuckedUp product to the catalog, or edit an existing listing.
 > "Add a new catalog product called 'BuckedUp Shaker Bottle' in the Merchandise category."
 
-**12. Delete a catalog product**
+**13. Delete a catalog product**
 Hides the listing rather than destroying it — recoverable any time (see "Bring back a deleted catalog product" above), and any video still linked to it keeps that link.
 > "Delete the catalog product called 'Old Logo Tee'."
 
@@ -130,13 +140,15 @@ Hides the listing rather than destroying it — recoverable any time (see "Bring
 You don't need to ask for these — Lead's Bucky checks automatically every time the dashboard loads, and shows a small red dot on its icon if it has something to flag. The same checks also run once a day in the background (see the note near the top of this doc) and show up in the notification bell even if nobody opens the chat:
 
 - **Videos stuck in review too long.** If anything has been sitting In Review for 3 or more days, Bucky will mention it as soon as you open the chat.
-- **Falling behind today's target.** If the team is behind pace on today's video output, Bucky will let you know how many more are needed to stay on track.
+- **Falling behind today's target.** If the team is behind pace on today's video output, Bucky will let you know how many more are needed to stay on track — Leads only; see the note under Operator for why Operators don't get this one.
 
 ---
 
 ## 3. Operator
 
 Operators do the hands-on work — claiming videos, writing storyboards and scripts, and submitting finished videos. Bucky's actions for Operator match exactly what an Operator can already do in the dashboard, and every one of them runs immediately, no approval step, the same as clicking the equivalent button.
+
+**One thing Operators can't ask Bucky about: the production plan, deadline, or company-wide pacing/targets.** That's not an oversight — the dashboard itself hides the Planning and Analytics tabs from Operators for the same reason, so Bucky matches it rather than being a workaround. Ask a Lead or Admin instead.
 
 ### Instant Actions (all run right away, no confirmation needed)
 
@@ -173,4 +185,5 @@ Points a video at a new file/link.
 You don't need to ask for these — Operator's Bucky checks automatically every time the dashboard loads, and shows a small red dot on its icon if it has something to flag. The same checks also run once a day in the background (see the note near the top of this doc) and show up in the notification bell even if nobody opens the chat:
 
 - **Your own claimed videos stuck too long.** If something you've claimed hasn't moved in 3 or more days, Bucky will remind you as soon as you open the chat.
-- **Falling behind today's target.** If the team is behind pace on today's video output, Bucky will mention it.
+
+That's the only proactive check Operators get — the pacing-behind-target alert is Lead-only, for the same reason the production plan itself is off-limits above.

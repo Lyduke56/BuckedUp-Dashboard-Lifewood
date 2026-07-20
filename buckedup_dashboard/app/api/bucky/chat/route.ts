@@ -3,6 +3,7 @@ import { createOpenRouter, type OpenRouterUsageAccounting } from "@openrouter/ai
 import { createClient } from "@/lib/supabase/server";
 import {
   createBuckyReadTools,
+  createBuckyPlanReadTools,
   createBuckyActionTools,
   createBuckyOperatorActionTools,
   createBuckyLeadActionTools,
@@ -101,6 +102,7 @@ export async function POST(request: Request) {
     messages: await convertToModelMessages(messages),
     tools: {
       ...createBuckyReadTools(supabase),
+      ...createBuckyPlanReadTools(supabase, role),
       ...createBuckyActionTools(supabase, request, role),
       ...createBuckyOperatorActionTools(supabase, role, user.id),
       ...createBuckyLeadActionTools(supabase, role, user.id),

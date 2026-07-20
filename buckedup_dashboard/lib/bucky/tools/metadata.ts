@@ -1,10 +1,11 @@
-import type { createBuckyReadTools } from "./read";
+import type { createBuckyReadTools, createBuckyPlanReadTools } from "./read";
 import type { createBuckyActionTools } from "./admin";
 import type { createBuckyOperatorActionTools } from "./operator";
 import type { createBuckyLeadActionTools } from "./lead";
 
 export type AnyBuckyToolName =
   | keyof ReturnType<typeof createBuckyReadTools>
+  | keyof ReturnType<typeof createBuckyPlanReadTools>
   | keyof ReturnType<typeof createBuckyActionTools>
   | keyof ReturnType<typeof createBuckyOperatorActionTools>
   | keyof ReturnType<typeof createBuckyLeadActionTools>;
