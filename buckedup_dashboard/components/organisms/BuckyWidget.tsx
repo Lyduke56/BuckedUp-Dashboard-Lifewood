@@ -11,7 +11,7 @@ import { useMounted } from "@/lib/useMounted";
 import { useAuth } from "@/lib/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import { loadChatHistory, saveChatHistory, clearChatHistory } from "@/lib/bucky/chatHistory";
-import { renderMarkdown, isLeakedReasoning } from "@/lib/bucky/renderMarkdown";
+import { renderMarkdown, isLeakedReasoning, extractVerifiedTables, substituteVerifiedTables } from "@/lib/bucky/renderMarkdown";
 import { describeAction, describeToolResult } from "@/lib/bucky/toolCopy";
 import {
   isSpeechRecognitionSupported,
@@ -153,6 +153,23 @@ export function BuckyWidget({
   const prevBusy = useRef(busy);
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // Whether to keep auto-scrolling to the newest content as it streams in.
+  // Starts true (normal chat behavior); a manual scroll away from the
+  // bottom turns it off so the auto-scroll effect below stops fighting
+  // the user. Without this, the effect re-fires on every streamed token
+  // (messages changes once per chunk) and kept snapping back to bottom
+  // mid-response -- easy to miss with short plain-text replies, but very
+  // noticeable once a reply contains a real multi-row table (visibly
+  // taller than the single-line text it used to be), which is exactly
+  // when a user is most likely to want to scroll and read it.
+  const stickToBottomRef = useRef(true);
+  const handleMessagesScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 80;
+  };
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Voice: populates the draft for review rather than auto-sending (a
@@ -406,19 +423,23 @@ export function BuckyWidget({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    // Sending a message is a clear signal the user wants to follow the
+    // reply, even if they'd scrolled up to read something earlier.
+    stickToBottomRef.current = true;
     sendMessage({ text });
   };
 
   useEffect(() => {
     if (open) {
       setHasUnread(false);
+      stickToBottomRef.current = true;
       // Wait a tick for the panel to finish animating open before scrolling
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     }
   }, [open]);
 
   useEffect(() => {
-    if (open) {
+    if (open && stickToBottomRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, status]);
@@ -444,7 +465,7 @@ export function BuckyWidget({
     const textPart = [...lastMessage.parts].reverse().find((p) => p.type === "text");
     if (!textPart || isLeakedReasoning(textPart.text)) return;
     lastSpokenIdRef.current = lastMessage.id;
-    speak(textPart.text);
+    speak(substituteVerifiedTables(textPart.text, extractVerifiedTables(lastMessage)));
   }, [messages, busy, autoSpeak]);
 
   useEffect(() => {
@@ -557,7 +578,7 @@ export function BuckyWidget({
               </div>
             ) : null}
 
-            <div className="bucky-messages">
+            <div className="bucky-messages" ref={messagesContainerRef} onScroll={handleMessagesScroll}>
               <div className="bucky-msg-wrapper bucky">
                 <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
                   <Image src="/image 3.svg" width={32} height={32} alt="Bucky" style={{ width: "32px", height: "32px" }} className="rounded-full w-full h-full object-contain p-1.5 pointer-events-none bg-white" draggable={false} />
@@ -579,12 +600,14 @@ export function BuckyWidget({
                           {isUser ? <User size={16} /> : <Image src="/image 3.svg" width={32} height={32} alt="Bucky" style={{ width: "32px", height: "32px" }} className="rounded-full w-full h-full object-contain p-1.5 pointer-events-none bg-white" draggable={false} />}
                         </div>
                         <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
-                          {isUser ? part.text : renderMarkdown(part.text)}
+                          {isUser
+                            ? part.text
+                            : renderMarkdown(substituteVerifiedTables(part.text, extractVerifiedTables(message)))}
                           {!isUser && isSpeechSynthesisSupported() ? (
                             <button
                               type="button"
                               className="bucky-speak-msg"
-                              onClick={() => speak(part.text)}
+                              onClick={() => speak(substituteVerifiedTables(part.text, extractVerifiedTables(message)))}
                               aria-label="Read this reply aloud"
                               title="Read this reply aloud"
                             >
@@ -648,9 +671,26 @@ export function BuckyWidget({
                         </div>
                       );
                     }
+                    // input-available: the model has finished deciding both
+                    // the tool and its arguments, just hasn't gotten a
+                    // result back yet -- safe to reuse the same friendly
+                    // description shown once it completes (describeToolResult
+                    // reads that from `input`, not the eventual output).
+                    // input-streaming (input still being generated) falls
+                    // through to the generic label below instead, since
+                    // describing a still-partial input could show something
+                    // misleading (e.g. a product number that hasn't arrived
+                    // yet).
+                    if (part.state === "input-available") {
+                      return (
+                        <div key={key} className="bucky-msg-tool bucky-msg-thinking">
+                          {describeToolResult(toolName, part.input)}…
+                        </div>
+                      );
+                    }
                     return (
-                      <div key={key} className="bucky-msg-tool">
-                        Checking {toolName}…
+                      <div key={key} className="bucky-msg-tool bucky-msg-thinking">
+                        Bucky is thinking…
                       </div>
                     );
                   }

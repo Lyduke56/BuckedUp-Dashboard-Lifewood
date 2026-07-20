@@ -30,7 +30,7 @@ export function describeAction(toolName: string, input: unknown): string {
     case "review_video":
       return params.decision === "accepted"
         ? `Accept and PUBLISH ${product}? This makes it publicly live.`
-        : `Reject ${product}'s video back to Editing?`;
+        : `Reject ${product}'s video back to Production?`;
     case "create_product":
       return typeof params.name === "string"
         ? `Create a new product "${params.name}"?`
@@ -51,16 +51,47 @@ export function describeAction(toolName: string, input: unknown): string {
 }
 
 // Human-readable summary of a tool's completed result, shown as the
-// <summary> of the collapsible output-available block. Read tools (list_*,
-// get_*) have no entry here and fall back to "Looked up {toolName}" —
-// accurate for them. Mutation tools that don't require approval (operator's
-// work-execution tools, see lib/bucky/tools/operator.ts) get a past-tense summary
-// instead, since "Looked up submit_deliverable" reads oddly for something
-// that just *did* something rather than fetched data.
+// <summary> of the collapsible output-available block (and reused,
+// pre-completion, as the "what Bucky's doing right now" line once its
+// input is fully formed — see the input-available branch in
+// BuckyWidget.tsx). Mutation tools that don't require approval (operator's
+// work-execution tools, see lib/bucky/tools/operator.ts) get a past-tense
+// summary since "Looked up submit_deliverable" reads oddly for something
+// that just *did* something rather than fetched data; read tools get a
+// plain-language description of what was checked, instead of the raw
+// function name.
 export function describeToolResult(toolName: string, input: unknown): string {
   const params = (input ?? {}) as Record<string, unknown>;
   const product = typeof params.rank === "number" ? `#${params.rank}` : "a product";
   switch (toolName) {
+    case "list_products":
+      return "Looked up the product list";
+    case "get_product":
+      return typeof params.rank === "number" ? `Looked up product #${params.rank}` : "Looked up that product's details";
+    case "get_daily_production":
+      return "Checked recent production output";
+    case "get_analytics_summary":
+      return "Checked the analytics summary";
+    case "list_issues":
+      return "Looked up reported issues";
+    case "list_stage_deliverables":
+      return "Looked up submitted deliverables";
+    case "get_production_plan":
+      return "Checked the production plan";
+    case "list_users":
+      return "Looked up the team list";
+    case "get_production_breakdown":
+      return "Checked what's currently in production";
+    case "list_catalog_products":
+      return "Looked up the catalog";
+    case "get_issue_summary":
+      return "Checked open issues";
+    case "get_deliverable_summary":
+      return "Checked pending deliverables";
+    case "get_ownership_breakdown":
+      return "Checked who owns what";
+    case "list_recent_deletions":
+      return "Checked what's recoverable";
     case "report_issue": {
       const severity = typeof params.severity === "string" ? params.severity : "medium";
       return `Reported ${withArticle(severity)} issue on #${params.rank}`;
@@ -69,6 +100,8 @@ export function describeToolResult(toolName: string, input: unknown): string {
       return "Resolved an issue";
     case "claim_product":
       return `Claimed ${product}`;
+    case "unclaim_product":
+      return `Unclaimed ${product}`;
     case "submit_deliverable":
       return `Submitted a deliverable for ${product}`;
     case "submit_video_for_review":
@@ -88,7 +121,7 @@ export function describeToolResult(toolName: string, input: unknown): string {
         ? `Accepted the deliverable for ${product}`
         : `Rejected the deliverable for ${product}`;
     case "review_video":
-      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Editing`;
+      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Production`;
     case "create_product":
       return typeof params.name === "string" ? `Created "${params.name}"` : "Created a new product";
     case "delete_product":

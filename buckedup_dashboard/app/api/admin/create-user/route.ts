@@ -81,7 +81,18 @@ export async function POST(request: Request) {
         );
       }
 
-      const { error: sendError } = await sendInviteEmail(email, linkData.properties.action_link);
+      // Email our own /auth/confirm URL with the hashed token, NOT
+      // linkData.properties.action_link. The action_link points at
+      // Supabase's hosted /auth/v1/verify endpoint, which consumes the
+      // token server-side and then redirects here with the session in a
+      // URL fragment — invisible to /auth/confirm's route handler, which
+      // expects a token_hash query param and verifies it itself
+      // (verifyOtp). Emailing action_link therefore verified the user on
+      // Supabase's side but always dead-ended at "invite link invalid"
+      // locally, with the one-time token already burned.
+      const inviteUrl = `${redirectTo}?token_hash=${linkData.properties.hashed_token}&type=invite`;
+
+      const { error: sendError } = await sendInviteEmail(email, inviteUrl);
       if (sendError) {
         // The auth user + link already exist at this point — same
         // rollback precedent as the profile-update-failure branch below.

@@ -50,6 +50,7 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   resolve_issue: { mutating: true, approval: "none" },
   // operator's own self-scoped work
   claim_product: { mutating: true, approval: "none" },
+  unclaim_product: { mutating: true, approval: "none" },
   submit_deliverable: { mutating: true, approval: "none" },
   submit_video_for_review: { mutating: true, approval: "none" },
   set_video_version: { mutating: true, approval: "none" },

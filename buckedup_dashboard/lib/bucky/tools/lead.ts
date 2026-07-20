@@ -12,14 +12,20 @@ import {
   type SupabaseServerClient,
 } from "./shared";
 
-// Lead's pipeline-management tools. Most require toolApproval (see
-// route.ts) — team-visible workflow changes, not self-scoped routine work
-// like the operator tools above; report_issue/resolve_issue are the
-// exception, shared verbatim with operator via buildIssueTools since
-// they're low-risk regardless of who's calling them. Every write goes
-// through the caller's own session client (RLS-enforced) — lead's real DB
-// permissions are the actual authority here, this just gives chat access
-// to what the UI already allows.
+// Pipeline-management tools, shared by lead AND admin — the 5-stage
+// pipeline refactor expanded admin from governance-only to a full
+// super-user (products/catalog RLS now allows lead OR admin, the
+// update-permissions trigger passes both through, and the dashboard UI
+// shows admin the same review/catalog/edit controls as lead). Most require
+// toolApproval (see route.ts) — team-visible workflow changes, not
+// self-scoped routine work like the operator tools; report_issue/
+// resolve_issue are the exception, shared verbatim with operator via
+// buildIssueTools since they're low-risk regardless of who's calling
+// them. Every write goes through the caller's own session client
+// (RLS-enforced) — the caller's real DB permissions are the actual
+// authority here, this just gives chat access to what the UI already
+// allows. (update_production_plan is NOT here — plan writes moved to
+// admin-only in the same refactor, so it lives in admin.ts now.)
 function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
   return {
     ...buildIssueTools(supabase),
@@ -53,7 +59,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
 
     review_deliverable: tool({
       description:
-        "Accept or reject a specific document deliverable (Storyboarding or Scripting) for a product in its Design stage. Accepting both advances the product to Production. A note is required when rejecting. Requires confirmation before it runs.",
+        "Accept or reject a specific document deliverable (Storyboarding or Scripting) for a product in its Design stage. Once both Storyboarding and Scripting are accepted, the product advances to Production automatically. Rejecting keeps it in Design and records the note as the product's rejection reason. A note is required when rejecting. Requires confirmation before it runs.",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
         stage: z.enum(["Storyboarding", "Scripting"]).describe("The deliverable stage to review: 'Storyboarding' or 'Scripting'."),
@@ -99,7 +105,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
 
     review_video: tool({
       description:
-        "Accept or reject a product's submitted video. Accepting PUBLISHES it (sets its stage to Published) — this is the single most consequential action available. Only works for a product currently In Review. A note is required when rejecting. Requires confirmation before it runs.",
+        "Accept or reject a product's submitted video. Accepting PUBLISHES it (sets its stage to Published) — this is the single most consequential action available. Rejecting sends it back to Production for rework. Only works for a product currently In Review. A note is required when rejecting. Requires confirmation before it runs.",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
         decision: z.enum(["accepted", "rejected"]),
@@ -119,12 +125,16 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
           if (decision === "rejected" && !note) {
             return { error: "A note is required when rejecting a video." };
           }
+          // Reject sends the video back to Production for rework — mirrors
+          // ProductReviewModal's own "Reject to Production" button exactly.
+          // (Pre-refactor this was "Editing", a stage that no longer exists
+          // in the 5-stage pipeline.)
           const { error: updateError } = await supabase
             .from("products")
             .update(
               decision === "accepted"
                 ? { review_status: "Accepted", rejection_reason: null, status: "Published" }
-                : { review_status: "Rejected", rejection_reason: note, status: "Editing" },
+                : { review_status: "Rejected", rejection_reason: note, status: "Production" },
             )
             .eq("id", product.id);
           if (updateError) return { error: updateError.message };
@@ -148,15 +158,16 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
         contentType: z.string().optional(),
         contentAngle: z.string().optional(),
         productUrl: z.string().optional().describe("Ignored if catalogProductId is given."),
-        ownerEmail: z.string().email().optional(),
+        ownerEmail: z.string().optional().describe("The owner's email address."),
         publishDate: z.string().optional().describe("YYYY-MM-DD"),
         deliveryType: z.enum(["pipeline", "link"]).default("pipeline"),
         videoUrl: z.string().url().optional().describe("Required when deliveryType is 'link'."),
         rank: z.number().int().optional().describe("Defaults to the next available rank if omitted."),
+        priority: z.enum(["High", "Medium", "Low"]).optional().describe("Defaults to Low if omitted."),
       }),
       execute: (params) =>
         safe(async () => {
-          const { catalogProductId, ownerEmail, deliveryType, videoUrl, rank, publishDate, language, contentType, contentAngle } =
+          const { catalogProductId, ownerEmail, deliveryType, videoUrl, rank, publishDate, language, contentType, contentAngle, priority } =
             params;
           let { name, category, subcategory, productUrl } = params;
 
@@ -227,6 +238,9 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
               delivery_type: deliveryType,
               video_url: deliveryType === "link" ? videoUrl : null,
               catalog_product_id: catalogProductId ?? null,
+              // Omitting the column entirely lets the DB default ('Low')
+              // apply — only send it when the caller actually chose one.
+              ...(priority ? { priority } : {}),
             })
             .select("id, rank, name")
             .single();
@@ -314,65 +328,6 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
           });
           if (rpcError) return { error: rpcError.message };
           return { restored: true, product: productName, id: restoredId };
-        }),
-    }),
-
-    update_production_plan: tool({
-      description:
-        "Update the active production plan's targets, dates, or notes. Only changes the fields you provide — everything else (including any Excel-imported daily pacing schedule) stays untouched. If no plan is active yet, creates one (name, startDate, and deadline are then required). Requires confirmation before it runs.",
-      inputSchema: z.object({
-        name: z.string().optional(),
-        totalVideoTarget: z.number().int().optional(),
-        startDate: z.string().optional().describe("YYYY-MM-DD"),
-        deadline: z.string().optional().describe("YYYY-MM-DD"),
-        notes: z.string().optional(),
-        categoryTargets: z.record(z.string(), z.number()).optional(),
-        languageTargets: z.record(z.string(), z.number()).optional(),
-      }),
-      execute: (params) =>
-        safe(async () => {
-          const { data: current, error: fetchError } = await supabase
-            .from("production_plans")
-            .select("*")
-            .eq("is_active", true)
-            .maybeSingle();
-          if (fetchError) return { error: fetchError.message };
-
-          if (current) {
-            const updatePayload: Record<string, unknown> = {};
-            if (params.name !== undefined) updatePayload.name = params.name;
-            if (params.totalVideoTarget !== undefined) updatePayload.total_video_target = params.totalVideoTarget;
-            if (params.startDate !== undefined) updatePayload.start_date = params.startDate;
-            if (params.deadline !== undefined) updatePayload.deadline = params.deadline;
-            if (params.notes !== undefined) updatePayload.notes = params.notes;
-            if (params.categoryTargets !== undefined) updatePayload.category_targets = params.categoryTargets;
-            if (params.languageTargets !== undefined) updatePayload.language_targets = params.languageTargets;
-            if (Object.keys(updatePayload).length === 0) {
-              return { error: "Provide at least one field to update." };
-            }
-            const { error: updateError } = await supabase
-              .from("production_plans")
-              .update(updatePayload)
-              .eq("id", current.id);
-            if (updateError) return { error: updateError.message };
-            return { updated: true, plan: params.name ?? current.name };
-          }
-
-          if (!params.name || !params.startDate || !params.deadline) {
-            return { error: "No active plan exists yet — name, startDate, and deadline are required to create one." };
-          }
-          const { error: insertError } = await supabase.from("production_plans").insert({
-            name: params.name,
-            total_video_target: params.totalVideoTarget ?? 0,
-            start_date: params.startDate,
-            deadline: params.deadline,
-            notes: params.notes ?? null,
-            category_targets: params.categoryTargets ?? {},
-            language_targets: params.languageTargets ?? {},
-            is_active: true,
-          });
-          if (insertError) return { error: insertError.message };
-          return { created: true, plan: params.name };
         }),
     }),
 
@@ -508,12 +463,17 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
   };
 }
 
-// Same role-gate-returns-{} pattern as the operator/admin builders above.
+// Same role-gate-returns-{} pattern as the operator/admin builders. Admin
+// is included since the pipeline refactor made admin a full super-user
+// (products/catalog RLS, the update-permissions trigger, and the dashboard
+// UI's review/catalog/edit controls all treat lead and admin identically
+// now) — the DB would allow it anyway; this just stops Bucky from
+// artificially refusing what the UI already offers.
 export function createBuckyLeadActionTools(
   supabase: SupabaseServerClient,
   role: UserRole,
   userId: string,
 ): ReturnType<typeof buildLeadActionTools> {
-  if (role !== "lead") return {} as ReturnType<typeof buildLeadActionTools>;
+  if (role !== "lead" && role !== "admin") return {} as ReturnType<typeof buildLeadActionTools>;
   return buildLeadActionTools(supabase, userId);
 }

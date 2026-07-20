@@ -38,12 +38,14 @@ export async function POST(request: Request) {
   // session client, so it inherits this authorization automatically.
   //
   // Bucky is reachable by any authenticated role now (admin/lead/operator)
-  // — the 8 read tools already query through RLS, which is public-read on
+  // — the read tools already query through RLS, which is public-read on
   // every table they touch, so widening access exposes nothing new. What
-  // stays role-gated is the *action* tool sets: account-management tools
-  // (createBuckyActionTools) are admin-only, work-execution tools
-  // (createBuckyOperatorActionTools) are operator-only, pipeline-management
-  // tools (createBuckyLeadActionTools) are lead-only.
+  // stays role-gated is the *action* tool sets: account-management and
+  // production-plan tools (createBuckyActionTools) are admin-only,
+  // work-execution tools (createBuckyOperatorActionTools) are
+  // operator-only, pipeline/catalog-management tools
+  // (createBuckyLeadActionTools) go to lead AND admin — admin became a
+  // full super-user in the 5-stage pipeline refactor.
   const supabase = await createClient();
   const {
     data: { user },

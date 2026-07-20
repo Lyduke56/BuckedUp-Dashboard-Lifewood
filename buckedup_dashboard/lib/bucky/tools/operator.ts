@@ -15,24 +15,31 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
 
     claim_product: tool({
       description:
-        "Claim ownership of a product that isn't currently owned by anyone. Runs immediately, no confirmation needed.",
+        "Claim ownership of an unowned product that hasn't been started yet — claiming moves it from Not Started into the Design stage under your name. Runs immediately, no confirmation needed.",
       inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
       execute: ({ rank, id }) =>
         safe(async () => {
           if (!rank && !id) return { error: "Provide either rank or id." };
-          let query = supabase.from("products").select("id, name, owner_id, owner");
+          let query = supabase.from("products").select("id, name, owner_id, owner, status");
           query = id ? query.eq("id", id) : query.eq("rank", rank as number);
           const { data: product, error } = await query.maybeSingle();
           if (error) return { error: error.message };
           if (!product) return { error: "No product found." };
-          // The real UI only shows a "claim" button when a product is
-          // unowned — the DB doesn't enforce that (operators can change
-          // owner_id freely per the update-permissions trigger), so this
-          // check has to happen here or an operator could silently steal
-          // someone else's claimed assignment with no error at all.
-          if (product.owner_id && product.owner_id !== userId) {
+          if (product.owner_id === userId) {
+            return { error: `${product.name} is already yours — no need to claim it again.` };
+          }
+          if (product.owner_id) {
             return {
               error: `${product.name} is already owned by ${product.owner ?? "someone else"} — ask a lead to reassign it.`,
+            };
+          }
+          // The DB trigger only permits a claim as the exact transition
+          // "unowned + Not Started -> owned by you + Design" — anything
+          // else it rejects with a generic message, so pre-check the
+          // stage here for a clearer explanation.
+          if (product.status !== "Not Started") {
+            return {
+              error: `${product.name} is currently in "${product.status}" — only products that haven't been started yet can be claimed.`,
             };
           }
           const { error: updateError } = await supabase
@@ -40,7 +47,39 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
             .update({ owner_id: userId, status: "Design" })
             .eq("id", product.id);
           if (updateError) return { error: updateError.message };
-          return { claimed: product.name };
+          return { claimed: product.name, nowInStage: "Design" };
+        }),
+    }),
+
+    unclaim_product: tool({
+      description:
+        "Give up ownership of a product you claimed but haven't progressed past Design — it goes back to Not Started, unowned, for someone else to pick up. Runs immediately, no confirmation needed.",
+      inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
+      execute: ({ rank, id }) =>
+        safe(async () => {
+          if (!rank && !id) return { error: "Provide either rank or id." };
+          let query = supabase.from("products").select("id, name, owner_id, status");
+          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
+          const { data: product, error } = await query.maybeSingle();
+          if (error) return { error: error.message };
+          if (!product) return { error: "No product found." };
+          if (product.owner_id !== userId) {
+            return { error: `You can only unclaim a product you own — ${product.name} isn't yours.` };
+          }
+          // Mirrors the DB trigger's allowed unclaim transition: owned by
+          // you, still in Design (or Not Started), back to unowned +
+          // Not Started. Anything further along must go through a lead.
+          if (product.status !== "Design" && product.status !== "Not Started") {
+            return {
+              error: `${product.name} is already in "${product.status}" — work past Design can't be unclaimed; ask a lead to reassign it instead.`,
+            };
+          }
+          const { error: updateError } = await supabase
+            .from("products")
+            .update({ owner_id: null, status: "Not Started" })
+            .eq("id", product.id);
+          if (updateError) return { error: updateError.message };
+          return { unclaimed: product.name };
         }),
     }),
 
@@ -82,7 +121,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
 
     submit_video_for_review: tool({
       description:
-        "Submit a product's video for review, moving it from Production to In Review. The server checks ownership and stage automatically and returns a clear error if either doesn't hold — don't try to pre-verify ownership yourself from a product's owner_id (you can't reliably tell if a raw id is 'you'), just call this directly when asked. Runs immediately, no confirmation needed.",
+        "Submit a product's video for review, moving it from Production to In Review. At least one video version must already be uploaded (via the dashboard or set_video_version), or the server refuses. The server checks ownership, stage, and the video requirement automatically and returns a clear error if any doesn't hold — don't try to pre-verify ownership yourself from a product's owner_id (you can't reliably tell if a raw id is 'you'), just call this directly when asked. Runs immediately, no confirmation needed.",
       inputSchema: z.object(PRODUCT_LOCATOR_SHAPE),
       execute: ({ rank, id }) =>
         safe(async () => {
@@ -119,7 +158,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
 }
 
 // Same role-gate-returns-{} pattern as createBuckyActionTools above — the
-// model gets no schema for these six tools unless the caller is an
+// model gets no schema for these tools unless the caller is an
 // operator, so it can't attempt one regardless of what it's asked.
 export function createBuckyOperatorActionTools(
   supabase: SupabaseServerClient,

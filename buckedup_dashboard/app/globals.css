@@ -1689,7 +1689,8 @@ body.light .content-angle-callout {
 }
 
 .bucky-close,
-.bucky-clear {
+.bucky-clear,
+.bucky-speak-toggle {
   background: transparent;
   border: none;
   color: var(--ink-soft);
@@ -1707,7 +1708,8 @@ body.light .content-angle-callout {
   transform: rotate(90deg);
 }
 
-.bucky-clear:hover {
+.bucky-clear:hover,
+.bucky-speak-toggle:hover {
   color: var(--text-main);
   background: var(--glass-hover);
 }
@@ -1934,6 +1936,32 @@ body.light .content-angle-callout {
   border-top-left-radius: 4px;
 }
 
+/* A tool call still in flight -- a gentle breathing pulse (not the same
+   bounce as .bucky-typing's dots below, this is a longer/subtler cycle
+   since the text itself is already changing) so it reads as "actively
+   working on it" rather than a static, possibly-stuck line. */
+.bucky-msg-thinking {
+  animation: buckyThinkingPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes buckyThinkingPulse {
+
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bucky-msg-thinking {
+    animation: none;
+  }
+}
+
 /* Suggested prompts chips */
 .bucky-suggestions {
   display: flex;
@@ -2065,7 +2093,10 @@ body.light .content-angle-callout {
   width: 100%;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
-  padding: 14px 54px 14px 20px;
+  /* Right padding wide enough for both the mic and send buttons when the
+     mic is present -- .bucky-mic/.bucky-send are absolutely positioned
+     over this space, not laid out in normal flow (see below). */
+  padding: 14px 92px 14px 20px;
   border-radius: 24px;
   background: var(--panel-bg);
   border: 1px solid var(--glass-border);
@@ -2118,6 +2149,69 @@ body.light .content-angle-callout {
 .bucky-send:not(:disabled):hover {
   transform: translateY(-50%) scale(1.1);
   box-shadow: 0 4px 14px rgba(255, 159, 28, 0.5);
+}
+
+/* Sits just left of .bucky-send, same absolute-positioning approach --
+   was previously missing entirely, which let this render as an
+   unstyled default button in normal document flow instead, wrapping
+   below the (width: 100%) textarea and throwing off .bucky-send's
+   position (its "top: 50%" is relative to the row, which had grown
+   taller than intended). */
+.bucky-mic {
+  position: absolute;
+  right: 68px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bucky-mic:hover {
+  color: var(--text-main);
+  background: var(--glass-hover);
+}
+
+.bucky-mic.listening {
+  background: linear-gradient(135deg, var(--saffron) 0%, #f59e0b 100%);
+  color: #1a1207;
+  border-color: transparent;
+  animation: buckyThinkingPulse 1.2s ease-in-out infinite;
+}
+
+.bucky-mic:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Small, muted per-message "read this aloud" button -- inline with the
+   message text rather than absolutely positioned, since it belongs to
+   one specific bubble, not the fixed input row. */
+.bucky-speak-msg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 4px;
+  margin-top: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.bucky-speak-msg:hover {
+  color: var(--text-main);
+  background: var(--glass-hover);
 }
 
 /* Typing Indicator */

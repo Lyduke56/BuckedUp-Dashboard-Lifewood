@@ -1109,18 +1109,20 @@ create index bucky_deleted_product_snapshots_expiry_idx
 
 alter table bucky_deleted_product_snapshots enable row level security;
 
--- Shared team resource (products aren't personal data), so any lead can
--- see and restore any snapshot, not just their own.
-create policy "Lead read" on bucky_deleted_product_snapshots for select
-  using (get_my_role() = 'lead');
-create policy "Lead insert" on bucky_deleted_product_snapshots for insert
-  with check (get_my_role() = 'lead' and user_id = auth.uid());
--- Narrow: a lead session can only ever delete a row whose window has
--- already closed -- lets list_recent_deletions self-clean without a
--- separate cron job, and can never be used to destroy a still-valid
--- snapshot early.
-create policy "Lead delete expired" on bucky_deleted_product_snapshots for delete
-  using (get_my_role() = 'lead' and expires_at < now());
+-- Shared team resource (products aren't personal data), so any lead or
+-- admin can see and restore any snapshot, not just their own. (Admin was
+-- added in the 5-stage pipeline refactor, when admin gained the same
+-- product delete powers as lead -- see "Lead and admin delete" on
+-- products.)
+create policy "Lead and admin read" on bucky_deleted_product_snapshots for select
+  using (get_my_role() in ('lead', 'admin'));
+create policy "Lead and admin insert" on bucky_deleted_product_snapshots for insert
+  with check (get_my_role() in ('lead', 'admin') and user_id = auth.uid());
+-- Narrow: only rows whose window has already closed can be deleted --
+-- lets list_recent_deletions self-clean without a separate cron job, and
+-- can never be used to destroy a still-valid snapshot early.
+create policy "Lead and admin delete expired" on bucky_deleted_product_snapshots for delete
+  using (get_my_role() in ('lead', 'admin') and expires_at < now());
 
 -- Security definer: a plain client insert can't do this restore --
 -- product_status_history has no insert policy at all (only its own
@@ -1137,8 +1139,8 @@ declare
   v_snapshot jsonb;
   v_new_id uuid;
 begin
-  if get_my_role() <> 'lead' then
-    raise exception 'Only leads can restore a deleted product';
+  if get_my_role() not in ('lead', 'admin') then
+    raise exception 'Only leads and admins can restore a deleted product';
   end if;
 
   select * into v_row from bucky_deleted_product_snapshots
