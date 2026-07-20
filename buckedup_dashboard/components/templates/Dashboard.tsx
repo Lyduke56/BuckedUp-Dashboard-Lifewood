@@ -25,7 +25,6 @@ import { ReviewsView } from "@/components/templates/ReviewsView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
@@ -76,7 +75,7 @@ export function Dashboard() {
     setTheme(newTheme);
     if (user) {
       const supabase = createClient();
-      await supabase.from("profiles").update({ theme: newTheme }).eq("id", user.id);
+      await supabase.rpc("update_my_theme", { new_theme: newTheme });
     }
   };
 
@@ -219,9 +218,6 @@ export function Dashboard() {
         </div>
         {(role === "lead" || role === "admin") ? (
           <div className={`view${activeView === "reviews" ? " active" : ""}`}>
-            <ReviewsView 
-              products={products} 
-              currentByKey={currentByKey} 
             <ReviewsView
               products={products}
               currentByKey={currentByKey}
