@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import { useCatalog } from "@/lib/useCatalog";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
+import { createClient } from "@/lib/supabase/client";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
@@ -31,7 +32,7 @@ export function Dashboard() {
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
   const { currentByKey } = useStageDeliverables();
-  const { role, mustChangePassword } = useAuth();
+  const { role, mustChangePassword, theme: savedTheme, user } = useAuth();
 
   // Bucky's product-selection context (Phase 3b). libraryFocus covers
   // VideoLibraryView's review/production/edit-form modals (reported up via
@@ -69,9 +70,20 @@ export function Dashboard() {
     setActiveView(view);
   };
 
-  const toggleTheme = () => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = async () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    if (user) {
+      const supabase = createClient();
+      await supabase.rpc("update_my_theme", { new_theme: newTheme });
+    }
   };
+
+  useEffect(() => {
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, [savedTheme]);
 
   useEffect(() => {
     // Apply theme to the whole document so body background changes too

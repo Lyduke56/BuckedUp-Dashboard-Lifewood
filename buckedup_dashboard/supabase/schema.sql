@@ -101,6 +101,19 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
+create or replace function update_my_theme(new_theme text)
+returns void as $$
+begin
+  if new_theme not in ('light', 'dark') then
+    raise exception 'Invalid theme';
+  end if;
+
+  update profiles
+  set theme = new_theme
+  where id = auth.uid();
+end;
+$$ language plpgsql security definer set search_path = public;
+
 create table products (
   id uuid primary key default gen_random_uuid(),
   rank integer not null unique,
