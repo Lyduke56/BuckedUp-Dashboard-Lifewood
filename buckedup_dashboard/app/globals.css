@@ -2082,6 +2082,18 @@ body.light .content-angle-callout {
   word-break: break-word;
 }
 
+/* Voice-input failure notice (mic blocked, browser has no speech backend
+   e.g. Brave) — sits directly above the input row so the explanation
+   appears right where the user was just looking when the mic gave up. */
+.bucky-speech-error {
+  padding: 8px 20px;
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: #e08585;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .bucky-input-row {
   padding: 16px 20px;
   border-top: 1px solid var(--glass-border);

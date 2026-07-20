@@ -180,6 +180,12 @@ export function BuckyWidget({
   // the speechSupported/micSupported render-time checks below.
   const [listening, setListening] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
+  // A user-facing explanation when voice input fails (mic blocked, no
+  // speech backend in this browser, etc.) — without it the mic just
+  // silently turns itself off, which reads as "broken" with no clue why
+  // (confirmed live in Brave, which ships the API but blocks the backend).
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const speechErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognizerRef = useRef<ReturnType<typeof createRecognizer>>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
 
@@ -194,9 +200,19 @@ export function BuckyWidget({
       setListening(false);
       return;
     }
+    if (speechErrorTimerRef.current) clearTimeout(speechErrorTimerRef.current);
+    setSpeechError(null);
     const recognizer = createRecognizer(
       (text) => setDraft((prev) => (prev ? `${prev} ${text}` : text)),
       () => setListening(false),
+      (message) => {
+        // Belt-and-suspenders: the browser fires onend after onerror, but
+        // reset listening here too in case a browser skips it.
+        setListening(false);
+        setSpeechError(message);
+        if (speechErrorTimerRef.current) clearTimeout(speechErrorTimerRef.current);
+        speechErrorTimerRef.current = setTimeout(() => setSpeechError(null), 10000);
+      },
     );
     if (!recognizer) return;
     recognizerRef.current = recognizer;
@@ -730,6 +746,8 @@ export function BuckyWidget({
                 ))}
               </div>
             ) : null}
+
+            {speechError ? <div className="bucky-speech-error">{speechError}</div> : null}
 
             <form className="bucky-input-row" onSubmit={send}>
               <textarea

@@ -21,6 +21,9 @@ interface SpeechRecognitionResultLike {
 interface SpeechRecognitionEventLike extends Event {
   results: { [index: number]: { [index: number]: SpeechRecognitionResultLike; isFinal: boolean }; length: number };
 }
+interface SpeechRecognitionErrorEventLike extends Event {
+  error?: string;
+}
 interface SpeechRecognitionLike extends EventTarget {
   lang: string;
   interimResults: boolean;
@@ -29,7 +32,7 @@ interface SpeechRecognitionLike extends EventTarget {
   stop(): void;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onend: (() => void) | null;
-  onerror: ((event: Event) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
 }
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
@@ -77,9 +80,42 @@ export function stopSpeaking(): void {
   window.speechSynthesis.cancel();
 }
 
+// Maps the Web Speech API's error codes to a message a non-technical user
+// can act on. "network" is the big one: Chromium's speech-to-text streams
+// audio to Google's servers, and some Chromium browsers (notably Brave)
+// ship the API surface but deliberately strip that backend for privacy —
+// so the mic button renders (feature detection passes) yet recognition
+// always dies with "network". Confirmed live in Brave: mic lights up,
+// nothing ever lands in the box. Without surfacing this, the failure is
+// completely silent.
+function describeRecognitionError(code: string | undefined): string | null {
+  switch (code) {
+    case "aborted": // user stopped it themselves — not an error worth showing
+      return null;
+    case "no-speech":
+      return "Didn't catch anything — try speaking again.";
+    case "audio-capture":
+      return "No microphone was found — check that one is connected.";
+    case "not-allowed":
+    case "service-not-allowed":
+      return "Microphone access is blocked — allow it for this site in your browser settings.";
+    case "network":
+      return "Your browser couldn't reach its speech service — some browsers (like Brave) block voice input entirely. Try Chrome or Edge.";
+    default:
+      return "Voice input failed — try again, or type instead.";
+  }
+}
+
 // Returns null when unsupported rather than throwing — callers should
 // hide the mic control entirely in that case (see isSpeechRecognitionSupported).
-export function createRecognizer(onResult: (text: string) => void, onEnd: () => void): SpeechRecognitionLike | null {
+// onError receives a user-facing message (or fires not at all for benign
+// cases like the user aborting); onEnd always fires when listening stops,
+// error or not, so callers can reset their "listening" state in one place.
+export function createRecognizer(
+  onResult: (text: string) => void,
+  onEnd: () => void,
+  onError?: (message: string) => void,
+): SpeechRecognitionLike | null {
   const Ctor = getRecognitionConstructor();
   if (!Ctor) return null;
   const recognizer = new Ctor();
@@ -91,7 +127,12 @@ export function createRecognizer(onResult: (text: string) => void, onEnd: () => 
     const transcript = last?.[0]?.transcript;
     if (transcript) onResult(transcript);
   };
+  // The browser fires onend after onerror anyway, so onend alone is enough
+  // to reset listening state — onerror only adds the explanation.
   recognizer.onend = onEnd;
-  recognizer.onerror = onEnd;
+  recognizer.onerror = (event) => {
+    const message = describeRecognitionError(event.error);
+    if (message && onError) onError(message);
+  };
   return recognizer;
 }
