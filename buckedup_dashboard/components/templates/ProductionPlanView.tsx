@@ -199,9 +199,80 @@ export function ProductionPlanView() {
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Targets-only submission states
+  const [targetsSubmitting, setTargetsSubmitting] = useState(false);
+  const [targetsSaved, setTargetsSaved] = useState(false);
+  const [targetsError, setTargetsError] = useState<string | null>(null);
+
   // Dynamic lists of target categories & custom inputs for languages
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [customLanguageRowIndices, setCustomLanguageRowIndices] = useState<number[]>([]);
+
+  const handleSaveTargetsOnly = async () => {
+    setTargetsSubmitting(true);
+    setTargetsError(null);
+    setTargetsSaved(false);
+
+    const categoryTargets: Record<string, number> = {};
+    Object.keys(CATEGORY_TREE).forEach((category) => {
+      const value = toInt(form.categoryTargets[category]);
+      if (value > 0) categoryTargets[category] = value;
+    });
+
+    const languageTargets: Record<string, number> = {};
+    form.languageTargets.forEach(({ language, target }) => {
+      const value = toInt(target);
+      if (language.trim() && value > 0) languageTargets[language.trim()] = value;
+    });
+
+    const sumCategoryTargets = Object.values(categoryTargets).reduce((acc, val) => acc + val, 0);
+    const supabase = createClient();
+
+    try {
+      if (plan?.id) {
+        const { error: saveErr } = await supabase
+          .from("production_plans")
+          .update({
+            category_targets: categoryTargets,
+            language_targets: languageTargets,
+          })
+          .eq("id", plan.id);
+
+        if (saveErr) throw new Error(saveErr.message);
+      } else {
+        const today = new Date().toISOString().split("T")[0];
+        const { error: insErr } = await supabase.from("production_plans").insert({
+          name: form.name.trim() || "Active Production Plan",
+          total_video_target: toInt(form.totalVideoTarget),
+          start_date: form.startDate || today,
+          deadline: form.deadline || today,
+          category_targets: categoryTargets,
+          language_targets: languageTargets,
+          is_active: true,
+        });
+
+        if (insErr) throw new Error(insErr.message);
+      }
+
+      // Upsert into daily_target_history for today's date so Analytics & charts update live
+      const todayStr = new Date().toISOString().split("T")[0];
+      const { error: historyErr } = await supabase
+        .from("daily_target_history")
+        .upsert({ date: todayStr, target: sumCategoryTargets }, { onConflict: "date" });
+
+      if (historyErr) {
+        console.warn("Could not log daily_target_history:", historyErr.message);
+      }
+
+      setTargetsSubmitting(false);
+      setTargetsSaved(true);
+      setTimeout(() => setTargetsSaved(false), 2500);
+    } catch (err: any) {
+      setTargetsSubmitting(false);
+      setTargetsError(err?.message || "Failed to save targets.");
+    }
+  };
+
 
   // Adjusted during render (React's sanctioned pattern for syncing local
   // state from a loaded value) rather than an effect — re-syncs exactly
@@ -581,8 +652,16 @@ export function ProductionPlanView() {
           />
         </label>
 
+        {/* Primary Plan Submit Button */}
+        <div className="form-actions form-field-wide" style={{ marginTop: "4px", marginBottom: "8px" }}>
+          <span />
+          <button type="submit" className="issue-submit-btn" disabled={submitting}>
+            {submitting ? "Saving…" : plan ? "Save plan changes" : "Create plan"}
+          </button>
+        </div>
+
         {/* Dropdown-driven output cards — configured targets */}
-        <div className="form-field-wide">
+        <div className="form-field-wide" style={{ marginTop: "16px" }}>
           <div className="content-angle-label">Today&apos;s targets</div>
           <div className="stat-card-grid">
             {/* Video output — overall daily target (derived from category targets) */}
@@ -838,13 +917,28 @@ export function ProductionPlanView() {
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="form-actions">
-          <span />
-          <button type="submit" className="issue-submit-btn" disabled={submitting}>
-            {submitting ? "Saving…" : plan ? "Save changes" : "Create plan"}
-          </button>
+          {/* Separate Set Targets button positioned after configuring target cards */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+            {targetsSaved && (
+              <span style={{ fontSize: "12px", color: "var(--castleton)", fontWeight: 700 }}>
+                ✓ Targets set!
+              </span>
+            )}
+            {targetsError && (
+              <span style={{ fontSize: "12px", color: "#dc2626", fontWeight: 700 }}>
+                {targetsError}
+              </span>
+            )}
+            <button
+              type="button"
+              className="issue-submit-btn"
+              disabled={targetsSubmitting}
+              onClick={handleSaveTargetsOnly}
+            >
+              {targetsSubmitting ? "Setting targets…" : "Set Targets"}
+            </button>
+          </div>
         </div>
       </form>
     </div>
