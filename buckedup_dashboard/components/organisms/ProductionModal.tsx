@@ -112,6 +112,7 @@ export function ProductionModal({
                 subStage="Storyboarding"
                 deliverable={storyboardDel}
                 productId={product.id}
+                isAnySubmitted={!!storyboardDel || !!scriptDel}
               />
             </div>
 
@@ -121,6 +122,7 @@ export function ProductionModal({
                 subStage="Scripting"
                 deliverable={scriptDel}
                 productId={product.id}
+                isAnySubmitted={!!storyboardDel || !!scriptDel}
               />
             </div>
           </div>
@@ -171,11 +173,13 @@ function DeliverableSubmissionPortal({
   subStage,
   deliverable,
   productId,
+  isAnySubmitted,
 }: {
   title: string;
   subStage: "Storyboarding" | "Scripting";
   deliverable: StageDeliverable | null;
   productId: string;
+  isAnySubmitted?: boolean;
 }) {
   const [kind, setKind] = useState<DeliverableKind>("file");
   const [text, setText] = useState("");
@@ -263,7 +267,7 @@ function DeliverableSubmissionPortal({
                 href={deliverable.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--saffron)] underline font-semibold"
+                className="text-current underline font-semibold"
               >
                 Open submitted document
               </a>
@@ -312,8 +316,14 @@ function DeliverableSubmissionPortal({
         )}
 
         <div className="form-actions">
-          <span />
-          <button type="submit" className="issue-submit-btn" disabled={submitting}>
+          {isAnySubmitted && !deliverable ? (
+            <span className="form-hint" style={{ color: "var(--saffron)" }}>
+              A deliverable has already been submitted for this stage.
+            </span>
+          ) : (
+            <span />
+          )}
+          <button type="submit" className="issue-submit-btn" disabled={submitting || isAnySubmitted}>
             {submitting ? "Submitting…" : `Submit ${subStage === "Storyboarding" ? "Storyboard" : "Script"}`}
           </button>
         </div>
