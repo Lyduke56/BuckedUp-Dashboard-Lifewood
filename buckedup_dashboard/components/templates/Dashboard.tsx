@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useVideoRequests } from "@/lib/useVideoRequests";
 import { useCatalog } from "@/lib/useCatalog";
 import { useStageDeliverables } from "@/lib/useStageDeliverables";
+import { createClient } from "@/lib/supabase/client";
 import { AppHeader } from "@/components/organisms/AppHeader";
 import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
@@ -24,14 +25,14 @@ import { ReviewsView } from "@/components/templates/ReviewsView";
 
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const [reviewRankToOpen, setReviewRankToOpen] = useState<number | null>(null);
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
   const { currentByKey } = useStageDeliverables();
-  const { role, mustChangePassword } = useAuth();
+  const { role, mustChangePassword, theme: savedTheme, user } = useAuth();
 
   // Bucky's product-selection context (Phase 3b). libraryFocus covers
   // VideoLibraryView's review/production/edit-form modals (reported up via
@@ -69,9 +70,20 @@ export function Dashboard() {
     setActiveView(view);
   };
 
-  const toggleTheme = () => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = async () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    if (user) {
+      const supabase = createClient();
+      await supabase.from("profiles").update({ theme: newTheme }).eq("id", user.id);
+    }
   };
+
+  useEffect(() => {
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, [savedTheme]);
 
   useEffect(() => {
     // Apply theme to the whole document so body background changes too
@@ -107,14 +119,14 @@ export function Dashboard() {
 
   const pendingReviewsCount = useMemo(() => {
     if (role !== "lead" && role !== "admin") return 0;
-    
+
     let count = 0;
     for (const product of products) {
       if (product.deliveryType !== "pipeline") continue;
-      
+
       const status = product.items[0]?.status;
       if (!status) continue;
-      
+
       if (status === "In Review") {
         count++;
       } else if (status === "Design") {
@@ -203,9 +215,9 @@ export function Dashboard() {
         </div>
         {(role === "lead" || role === "admin") ? (
           <div className={`view${activeView === "reviews" ? " active" : ""}`}>
-            <ReviewsView 
-              products={products} 
-              currentByKey={currentByKey} 
+            <ReviewsView
+              products={products}
+              currentByKey={currentByKey}
               onReviewProduct={(rank) => {
                 setReviewRankToOpen(rank);
                 switchView("library");

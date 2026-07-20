@@ -20,6 +20,7 @@ export interface Profile {
   id: string;
   email: string;
   role: UserRole;
+  theme?: "dark" | "light";
 }
 
 export type StatusFilter = "all" | "not-started" | "in-progress" | "published";

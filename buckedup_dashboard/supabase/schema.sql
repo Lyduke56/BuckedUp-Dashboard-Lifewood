@@ -31,6 +31,7 @@ create table profiles (
   -- ForcePasswordChangeView on their first login instead of using the
   -- admin-issued temporary password indefinitely.
   must_change_password boolean not null default false,
+  theme text not null default 'light',
   created_at timestamptz not null default now()
 );
 
