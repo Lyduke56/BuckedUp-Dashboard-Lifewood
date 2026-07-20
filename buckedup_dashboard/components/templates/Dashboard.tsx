@@ -26,6 +26,7 @@ import { ReviewsView } from "@/components/templates/ReviewsView";
 export function Dashboard() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const [reviewRankToOpen, setReviewRankToOpen] = useState<number | null>(null);
@@ -75,7 +76,7 @@ export function Dashboard() {
     setTheme(newTheme);
     if (user) {
       const supabase = createClient();
-      await supabase.rpc("update_my_theme", { new_theme: newTheme });
+      await supabase.from("profiles").update({ theme: newTheme }).eq("id", user.id);
     }
   };
 
@@ -120,13 +121,16 @@ export function Dashboard() {
   const pendingReviewsCount = useMemo(() => {
     if (role !== "lead" && role !== "admin") return 0;
     
+
     let count = 0;
     for (const product of products) {
       if (product.deliveryType !== "pipeline") continue;
       
+
       const status = product.items[0]?.status;
       if (!status) continue;
       
+
       if (status === "In Review") {
         count++;
       } else if (status === "Design") {
@@ -218,6 +222,9 @@ export function Dashboard() {
             <ReviewsView 
               products={products} 
               currentByKey={currentByKey} 
+            <ReviewsView
+              products={products}
+              currentByKey={currentByKey}
               onReviewProduct={(rank) => {
                 setReviewRankToOpen(rank);
                 switchView("library");

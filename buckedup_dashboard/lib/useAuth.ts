@@ -10,6 +10,7 @@ interface UseAuthState {
   user: User | null;
   role: UserRole | null;
   mustChangePassword: boolean;
+  theme: "dark" | "light";
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -19,6 +20,7 @@ export function useAuth(): UseAuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,12 +30,15 @@ export function useAuth(): UseAuthState {
     async function loadRole(userId: string) {
       const { data } = await supabase
         .from("profiles")
-        .select("role, must_change_password")
+        .select("role, must_change_password, theme")
         .eq("id", userId)
         .single();
       if (!cancelled) {
         setRole((data?.role as UserRole) ?? null);
         setMustChangePassword(data?.must_change_password ?? false);
+        if (data?.theme) {
+          setTheme(data.theme as "dark" | "light");
+        }
       }
     }
 
@@ -53,6 +58,7 @@ export function useAuth(): UseAuthState {
       } else {
         setRole(null);
         setMustChangePassword(false);
+        setTheme("light");
       }
     });
 
@@ -68,5 +74,5 @@ export function useAuth(): UseAuthState {
     router.push("/login");
   };
 
-  return { user: session?.user ?? null, role, mustChangePassword, loading, signOut };
+  return { user: session?.user ?? null, role, mustChangePassword, theme, loading, signOut };
 }

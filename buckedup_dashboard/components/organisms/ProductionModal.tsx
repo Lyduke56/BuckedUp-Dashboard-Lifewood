@@ -29,76 +29,18 @@ export function ProductionModal({
   const { currentByKey } = useStageDeliverables();
   const status = product.items[0].status;
 
-  // Tabs for the Design stage: toggle between Storyboarding and Scripting deliverables
+  // Tab state for Design stage: toggle between Storyboarding and Scripting
   const [activeSubStage, setActiveSubStage] = useState<"Storyboarding" | "Scripting">("Storyboarding");
 
-  // Input states for Design stage deliverables submission
-  const [kind, setKind] = useState<DeliverableKind>("file");
-  const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Retrieve current active deliverable based on selected Design sub-stage
-  const currentDeliverable = currentByKey.get(`${product.id}:${activeSubStage}`) ?? null;
+  // Track if a video exists reactively so uploaded videos immediately enable submission
+  const [hasVideo, setHasVideo] = useState(!!product.items[0].videoUrl);
 
-  const submitDoc = async (event: FormEvent) => {
-    event.preventDefault();
-    if (status !== "Design") return;
-
-    const file = fileInputRef.current?.files?.[0] ?? null;
-
-    if (kind === "file" && !file) {
-      setError("Choose a file to upload.");
-      return;
-    }
-    if (kind === "text" && !text.trim()) {
-      setError("Enter the deliverable text.");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    const supabase = createClient();
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id ?? null;
-
-    let fileUrl: string | null = null;
-    if (kind === "file" && file) {
-      const path = `${product.id}/${activeSubStage}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage
-        .from("stage-documents")
-        .upload(path, file, { contentType: file.type });
-      if (upErr) {
-        setSubmitting(false);
-        setError(upErr.message);
-        return;
-      }
-      fileUrl = supabase.storage.from("stage-documents").getPublicUrl(path).data
-        .publicUrl;
-    }
-
-    const { error: insErr } = await supabase.from("stage_deliverables").insert({
-      product_id: product.id,
-      stage: activeSubStage,
-      kind: kind,
-      file_url: fileUrl,
-      text_content: kind === "text" ? text.trim() : null,
-      submitted_by: uid,
-    });
-
-    setSubmitting(false);
-    if (insErr) {
-      setError(insErr.message);
-      return;
-    }
-
-    // Reset input fields
-    setText("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  // Retrieve current active deliverables for Design stage
+  const storyboardDel = currentByKey.get(`${product.id}:Storyboarding`) ?? null;
+  const scriptDel = currentByKey.get(`${product.id}:Scripting`) ?? null;
 
   const submitVideoForReview = async () => {
     setSubmittingReview(true);
@@ -117,37 +59,16 @@ export function ProductionModal({
 
   if (!mounted) return null;
 
-  const hasVideo = !!product.items[0].videoUrl;
-
-  const decisionBanner = currentDeliverable ? (
-    <div
-      className="callout"
-      style={{
-        gridColumn: "1 / -1",
-        borderLeftColor:
-          currentDeliverable.decision === "rejected"
-            ? "#dc3545"
-            : currentDeliverable.decision === "accepted"
-              ? "var(--castleton)"
-              : "var(--saffron)",
-      }}
-    >
-      Current {activeSubStage} submission: <strong>{currentDeliverable.decision}</strong>
-      {currentDeliverable.decision === "rejected" && currentDeliverable.decisionNote
-        ? ` — ${currentDeliverable.decisionNote}`
-        : null}
-    </div>
-  ) : null;
-
   return createPortal(
     <div
       className="overlay show"
+      style={{ overflowY: "auto", padding: "20px 12px" }}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
       role="presentation"
     >
-      <div className="modal form-modal">
+      <div className="modal form-modal" style={{ maxHeight: "85vh", overflowY: "auto" }}>
         <button type="button" className="modal-close" onClick={onClose}>
           ✕
         </button>
@@ -167,10 +88,7 @@ export function ProductionModal({
                     ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
                     : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
                 }`}
-                onClick={() => {
-                  setActiveSubStage("Storyboarding");
-                  setError(null);
-                }}
+                onClick={() => setActiveSubStage("Storyboarding")}
               >
                 Storyboard
               </button>
@@ -181,54 +99,30 @@ export function ProductionModal({
                     ? "bg-[var(--saffron)] text-[var(--ink-dark)]"
                     : "text-[var(--ink-soft)] hover:bg-[var(--glass-hover)]"
                 }`}
-                onClick={() => {
-                  setActiveSubStage("Scripting");
-                  setError(null);
-                }}
+                onClick={() => setActiveSubStage("Scripting")}
               >
                 Script
               </button>
             </div>
 
-            <form className="form-grid" onSubmit={submitDoc}>
-              {error ? <div className="callout form-error">{error}</div> : null}
-              {decisionBanner}
+            {/* Both portals stay mounted so state (file/text choice, input values) is preserved across tabs */}
+            <div style={{ display: activeSubStage === "Storyboarding" ? "block" : "none" }}>
+              <DeliverableSubmissionPortal
+                title="Storyboard Deliverable"
+                subStage="Storyboarding"
+                deliverable={storyboardDel}
+                productId={product.id}
+              />
+            </div>
 
-              <label className="form-field form-field-wide">
-                <span>Deliverable type</span>
-                <select
-                  value={kind}
-                  onChange={(event) => setKind(event.target.value as DeliverableKind)}
-                >
-                  <option value="file">File (PDF or DOCX)</option>
-                  <option value="text">Text</option>
-                </select>
-              </label>
-
-              {kind === "file" ? (
-                <label className="form-field form-field-wide">
-                  <span>File</span>
-                  <input ref={fileInputRef} type="file" accept={DOC_ACCEPT} />
-                </label>
-              ) : (
-                <label className="form-field form-field-wide">
-                  <span>Text Content</span>
-                  <textarea
-                    value={text}
-                    onChange={(event) => setText(event.target.value)}
-                    rows={6}
-                    placeholder={`Paste the ${activeSubStage.toLowerCase()} text…`}
-                  />
-                </label>
-              )}
-
-              <div className="form-actions">
-                <span />
-                <button type="submit" className="issue-submit-btn" disabled={submitting}>
-                  {submitting ? "Submitting…" : `Submit ${activeSubStage === "Storyboarding" ? "Storyboard" : "Script"}`}
-                </button>
-              </div>
-            </form>
+            <div style={{ display: activeSubStage === "Scripting" ? "block" : "none" }}>
+              <DeliverableSubmissionPortal
+                title="Script Deliverable"
+                subStage="Scripting"
+                deliverable={scriptDel}
+                productId={product.id}
+              />
+            </div>
           </div>
         ) : status === "Production" ? (
           <>
@@ -237,7 +131,10 @@ export function ProductionModal({
                 {error}
               </div>
             ) : null}
-            <VideoVersionsPanel productId={product.id} onVersionAdded={() => {}} />
+            <VideoVersionsPanel
+              productId={product.id}
+              onVersionAdded={(url) => setHasVideo(!!url)}
+            />
             <div className="form-actions" style={{ marginTop: "16px" }}>
               <span className="form-hint">
                 {hasVideo
@@ -268,3 +165,161 @@ export function ProductionModal({
     document.body,
   );
 }
+
+function DeliverableSubmissionPortal({
+  title,
+  subStage,
+  deliverable,
+  productId,
+}: {
+  title: string;
+  subStage: "Storyboarding" | "Scripting";
+  deliverable: StageDeliverable | null;
+  productId: string;
+}) {
+  const [kind, setKind] = useState<DeliverableKind>("file");
+  const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    const file = fileInputRef.current?.files?.[0] ?? null;
+
+    if (kind === "file" && !file) {
+      setError("Choose a file to upload.");
+      return;
+    }
+    if (kind === "text" && !text.trim()) {
+      setError("Enter the deliverable text.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    const uid = userData.user?.id ?? null;
+
+    let fileUrl: string | null = null;
+    if (kind === "file" && file) {
+      const path = `${productId}/${subStage}/${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage
+        .from("stage-documents")
+        .upload(path, file, { contentType: file.type });
+      if (upErr) {
+        setSubmitting(false);
+        setError(upErr.message);
+        return;
+      }
+      fileUrl = supabase.storage.from("stage-documents").getPublicUrl(path).data.publicUrl;
+    }
+
+    const { error: insErr } = await supabase.from("stage_deliverables").insert({
+      product_id: productId,
+      stage: subStage,
+      kind: kind,
+      file_url: fileUrl,
+      text_content: kind === "text" ? text.trim() : null,
+      submitted_by: uid,
+    });
+
+    setSubmitting(false);
+    if (insErr) {
+      setError(insErr.message);
+      return;
+    }
+
+    setText("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const decisionColor =
+    deliverable?.decision === "rejected"
+      ? "#dc3545"
+      : deliverable?.decision === "accepted"
+      ? "var(--castleton)"
+      : "var(--saffron)";
+
+  return (
+    <div>
+      <div className="font-bold text-sm mb-2 text-primary">{title}</div>
+      {deliverable ? (
+        <div
+          className="callout text-xs mb-3"
+          style={{ borderLeftColor: decisionColor }}
+        >
+          <div>
+            Current submission status: <strong>{deliverable.decision}</strong>
+            {deliverable.decision === "rejected" && deliverable.decisionNote
+              ? ` — ${deliverable.decisionNote}`
+              : null}
+          </div>
+          {deliverable.kind === "file" && deliverable.fileUrl ? (
+            <div className="mt-1">
+              <a
+                href={deliverable.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--saffron)] underline font-semibold"
+              >
+                Open submitted document
+              </a>
+            </div>
+          ) : deliverable.textContent ? (
+            <div className="mt-1 font-mono text-[11px] opacity-90 max-h-20 overflow-y-auto whitespace-pre-wrap">
+              {deliverable.textContent}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="empty-state text-xs py-2 mb-3">
+          No deliverable submitted yet.
+        </div>
+      )}
+
+      <form className="form-grid" onSubmit={handleSubmit}>
+        {error ? <div className="callout form-error mb-2">{error}</div> : null}
+
+        <label className="form-field form-field-wide">
+          <span>Submission Type</span>
+          <select
+            value={kind}
+            onChange={(event) => setKind(event.target.value as DeliverableKind)}
+          >
+            <option value="file">File (PDF or DOCX)</option>
+            <option value="text">Text</option>
+          </select>
+        </label>
+
+        {kind === "file" ? (
+          <label className="form-field form-field-wide">
+            <span>File</span>
+            <input ref={fileInputRef} type="file" accept={DOC_ACCEPT} />
+          </label>
+        ) : (
+          <label className="form-field form-field-wide">
+            <span>Text Content</span>
+            <textarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              rows={5}
+              placeholder={`Paste the ${subStage === "Storyboarding" ? "storyboard" : "script"} text…`}
+            />
+          </label>
+        )}
+
+        <div className="form-actions">
+          <span />
+          <button type="submit" className="issue-submit-btn" disabled={submitting}>
+            {submitting ? "Submitting…" : `Submit ${subStage === "Storyboarding" ? "Storyboard" : "Script"}`}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+

@@ -44,8 +44,8 @@ const CATALOG_TAB: Tab = { id: "catalog", label: "Catalog", icon: CatalogIcon };
 const BUCKY_TAB: Tab = { id: "bucky", label: "Bucky", icon: BuckyIcon };
 
 export function TabBar({ activeView, onViewChange, role, pendingReviewsCount = 0 }: TabBarProps) {
-  const REVIEWS_TAB: Tab = { 
-    id: "reviews" as ViewId, 
+  const REVIEWS_TAB: Tab = {
+    id: "reviews" as ViewId,
     label: pendingReviewsCount > 0 ? `Approvals (${pendingReviewsCount})` : "Approvals",
     icon: (props) => <Inbox {...props} />
   };
