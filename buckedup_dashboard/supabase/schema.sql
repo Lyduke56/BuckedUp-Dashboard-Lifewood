@@ -395,6 +395,14 @@ begin
     values (new.owner_id, 'assigned', 'You were assigned "' || new.name || '"', new.id);
   end if;
 
+  if new.status is distinct from old.status
+    and new.owner_id is not null
+    and new.owner_id = old.owner_id
+    and new.owner_id <> auth.uid() then
+    insert into notifications (recipient_id, type, message, product_id)
+    values (new.owner_id, 'stage_change', '"' || new.name || '" moved to ' || new.status, new.id);
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;
@@ -937,7 +945,7 @@ create extension if not exists pg_cron;
 
 alter table notifications drop constraint if exists notifications_type_check;
 alter table notifications add constraint notifications_type_check
-  check (type in ('issue_reported', 'rejected', 'assigned', 'bucky_stale_item', 'bucky_pacing_behind'));
+  check (type in ('issue_reported', 'rejected', 'assigned', 'bucky_stale_item', 'bucky_pacing_behind', 'stage_change'));
 
 -- Once-per-recipient-per-type-per-day dedup for Bucky's own alert types
 -- only -- deliberately not applied to the pre-existing event-driven types,
