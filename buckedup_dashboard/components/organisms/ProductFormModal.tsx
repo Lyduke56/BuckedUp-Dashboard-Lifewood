@@ -58,7 +58,7 @@ function initialState(
       contentAngle: product.contentAngle ?? "",
       ownerId: product.ownerId ?? "",
       publishDate: product.publishDate ?? "",
-      status: item.status,
+      status: (product.ownerId && item.status === "Not Started") ? "Design" : item.status,
       deliveryType: product.deliveryType ?? "pipeline",
       videoUrl: item.videoUrl ?? "",
     };
@@ -331,7 +331,7 @@ export function ProductFormModal({
       content_angle: form.contentAngle.trim() || null,
       owner_id: form.ownerId || null,
       publish_date: form.publishDate || null,
-      status: isLinkOnly ? "Published" : form.status,
+      status: isLinkOnly ? "Published" : (form.ownerId && form.status === "Not Started" ? "Design" : form.status),
       // form.deliveryType is the toggle in add mode and the preserved
       // existing value in edit mode (display-only there).
       delivery_type: form.deliveryType,
@@ -608,7 +608,33 @@ export function ProductFormModal({
               ) : (
                 <select
                   value={form.ownerId}
-                  onChange={(event) => update("ownerId", event.target.value)}
+                  onChange={async (event) => {
+                    const newOwnerId = event.target.value;
+                    let newStatus = form.status;
+                    
+                    if (newOwnerId && form.status === "Not Started") {
+                      newStatus = "Design";
+                    } else if (!newOwnerId && form.status === "Design") {
+                      newStatus = "Not Started";
+                    }
+
+                    // Immediately save to DB if editing, matching the instant "Claim" behavior
+                    if (mode === "edit" && product) {
+                      setSubmitting(true);
+                      const supabase = createClient();
+                      const { error: assignErr } = await supabase
+                        .from("products")
+                        .update({ owner_id: newOwnerId || null, status: newStatus })
+                        .eq("id", product.id);
+                      setSubmitting(false);
+                      if (assignErr) {
+                        setError(assignErr.message);
+                        return;
+                      }
+                    }
+                    
+                    setForm((prev) => ({ ...prev, ownerId: newOwnerId, status: newStatus }));
+                  }}
                 >
                   <option value="">Unassigned</option>
                   {profiles.filter(p => p.role === "operator").map((profile) => (

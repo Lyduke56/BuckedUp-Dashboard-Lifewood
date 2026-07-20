@@ -104,7 +104,7 @@ export function RequestVideoModal({
       owner_id: form.ownerId || null,
       owner: selectedProfile?.email ?? null,
       product_url: activeCatalogProduct.productUrl ?? null,
-      status: "Not Started",
+      status: form.ownerId ? "Design" : "Not Started",
       delivery_type: "pipeline",
       catalog_product_id: activeCatalogProduct.id,
     });
