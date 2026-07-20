@@ -30,7 +30,7 @@ export function Dashboard() {
   const [librarySearch, setLibrarySearch] = useState<string | null>(null);
   const [reviewRankToOpen, setReviewRankToOpen] = useState<number | null>(null);
   const { products, loading, error } = useVideoRequests();
-  const { catalog, loading: catalogLoading, error: catalogError } = useCatalog();
+  const { catalog, loading: catalogLoading, error: catalogError } = useCatalog(true);
   const { currentByKey } = useStageDeliverables();
   const { role, mustChangePassword, theme: savedTheme, user } = useAuth();
 

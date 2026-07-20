@@ -71,6 +71,7 @@ export function CatalogView({
   const [flagFilter, setFlagFilter] = useState<FlagFilter>("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<"active" | "inactive" | "all">("all");
   const [layout, setLayout] = useState<LayoutMode>("grid");
+  const [updateTick, setUpdateTick] = useState(0);
 
   const itemsPerPage = 40;
 
@@ -110,12 +111,12 @@ export function CatalogView({
     const supabase = createClient();
     const newActiveState = !productData.isActive;
 
-    // Optimistic UI update (requires a way to update the parent catalog state, or just refresh the page)
-    // Since catalog is passed as prop, we'll mutate it locally for immediate effect, but the real fix is via subscription/refresh.
+    // Optimistic UI update
+    // Since catalog is passed as prop, we'll mutate it locally for immediate effect
     productData.isActive = newActiveState;
     if (productData.rawCatalogProduct) productData.rawCatalogProduct.isActive = newActiveState;
-    // Force re-render (hacky but works if parent doesn't auto-refresh)
-    setAvailabilityFilter(prev => prev);
+    // Force re-render optimistically
+    setUpdateTick(tick => tick + 1);
 
     await supabase
       .from("catalog_products")
@@ -145,7 +146,7 @@ export function CatalogView({
 
       return true;
     });
-  }, [catalog, search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, availabilityFilter, products]);
+  }, [catalog, search, categoryFilter, subcategoryFilter, aigcFilter, flagFilter, availabilityFilter, products, updateTick]);
 
   // Pagination slice
   const paginatedFiltered = useMemo(() => {
@@ -257,7 +258,7 @@ export function CatalogView({
         rawCatalogProduct: cp,
       };
     });
-  }, [paginatedFiltered, products]);
+  }, [paginatedFiltered, products, updateTick]);
 
   return (
     <div>
@@ -555,7 +556,7 @@ function CatalogListRow({ product, aigcStatus, linkedProduct, videosInProduction
   const stageLabel = linkedProduct?.items?.[0]?.status || badge.label;
 
   return (
-    <div className="flex items-center gap-4 px-5 py-1.5 border-b border-[var(--glass-border)] hover:bg-[var(--glass-hover)] transition-colors cursor-pointer group last:border-b-0" onClick={onView} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onView()}>
+    <div className={`flex items-center gap-4 px-5 py-1.5 border-b border-[var(--glass-border)] hover:bg-[var(--glass-hover)] transition-colors cursor-pointer group last:border-b-0 ${isActive === false ? 'opacity-50 grayscale' : ''}`} onClick={onView} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onView()}>
       <div style={{ flex: 3 }} className="flex items-center gap-3 overflow-hidden">
         <div className="w-8 h-8 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 overflow-hidden">
           {product.thumbnailUrl ? (
