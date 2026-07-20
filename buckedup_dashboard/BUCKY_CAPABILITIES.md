@@ -7,6 +7,7 @@ A few things worth knowing before the details below:
 - **Bucky remembers your conversation.** If you close the dashboard and come back later, your chat with Bucky is still there. There's a small trash-can icon in Bucky's header if you ever want to start a fresh conversation.
 - **Bucky never does anything serious without asking you first.** For any action that changes real data in a meaningful way, Bucky will show a card describing exactly what it's about to do, with **Confirm** and **Cancel** buttons. Nothing happens until you click Confirm. A smaller set of low-risk, routine actions (marked **Instant** below) run right away, the same way clicking a button in the dashboard would.
 - **What Bucky can do depends on who's logged in.** Everyone can ask Bucky questions. Beyond that, Admins, Leads, and Operators each get a different set of actions, matching what that role is already responsible for in the dashboard. Each is covered separately below.
+- **The pipeline has 5 stages.** Every video moves through **Not Started → Design → Production → In Review → Published**. The Design stage is where the storyboard and script get written and approved; Production is where the video itself gets made.
 - **You can talk to Bucky instead of typing.** Look for a microphone icon next to the message box — click it, say what you want, and it fills in the message box for you to review (it never sends automatically, so you always get to check it first). There's also a speaker icon in Bucky's header you can turn on to have replies read aloud, plus a small speaker icon on each individual reply if you just want to hear that one. Not every browser supports voice input — if you don't see the microphone icon, yours doesn't yet, but reading replies aloud works almost everywhere.
 - **Bucky proactively surfaces things once a day even if nobody's looking.** Separately from the "watches things for you" sections below (which check the moment you open the chat), the same checks also run automatically once a day in the background and show up as a regular notification in the bell icon at the top of the dashboard — so a stale item or a pacing problem still gets flagged even on a day nobody opens Bucky at all.
 
@@ -14,26 +15,31 @@ For every capability, there's a sample message in quotes — copy it, paste it i
 
 ---
 
-## 1. Admin
+## Ask Bucky Anything (every role)
 
-Admins manage who has access to the dashboard. Admin's Bucky is focused on accounts, not on the video pipeline itself — an Admin can ask Bucky anything about production, but the actions available to an Admin are strictly about people, not products.
-
-### Ask Bucky Anything
+These questions work the same for Admin, Lead, and Operator:
 
 | What Bucky can tell you | Try typing this |
 |---|---|
 | What's currently in production | "What's currently in production?" |
 | Full details on one video | "Give me the full details on product #12." |
+| High-priority videos | "Which videos are marked high priority?" |
 | Today's or this week's output | "How many videos did we publish today?" |
 | An overall summary of where things stand | "Give me a quick summary of where we stand." |
 | Open issues on any video | "What issues are currently open?" |
-| Scripts/storyboards/prompts waiting on review | "What deliverables are waiting on review right now?" |
+| Storyboards/scripts waiting on review | "What deliverables are waiting on review right now?" |
 | The current production plan and deadline | "What's our current production plan and deadline?" |
 | Who's on the team | "Who's on the team, and what are their roles?" |
 | How many videos each person owns, or what's unclaimed | "How many videos does each operator own, and what's still unclaimed?" |
 | The BuckedUp product catalog | "Search the catalog for 'protein powder'." |
 
-### Actions (always ask you to confirm first)
+---
+
+## 1. Admin
+
+Admins have the widest reach: they manage accounts and the production plan (which no one else can touch), **and** they can do everything a Lead can — review work, move videos between stages, create and delete videos, and manage the catalog. Every Admin action asks for confirmation first, except the instant ones noted below.
+
+### Accounts (confirm first)
 
 **1. Create a new account**
 Invites someone by email and sets their role.
@@ -47,7 +53,15 @@ Removes someone's access entirely.
 Switches an existing account between Operator, Lead, and Admin.
 > "Change mike@example.com's role to Lead."
 
-That's the full list of things you can *type* to Admin's Bucky — by design, Admin can't edit videos, move them between stages, or touch the production plan. Those belong to Lead and Operator, below.
+### Production plan (confirm first — Admin is the only role that can change it)
+
+**4. Update the production plan**
+Change the deadline, targets, or notes — only what you mention gets changed, everything else (including any Excel-imported daily pacing schedule) stays as-is.
+> "Update our production plan — change the deadline to December 15th."
+
+### Pipeline & catalog
+
+Admin also gets every Lead action below — approving/rejecting storyboards, scripts, and videos, moving videos between stages, creating and deleting videos, managing the catalog, and the undo tools. They work exactly as described in the Lead section, so they aren't repeated here.
 
 ### Reviewing Bucky's Conversations
 
@@ -57,22 +71,7 @@ Admins also get an extra tab in the dashboard called **Bucky**, next to the Admi
 
 ## 2. Lead
 
-Leads run the day-to-day pipeline — reviewing work, moving videos forward, and managing the production plan and catalog. Bucky mirrors everything a Lead can already do in the dashboard.
-
-### Ask Bucky Anything
-
-| What Bucky can tell you | Try typing this |
-|---|---|
-| What's currently in production | "What's currently in production?" |
-| Full details on one video | "Give me the full details on product #12." |
-| Today's or this week's output | "How many videos did we publish this week?" |
-| An overall summary of where things stand | "Give me a quick summary of where we stand." |
-| Open issues on any video | "What issues are currently open?" |
-| Scripts/storyboards/prompts waiting on review | "What deliverables are waiting on review right now?" |
-| The current production plan and deadline | "What's our current production plan and deadline?" |
-| Who's on the team | "Who's on the team, and what are their roles?" |
-| How many videos each person owns, or what's unclaimed | "How many videos does each operator own, and what's still unclaimed?" |
-| The BuckedUp product catalog | "Search the catalog for 'protein powder'." |
+Leads run the day-to-day pipeline — reviewing work, moving videos forward, and managing the catalog. Bucky mirrors everything a Lead can already do in the dashboard. (One change from before: the production plan is now managed by Admins, so Leads can read it but not change it.)
 
 ### Instant Actions (run right away, no confirmation needed)
 
@@ -85,7 +84,7 @@ Marks a reported problem as fixed.
 > "Mark the audio sync issue on product #7 as resolved."
 
 **3. See what's been deleted and can still be restored**
-Lists anything you (or another Lead) recently deleted through Bucky that's still within its undo window.
+Lists anything recently deleted through Bucky that's still within its undo window.
 > "What have I deleted recently that I can still restore?"
 
 **4. Bring back a deleted video**
@@ -99,34 +98,30 @@ Restores a deleted catalog listing. No time limit — catalog deletions stay rec
 ### Actions That Ask You to Confirm First
 
 **6. Move a video to a different stage**
-Skips it straight to any stage — useful for corrections, not for normal reviews. Also the tool to reach for if you published something by mistake and want it back in Editing (this only fixes the record in this dashboard — if the video's already gone out publicly somewhere else, that part can't be undone).
-> "Move product #5 to the Editing stage."
+Skips it straight to any of the 5 stages — useful for corrections, not for normal reviews. Also the tool to reach for if you published something by mistake and want it back in Production (this only fixes the record in this dashboard — if the video's already gone out publicly somewhere else, that part can't be undone).
+> "Move product #5 back to the Production stage."
 
-**7. Approve or reject a script, storyboard, or prompt**
-Approving sends it to the next stage; rejecting sends it back with your note.
+**7. Approve or reject a storyboard or script**
+Both are written during the Design stage. Once **both** the storyboard and the script are approved, the video automatically moves on to Production. Rejecting keeps it in Design and records your note on the video.
 > "Approve the storyboard submitted for product #9."
 
 **8. Approve or reject a finished video**
-This is the big one — approving **publishes the video live**. Rejecting sends it back to editing with your note.
+This is the big one — approving **publishes the video live**. Rejecting sends it back to Production for rework, with your note.
 > "Approve and publish the video for product #3."
 
 **9. Create a new video**
-Start from scratch, or pull the details straight from a catalog item.
-> "Create a new product called 'Winter Sale Promo' in the Marketing category, Ads subcategory."
+Start from scratch, or pull the details straight from a catalog item. You can set a priority (High/Medium/Low) too.
+> "Create a new high-priority product called 'Winter Sale Promo' in the Marketing category, Ads subcategory."
 
 **10. Delete a video**
 Removes it completely, along with its issues and history — but it's recoverable for the next 24 hours if that turns out to be a mistake (see "Bring back a deleted video" above).
 > "Delete product #22, it was a duplicate."
 
-**11. Update the production plan**
-Change the deadline, targets, or notes — only what you mention gets changed, everything else stays as-is.
-> "Update our production plan — change the deadline to December 15th."
-
-**12. Add or update a catalog product**
+**11. Add or update a catalog product**
 Add a new BuckedUp product to the catalog, or edit an existing listing.
 > "Add a new catalog product called 'BuckedUp Shaker Bottle' in the Merchandise category."
 
-**13. Delete a catalog product**
+**12. Delete a catalog product**
 Hides the listing rather than destroying it — recoverable any time (see "Bring back a deleted catalog product" above), and any video still linked to it keeps that link.
 > "Delete the catalog product called 'Old Logo Tee'."
 
@@ -141,22 +136,7 @@ You don't need to ask for these — Lead's Bucky checks automatically every time
 
 ## 3. Operator
 
-Operators do the hands-on work — claiming videos, writing scripts/storyboards/prompts, and submitting finished videos. Bucky's actions for Operator match exactly what an Operator can already do in the dashboard, and every one of them runs immediately, no approval step, the same as clicking the equivalent button.
-
-### Ask Bucky Anything
-
-| What Bucky can tell you | Try typing this |
-|---|---|
-| What's currently in production | "What's currently in production?" |
-| Full details on one video | "Give me the full details on product #12." |
-| Today's or this week's output | "How many videos did we publish today?" |
-| An overall summary of where things stand | "Give me a quick summary of where we stand." |
-| Open issues on any video | "What issues are currently open?" |
-| Scripts/storyboards/prompts waiting on review | "What deliverables are waiting on review right now?" |
-| The current production plan and deadline | "What's our current production plan and deadline?" |
-| Who's on the team | "Who's on the team, and what are their roles?" |
-| How many videos each person owns, or what's unclaimed | "How many videos does each operator own, and what's still unclaimed?" |
-| The BuckedUp product catalog | "Search the catalog for 'protein powder'." |
+Operators do the hands-on work — claiming videos, writing storyboards and scripts, and submitting finished videos. Bucky's actions for Operator match exactly what an Operator can already do in the dashboard, and every one of them runs immediately, no approval step, the same as clicking the equivalent button.
 
 ### Instant Actions (all run right away, no confirmation needed)
 
@@ -169,18 +149,22 @@ Marks a reported problem as fixed.
 > "Mark the voiceover typo issue on product #7 as resolved."
 
 **3. Claim a video to work on**
-Assigns an unclaimed video to yourself.
+Assigns an unclaimed, not-yet-started video to yourself and moves it into the Design stage.
 > "Claim product #15 for myself."
 
-**4. Submit your write-up for the current stage**
-Turns in your storyboard, script, or prompt for whichever stage the video is currently in.
+**4. Give back a claimed video**
+Changed your mind, or picked the wrong one? As long as it hasn't moved past Design, unclaiming puts it back to Not Started, unowned, for someone else to pick up.
+> "Unclaim product #15."
+
+**5. Submit your storyboard or script**
+Turns in your write-up for the Design stage — tell Bucky which one it is (storyboard or script). Once a Lead approves both, the video moves on to Production automatically.
 > "Submit my storyboard for product #15: [paste your write-up here]."
 
-**5. Submit a finished video for review**
-Moves a video you're editing into the review queue.
+**6. Submit a finished video for review**
+Moves a video you own from Production into the review queue. At least one video version has to be uploaded first (through the dashboard or by giving Bucky a link — see below).
 > "Submit product #15's video for review."
 
-**6. Update a video's link**
+**7. Update a video's link**
 Points a video at a new file/link.
 > "Update product #15's video link to [paste the link here]."
 

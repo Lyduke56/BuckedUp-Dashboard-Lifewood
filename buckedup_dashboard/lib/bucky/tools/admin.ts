@@ -5,7 +5,13 @@ import { safe, type SupabaseServerClient } from "./shared";
 
 const ROLE_SCHEMA = z.enum(["operator", "lead", "admin"]);
 
-// Account-management actions. Each is gated by `toolApproval` (see
+// Admin-exclusive actions: account management plus the production plan.
+// (The 5-stage pipeline refactor moved production-plan write access from
+// lead to admin — RLS policies "Admin insert/update/delete" on
+// production_plans, and the Planning tab is admin-only in the UI — so
+// update_production_plan lives here now, not in lead.ts. Admin's
+// pipeline/catalog powers come from the shared builder in lead.ts, which
+// now serves both roles.) Each tool here is gated by `toolApproval` (see
 // app/api/bucky/chat/route.ts) — the model's tool call only *proposes*
 // the action; execute() below only actually runs once the admin has
 // clicked confirm in the chat UI. (Role-gating for these lives in
@@ -85,12 +91,71 @@ function buildAdminActionTools(supabase: SupabaseServerClient, request: Request)
           return { updated: email, role };
         }),
     }),
+
+    update_production_plan: tool({
+      description:
+        "Update the active production plan's targets, dates, or notes. Only changes the fields you provide — everything else (including any Excel-imported daily pacing schedule) stays untouched. If no plan is active yet, creates one (name, startDate, and deadline are then required). Requires confirmation before it runs.",
+      inputSchema: z.object({
+        name: z.string().optional(),
+        totalVideoTarget: z.number().int().optional(),
+        startDate: z.string().optional().describe("YYYY-MM-DD"),
+        deadline: z.string().optional().describe("YYYY-MM-DD"),
+        notes: z.string().optional(),
+        categoryTargets: z.record(z.string(), z.number()).optional(),
+        languageTargets: z.record(z.string(), z.number()).optional(),
+      }),
+      execute: (params) =>
+        safe(async () => {
+          const { data: current, error: fetchError } = await supabase
+            .from("production_plans")
+            .select("*")
+            .eq("is_active", true)
+            .maybeSingle();
+          if (fetchError) return { error: fetchError.message };
+
+          if (current) {
+            const updatePayload: Record<string, unknown> = {};
+            if (params.name !== undefined) updatePayload.name = params.name;
+            if (params.totalVideoTarget !== undefined) updatePayload.total_video_target = params.totalVideoTarget;
+            if (params.startDate !== undefined) updatePayload.start_date = params.startDate;
+            if (params.deadline !== undefined) updatePayload.deadline = params.deadline;
+            if (params.notes !== undefined) updatePayload.notes = params.notes;
+            if (params.categoryTargets !== undefined) updatePayload.category_targets = params.categoryTargets;
+            if (params.languageTargets !== undefined) updatePayload.language_targets = params.languageTargets;
+            if (Object.keys(updatePayload).length === 0) {
+              return { error: "Provide at least one field to update." };
+            }
+            const { error: updateError } = await supabase
+              .from("production_plans")
+              .update(updatePayload)
+              .eq("id", current.id);
+            if (updateError) return { error: updateError.message };
+            return { updated: true, plan: params.name ?? current.name };
+          }
+
+          if (!params.name || !params.startDate || !params.deadline) {
+            return { error: "No active plan exists yet — name, startDate, and deadline are required to create one." };
+          }
+          const { error: insertError } = await supabase.from("production_plans").insert({
+            name: params.name,
+            total_video_target: params.totalVideoTarget ?? 0,
+            start_date: params.startDate,
+            deadline: params.deadline,
+            notes: params.notes ?? null,
+            category_targets: params.categoryTargets ?? {},
+            language_targets: params.languageTargets ?? {},
+            is_active: true,
+          });
+          if (insertError) return { error: insertError.message };
+          return { created: true, plan: params.name };
+        }),
+    }),
   };
 }
 
-// Bucky is now reachable by lead/operator too (see route.ts), but the
-// tools above stay admin-exclusive — they're account governance, not
-// pipeline work. Returning {} for non-admins means the model is never
+// Bucky is reachable by lead/operator too (see route.ts), but the tools
+// above stay admin-exclusive — account governance and the production plan
+// (admin-owned since the pipeline refactor). Returning {} for non-admins means the model is never
 // even given a schema for them, so it can't attempt to call one no matter
 // what it's asked — the tool map itself is the security boundary, not
 // prompt wording. (The type assertion below is compile-time only: the

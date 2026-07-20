@@ -4,14 +4,14 @@ import { STATUS_ORDER, REVIEW_STATUS_ORDER } from "@/lib/data";
 import type { IssueSeverity, IssueStatus, DeliverableDecision } from "@/lib/types";
 import { safe, DOC_STAGES, type SupabaseServerClient } from "./shared";
 
-// "In production" / actively-worked-on stages — the 5 middle stages,
-// excluding both Not Started (not begun) and Published (already
-// finished). Shared by get_production_breakdown and
+// "In production" / actively-worked-on stages — the 3 middle stages
+// (Design, Production, In Review), excluding both Not Started (not begun)
+// and Published (already finished). Shared by get_production_breakdown and
 // get_ownership_breakdown so both agree on the same definition of
 // "active" by construction, not by two copy-pasted filters staying in
 // sync by hand.
 // Explicit type annotation matters here: without it, TS narrows the Set's
-// element type down to just the 5 literals that survive the filter, which
+// element type down to just the literals that survive the filter, which
 // then makes .has() reject a full STATUS_ORDER member (e.g. "Not Started")
 // as a type error at every call site below.
 const ACTIVE_STAGES: Set<(typeof STATUS_ORDER)[number]> = new Set(
@@ -28,28 +28,30 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
   return {
     list_products: tool({
       description:
-        "List products (videos) in the content pipeline, optionally filtered by pipeline stage, category, delivery type, or a name search. Use this to answer 'what's in production', 'what's published', 'what's stuck in X stage'.",
+        "List products (videos) in the content pipeline, optionally filtered by pipeline stage, category, priority, delivery type, or a name search. Use this to answer 'what's in production', 'what's published', 'what's stuck in X stage', 'what's high priority'.",
       inputSchema: z.object({
         status: z
           .enum(STATUS_ORDER as [string, ...string[]])
           .optional()
-          .describe("Filter to one pipeline stage, e.g. 'Editing' or 'Published'."),
+          .describe("Filter to one pipeline stage, e.g. 'Design' or 'Published'."),
         category: z.string().optional(),
+        priority: z.enum(["High", "Medium", "Low"]).optional(),
         deliveryType: z.enum(["pipeline", "link"]).optional(),
         search: z.string().optional().describe("Case-insensitive substring match on product name."),
         limit: z.number().int().min(1).max(100).default(30),
       }),
-      execute: ({ status, category, deliveryType, search, limit }) =>
+      execute: ({ status, category, priority, deliveryType, search, limit }) =>
         safe(async () => {
           let query = supabase
             .from("products")
             .select(
-              "id, rank, name, category, subcategory, language, status, review_status, delivery_type, owner, publish_date",
+              "id, rank, name, category, subcategory, language, status, review_status, priority, delivery_type, owner, publish_date",
             )
             .order("rank", { ascending: true })
             .limit(limit);
           if (status) query = query.eq("status", status);
           if (category) query = query.eq("category", category);
+          if (priority) query = query.eq("priority", priority);
           if (deliveryType) query = query.eq("delivery_type", deliveryType);
           if (search) query = query.ilike("name", `%${search}%`);
           const { data, error } = await query;
@@ -365,9 +367,9 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     }),
 
     list_stage_deliverables: tool({
-      description: "List QA/QC stage-deliverable submissions (Storyboarding/Scripting/Prompting), optionally filtered by stage or review decision.",
+      description: "List QA/QC stage-deliverable submissions (Storyboarding/Scripting, the two documents produced during the Design stage), optionally filtered by stage or review decision.",
       inputSchema: z.object({
-        stage: z.enum(["Storyboarding", "Scripting", "Prompting"]).optional(),
+        stage: z.enum(["Storyboarding", "Scripting"]).optional(),
         decision: z.enum(["pending", "accepted", "rejected"]).optional(),
         limit: z.number().int().min(1).max(100).default(30),
       }),
@@ -499,7 +501,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     // systemPrompt.ts) to output as-is rather than rebuilding.
     get_production_breakdown: tool({
       description:
-        "Get a live count of products at each pipeline stage, including two ready-to-use markdown tables. Use this for 'what's in production', 'how many are in each stage', or any stage-by-stage breakdown — the counting is already done for you, don't call list_products and count by hand. For a question scoped to 'in production'/'actively being worked on', output activeMarkdownTable (just the 5 active stages). For a request for the full/complete breakdown across every stage, output markdownTable (all 7 stages) instead — don't just always use one or the other.",
+        "Get a live count of products at each pipeline stage, including two ready-to-use markdown tables. Use this for 'what's in production', 'how many are in each stage', or any stage-by-stage breakdown — the counting is already done for you, don't call list_products and count by hand. For a question scoped to 'in production'/'actively being worked on', output activeMarkdownTable (just the 3 active stages). For a request for the full/complete breakdown across every stage, output markdownTable (all 5 stages) instead — don't just always use one or the other.",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -623,16 +625,16 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 
     list_recent_deletions: tool({
       description:
-        "List products recently deleted through Bucky that are still within their undo window and can be brought back with restore_product. Lead-only in practice (nothing shows up for other roles).",
+        "List products recently deleted through Bucky that are still within their undo window and can be brought back with restore_product. Lead/admin only in practice (nothing shows up for operators).",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
-          // Self-cleaning: the RLS "Lead delete expired" policy only ever
-          // permits deleting rows whose window has already closed, so this
-          // is safe to run unconditionally before listing — mirrors
+          // Self-cleaning: the RLS delete policy only ever permits
+          // deleting rows whose window has already closed, so this is
+          // safe to run unconditionally before listing — mirrors
           // lib/bucky/rateLimit.ts's own clean-before-count pattern. A
-          // no-op (and silently ignored) for non-lead callers, since only
-          // lead has that delete policy at all.
+          // no-op (and silently ignored) for operator callers, since only
+          // lead/admin have that delete policy at all.
           await supabase
             .from("bucky_deleted_product_snapshots")
             .delete()

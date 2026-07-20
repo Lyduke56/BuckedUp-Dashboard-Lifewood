@@ -30,7 +30,7 @@ export function describeAction(toolName: string, input: unknown): string {
     case "review_video":
       return params.decision === "accepted"
         ? `Accept and PUBLISH ${product}? This makes it publicly live.`
-        : `Reject ${product}'s video back to Editing?`;
+        : `Reject ${product}'s video back to Production?`;
     case "create_product":
       return typeof params.name === "string"
         ? `Create a new product "${params.name}"?`
@@ -100,6 +100,8 @@ export function describeToolResult(toolName: string, input: unknown): string {
       return "Resolved an issue";
     case "claim_product":
       return `Claimed ${product}`;
+    case "unclaim_product":
+      return `Unclaimed ${product}`;
     case "submit_deliverable":
       return `Submitted a deliverable for ${product}`;
     case "submit_video_for_review":
@@ -119,7 +121,7 @@ export function describeToolResult(toolName: string, input: unknown): string {
         ? `Accepted the deliverable for ${product}`
         : `Rejected the deliverable for ${product}`;
     case "review_video":
-      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Editing`;
+      return params.decision === "accepted" ? `Published ${product}` : `Rejected ${product}'s video back to Production`;
     case "create_product":
       return typeof params.name === "string" ? `Created "${params.name}"` : "Created a new product";
     case "delete_product":
