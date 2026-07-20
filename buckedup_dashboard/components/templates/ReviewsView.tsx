@@ -283,7 +283,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
             className={`flex-1 py-3 text-sm font-semibold transition-colors border-b-2 ${
               activeTab === "pending"
                 ? "text-amber-600 dark:text-amber-500 border-amber-500 bg-black/[0.04] dark:bg-white/[0.04]"
-                : "text-secondary hover:text-primary hover:bg-black/[0.02] dark:hover:bg-white/[0.02] border-transparent"
+                : "text-[var(--ink-soft)] hover:text-[var(--text-main)] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] border-transparent"
             }`}
             onClick={() => setActiveTab("pending")}
           >
@@ -293,7 +293,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
             className={`flex-1 py-3 text-sm font-semibold transition-colors border-b-2 ${
               activeTab === "reviewed"
                 ? "text-green-600 dark:text-green-500 border-green-500 bg-black/[0.04] dark:bg-white/[0.04]"
-                : "text-secondary hover:text-primary hover:bg-black/[0.02] dark:hover:bg-white/[0.02] border-transparent"
+                : "text-[var(--ink-soft)] hover:text-[var(--text-main)] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] border-transparent"
             }`}
             onClick={() => {
               setActiveTab("reviewed");
@@ -318,7 +318,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                       setSelectedReviewedIds(allIds);
                     }
                   }}
-                  className="text-secondary hover:text-primary transition-colors p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
+                  className="text-[var(--ink-soft)] hover:text-[var(--text-main)] transition-colors p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
                   title={selectedReviewedIds.size > 0 ? "Deselect All" : "Select All"}
                 >
                   {selectedReviewedIds.size === filteredReviewedItems.length && filteredReviewedItems.length > 0 ? (
@@ -330,7 +330,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                 <button 
                   onClick={handleClearSelected}
                   disabled={selectedReviewedIds.size === 0}
-                  className="text-secondary hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-secondary"
+                  className="text-[var(--ink-soft)] hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[var(--ink-soft)]"
                   title="Clear Selected"
                 >
                   <Trash2 size={18} />
@@ -339,20 +339,20 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
             )}
 
             <div className="relative flex-1 max-w-[300px]">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-soft)]" />
               <input 
                 type="text" 
                 placeholder="Search product..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:border-green-500 transition-colors"
+                className="w-full pl-9 pr-4 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-[var(--text-main)] placeholder:text-[var(--ink-soft)] focus:outline-none focus:border-green-500 transition-colors"
               />
             </div>
             
             <select 
               value={filterOperator}
               onChange={e => setFilterOperator(e.target.value)}
-              className="px-3 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-primary focus:outline-none focus:border-green-500 transition-colors max-w-[150px]"
+              className="px-3 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-[var(--text-main)] focus:outline-none focus:border-green-500 transition-colors max-w-[150px]"
             >
               <option value="all">All Operators</option>
               {uniqueOperators.map(opId => {
@@ -364,7 +364,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
             <select 
               value={filterStage}
               onChange={e => setFilterStage(e.target.value)}
-              className="px-3 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-primary focus:outline-none focus:border-green-500 transition-colors max-w-[150px]"
+              className="px-3 py-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-sm text-[var(--text-main)] focus:outline-none focus:border-green-500 transition-colors max-w-[150px]"
             >
               <option value="all">All Stages</option>
               {uniqueStages.map(stg => (
@@ -374,7 +374,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
           </div>
           
           {activeTab === "reviewed" && selectedReviewedIds.size > 0 && (
-            <div className="text-xs text-secondary font-medium pr-2">
+            <div className="text-xs text-[var(--ink-soft)] font-medium pr-2">
               {selectedReviewedIds.size} selected
             </div>
           )}
@@ -388,7 +388,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="p-12 text-center text-secondary"
+              className="p-12 text-center text-[var(--ink-soft)]"
             >
               <p className="text-lg font-medium mb-2">
                 {activeTab === "pending" ? "Inbox Zero! 🎉" : "No reviewed items yet."}
@@ -461,17 +461,17 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                       <div className="w-[180px] shrink-0 flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full shrink-0 ${isUnread ? "bg-amber-500" : "opacity-0"}`} />
                         <div className="flex items-center gap-2 truncate">
-                          <div className="w-6 h-6 rounded-full shrink-0 bg-black/10 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-secondary">
+                          <div className="w-6 h-6 rounded-full shrink-0 bg-black/10 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-[var(--ink-soft)]">
                             {senderName.charAt(0).toUpperCase()}
                           </div>
-                          <span className={`truncate text-sm ${isUnread ? "text-primary font-bold" : "text-secondary font-medium"}`}>
+                          <span className={`truncate text-sm ${isUnread ? "text-[var(--text-main)] font-bold" : "text-[var(--ink-soft)] font-medium"}`}>
                             {item.stage === "In Review" ? "Video Review" : `${item.stage} Deliverables`}
                           </span>
                         </div>
                       </div>
 
                       {/* Product Name */}
-                      <div className={`flex-1 truncate text-sm ${isUnread ? "text-primary font-semibold" : "text-secondary"}`}>
+                      <div className={`flex-1 truncate text-sm ${isUnread ? "text-[var(--text-main)] font-semibold" : "text-[var(--ink-soft)]"}`}>
                         {item.product.name}
                       </div>
 
@@ -483,7 +483,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="text-secondary whitespace-nowrap">{timeAgo(item.reviewedAt)}</span>
+                            <span className="text-[var(--ink-soft)] whitespace-nowrap">{timeAgo(item.reviewedAt)}</span>
                           </div>
                         )}
                         <button 
@@ -510,12 +510,12 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                         >
                           <div className="p-6 bg-green-500/[0.02] border-t border-black/5 dark:border-white/5 pl-[232px]">
                             <div className="mb-6 flex items-center gap-2">
-                              <span className="text-xs text-secondary font-medium uppercase tracking-wider">Submitted By:</span>
+                              <span className="text-xs text-[var(--ink-soft)] font-medium uppercase tracking-wider">Submitted By:</span>
                               <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-md">
-                                <div className="w-5 h-5 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-secondary">
+                                <div className="w-5 h-5 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-[var(--ink-soft)]">
                                   {senderName.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="text-sm font-medium text-primary">{senderName}</span>
+                                <span className="text-sm font-medium text-[var(--text-main)]">{senderName}</span>
                               </div>
                             </div>
                             
@@ -523,8 +523,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                               <div className="flex flex-col gap-6 max-w-3xl">
                                 {item.storyboardDel && (
                                   <div>
-                                    <h4 className="text-sm font-semibold text-primary mb-1">Storyboard</h4>
-                                    <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                    <h4 className="text-sm font-semibold text-[var(--text-main)] mb-1">Storyboard</h4>
+                                    <div className="text-sm text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-md">
                                       {item.storyboardDel.kind === "text" ? (
                                         <p className="whitespace-pre-wrap">{item.storyboardDel.textContent}</p>
                                       ) : item.storyboardDel.fileUrl ? (
@@ -540,8 +540,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                                 )}
                                 {item.scriptDel && (
                                   <div>
-                                    <h4 className="text-sm font-semibold text-primary mb-1">Script</h4>
-                                    <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                    <h4 className="text-sm font-semibold text-[var(--text-main)] mb-1">Script</h4>
+                                    <div className="text-sm text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-md">
                                       {item.scriptDel.kind === "text" ? (
                                         <p className="whitespace-pre-wrap">{item.scriptDel.textContent}</p>
                                       ) : item.scriptDel.fileUrl ? (
@@ -557,8 +557,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                                 )}
                                 {item.storyboardDel?.decisionNote || item.scriptDel?.decisionNote ? (
                                   <div className="pt-4 border-t border-black/5 dark:border-white/5">
-                                    <h4 className="text-sm font-semibold text-primary mb-1">Decision Note</h4>
-                                    <p className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">
+                                    <h4 className="text-sm font-semibold text-[var(--text-main)] mb-1">Decision Note</h4>
+                                    <p className="text-sm text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">
                                       {item.storyboardDel?.decisionNote || item.scriptDel?.decisionNote}
                                     </p>
                                   </div>
@@ -567,8 +567,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                             ) : (
                               <div className="flex flex-col gap-4 max-w-3xl">
                                 <div>
-                                  <h4 className="text-sm font-semibold text-primary mb-1">Video Output</h4>
-                                  <div className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md">
+                                  <h4 className="text-sm font-semibold text-[var(--text-main)] mb-1">Video Output</h4>
+                                  <div className="text-sm text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-md">
                                     {item.product.items[0]?.videoUrl ? (
                                       <a href={item.product.items[0].videoUrl} target="_blank" rel="noopener noreferrer" className="text-green-500 underline">View Video File</a>
                                     ) : "No video uploaded."}
@@ -576,8 +576,8 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
                                 </div>
                                 {item.product.rejectionReason && (
                                   <div>
-                                    <h4 className="text-sm font-semibold text-primary mb-1">Rejection Note</h4>
-                                    <p className="text-sm text-secondary bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">{item.product.rejectionReason}</p>
+                                    <h4 className="text-sm font-semibold text-[var(--text-main)] mb-1">Rejection Note</h4>
+                                    <p className="text-sm text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-md whitespace-pre-wrap">{item.product.rejectionReason}</p>
                                   </div>
                                 )}
                                 <div className="text-xs">
@@ -601,7 +601,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between p-4 border-t border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
-            <span className="text-xs text-secondary">
+            <span className="text-xs text-[var(--ink-soft)]">
               Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, displayedItems.length)} of {displayedItems.length} entries
             </span>
             <div className="flex items-center gap-2">
@@ -612,7 +612,7 @@ export function ReviewsView({ products, currentByKey, onReviewProduct }: Reviews
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="text-sm font-medium text-primary px-2">{currentPage} / {totalPages}</span>
+              <span className="text-sm font-medium text-[var(--text-main)] px-2">{currentPage} / {totalPages}</span>
               <button 
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
