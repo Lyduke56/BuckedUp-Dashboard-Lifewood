@@ -28,7 +28,7 @@
   --castleton: #10b981;
   --castleton-glow: rgba(16, 185, 129, 0.15);
 
-  --saffron: #ff9f1c;
+  --saffron: #f59e0b;
   --earth-yellow: #f43f5e;
   --rose-glow: rgba(244, 63, 94, 0.15);
 
@@ -75,8 +75,8 @@
   --active-tab-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 
   /* Progress Card & Pill custom variables (Dark mode) */
-  --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #ff8c00 100%);
-  --progress-card-bar-glow: 0 0 12px rgba(255, 179, 71, 0.5);
+  --progress-card-bar-bg: linear-gradient(90deg, var(--saffron) 0%, #d97706 100%);
+  --progress-card-bar-glow: 0 0 12px rgba(245, 158, 11, 0.5);
   --progress-card-mouse-glow: radial-gradient(circle, rgba(255, 179, 71, 0.25) 0%, transparent 70%);
   --progress-card-shimmer-color: rgba(255, 179, 71, 0.12);
 
@@ -113,7 +113,7 @@
   --ink-soft: #4d7d68;
   --serpent: #fcf8f2;
   --header-bg: transparent;
-  --header-top-bg: linear-gradient(135deg, rgba(11, 22, 17, 0.9) 0%, rgba(6, 11, 15, 0.8) 100%);
+  --header-top-bg: linear-gradient(135deg, rgba(46, 77, 46, 1) 0%, rgba(11, 22, 17, 0.9) 100%);
   --header-bottom-bg: rgba(255, 255, 255, 0.95);
   --header-border: rgba(16, 185, 129, 0.35);
   --header-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
@@ -154,6 +154,24 @@ select {
 
 [data-theme='light'] select,
 body.light select {
+  color-scheme: light;
+}
+
+/* Tell the browser to render the native date-picker calendar icon in a
+   light colour in dark mode (otherwise it blends into the dark background
+   and becomes invisible). Mirrors the identical rule for <select> above. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+[data-theme='light'] input[type="date"],
+[data-theme='light'] input[type="time"],
+[data-theme='light'] input[type="datetime-local"],
+body.light input[type="date"],
+body.light input[type="time"],
+body.light input[type="datetime-local"] {
   color-scheme: light;
 }
 
@@ -321,18 +339,20 @@ a {
 
 .brand-logo-container {
   width: auto;
-  padding: 1px;
+  padding: 2px 6px;
   background-color: #fff;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .brand-logo {
-  height: 25px;
+  height: 34px;
   width: auto;
 }
 
 .logo-buckedup {
-  height: 30px;
+  height: 39px;
   width: auto;
   filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.55)) drop-shadow(0 0 3px rgba(239, 68, 68, 0.2)) !important;
   transition: filter 0.3s ease;
@@ -344,7 +364,7 @@ a {
 
 .brand-divider-line {
   width: 1px;
-  height: 20px;
+  height: 36px;
   background: rgba(150, 150, 150, 0.25);
 }
 
@@ -443,6 +463,7 @@ a {
   padding: 28px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.4s ease;
+  min-width: 0;
 }
 
 .panel-glass {
@@ -556,6 +577,19 @@ a {
   font-weight: 600;
   line-height: 1.5;
   margin-bottom: 24px;
+}
+
+.content-angle-callout {
+  background: rgba(16, 185, 129, 0.05) !important;
+  border-left-color: var(--castleton) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme='light'] .content-angle-callout,
+body.light .content-angle-callout {
+  background: rgba(217, 131, 36, 0.05) !important;
+  border-left-color: var(--castleton) !important;
+  color: var(--text-main) !important;
 }
 
 .callout-inline {
@@ -823,7 +857,7 @@ a {
 
 .kpi-card.c-progress {
   border: 1px solid rgba(255, 159, 28, 0.22) !important;
-  border-left: 5px solid #ff9f1c !important;
+  border-left: 5px solid #f59e0b !important;
   box-shadow: 0 8px 24px rgba(255, 159, 28, 0.05), inset 0 0 12px rgba(255, 159, 28, 0.05) !important;
 }
 
@@ -886,7 +920,7 @@ a {
 
 [data-theme='light'] .kpi-card.c-progress {
   border: 1.5px solid rgba(217, 131, 36, 0.28) !important;
-  border-left: 5px solid #ff9f1c !important;
+  border-left: 5px solid #f59e0b !important;
   box-shadow: 0 6px 16px rgba(217, 131, 36, 0.05) !important;
 }
 
@@ -1306,6 +1340,18 @@ a {
   border: 1px solid var(--glass-hover);
 }
 
+.status-pill.design {
+  background: rgba(255, 195, 112, 0.12);
+  color: #E0954A;
+  border: 1px solid rgba(255, 195, 112, 0.2);
+}
+
+.status-pill.production {
+  background: rgba(140, 164, 150, 0.12);
+  color: #5C8A72;
+  border: 1px solid rgba(140, 164, 150, 0.2);
+}
+
 /* Table progress bar */
 .table-progress {
   display: flex;
@@ -1526,8 +1572,8 @@ a {
      that the overlay otherwise captures every click at the FAB's position,
      making it impossible to open Bucky whenever a modal is up. */
   z-index: 10000;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
 }
 
 .bucky-root.bottom-right {
@@ -1580,9 +1626,9 @@ a {
 
 .bucky-panel {
   position: absolute;
-  width: 650px;
+  width: 500px;
   max-width: calc(100vw - 48px);
-  height: 600px;
+  height: 550px;
   max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
@@ -1703,7 +1749,7 @@ a {
    instead of just letting .bucky-messages scroll (its actual job). Real
    markdown tables made this far easier to trigger, since a rendered table
    is much taller than the raw text it replaced. */
-.bucky-messages > * {
+.bucky-messages>* {
   flex-shrink: 0;
 }
 
@@ -1776,11 +1822,11 @@ a {
   margin: 0 0 10px 0;
 }
 
-.bucky-msg-bucky > *:first-child {
+.bucky-msg-bucky>*:first-child {
   margin-top: 0;
 }
 
-.bucky-msg-bucky > *:last-child {
+.bucky-msg-bucky>*:last-child {
   margin-bottom: 0;
 }
 
@@ -1794,7 +1840,7 @@ a {
   margin-bottom: 4px;
 }
 
-.bucky-msg-bucky li > p {
+.bucky-msg-bucky li>p {
   margin: 0;
 }
 
@@ -2597,6 +2643,8 @@ a {
   flex-direction: column;
   gap: 16px;
   position: relative;
+  min-width: 0;
+  width: 100%;
 }
 
 .sample-data-badge {
@@ -2618,6 +2666,8 @@ a {
   display: flex;
   height: 220px;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .column-chart-axis {
@@ -2632,6 +2682,7 @@ a {
   font-weight: 600;
   text-align: right;
   width: 20px;
+  flex-shrink: 0;
 }
 
 .column-chart-plot {
@@ -2640,6 +2691,7 @@ a {
   justify-content: space-between;
   height: 100%;
   border-bottom: 1px solid var(--glass-border);
+  min-width: 0;
 }
 
 .column-group {
@@ -2648,6 +2700,7 @@ a {
   align-items: center;
   flex: 1;
   height: 100%;
+  min-width: 0;
 }
 
 /* Stacked per-day bar for the By stage / By category breakdown modes. */
@@ -2655,6 +2708,7 @@ a {
   flex: 1;
   width: 60%;
   max-width: 34px;
+  min-width: 2px;
   align-self: flex-end;
   display: flex;
   flex-direction: column-reverse;
@@ -2671,15 +2725,19 @@ a {
 .column-bars {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: min(4px, 0.4vw);
   height: calc(100% - 24px);
   /* offset label height */
   width: 100%;
+  max-width: 44px;
   justify-content: center;
+  min-width: 0;
 }
 
 .column-bar {
-  width: 20px;
+  flex: 1;
+  max-width: 20px;
+  min-width: 1px;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   position: relative;
@@ -3770,7 +3828,7 @@ a {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 320px;
+  width: 380px;
   max-height: 360px;
   overflow-y: auto;
   background: var(--white);
@@ -4349,7 +4407,7 @@ body.light .kanban-column {
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: 320px;
+  width: 380px;
   background: var(--panel-bg-opaque);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
@@ -4467,22 +4525,12 @@ body.light .kanban-column {
   background: rgba(229, 229, 229, 0.04) !important;
 }
 
-.kanban-card[data-status="Storyboarding"] {
-  border-left: 4px solid #FFDCA8 !important;
-  background: rgba(255, 220, 168, 0.04) !important;
-}
-
-.kanban-card[data-status="Scripting"] {
+.kanban-card[data-status="Design"] {
   border-left: 4px solid #FFC370 !important;
   background: rgba(255, 195, 112, 0.04) !important;
 }
 
-.kanban-card[data-status="Prompting"] {
-  border-left: 4px solid #FFB347 !important;
-  background: rgba(255, 179, 71, 0.04) !important;
-}
-
-.kanban-card[data-status="Editing"] {
+.kanban-card[data-status="Production"] {
   border-left: 4px solid #8CA496 !important;
   background: rgba(140, 164, 150, 0.04) !important;
 }
@@ -4503,22 +4551,12 @@ body.light .kanban-column {
   border-left-color: #B8B8B8 !important;
 }
 
-[data-theme='light'] .kanban-card[data-status="Storyboarding"] {
-  background: #fffdf7 !important;
-  border-left-color: #E8A94F !important;
-}
-
-[data-theme='light'] .kanban-card[data-status="Scripting"] {
+[data-theme='light'] .kanban-card[data-status="Design"] {
   background: #fffef8 !important;
   border-left-color: #E0954A !important;
 }
 
-[data-theme='light'] .kanban-card[data-status="Prompting"] {
-  background: #fffaf2 !important;
-  border-left-color: #D9822E !important;
-}
-
-[data-theme='light'] .kanban-card[data-status="Editing"] {
+[data-theme='light'] .kanban-card[data-status="Production"] {
   background: #f9fbf9 !important;
   border-left-color: #5C8A72 !important;
 }

@@ -104,6 +104,7 @@ $$ language plpgsql security definer set search_path = public;
 create table products (
   id uuid primary key default gen_random_uuid(),
   rank integer not null unique,
+  priority text not null default 'Low' check (priority in ('High', 'Medium', 'Low')),
   name text not null,
   category text not null,
   subcategory text not null,
@@ -172,6 +173,8 @@ create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
   my_role user_role := get_my_role();
+  is_claim boolean;
+  is_unclaim boolean;
 begin
   -- Allow system operations, backend service-role scripts, direct DB migrations
   -- (where auth.uid() is null or role is service_role), or controlled server
@@ -182,11 +185,35 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' then
+  if my_role in ('lead', 'admin') then
     return new;
   end if;
 
   if my_role = 'operator' then
+    is_claim := (old.owner_id is null and new.owner_id = auth.uid() and old.status = 'Not Started' and new.status = 'Design');
+    is_unclaim := (old.owner_id = auth.uid() and new.owner_id is null and (old.status = 'Design' or old.status = 'Not Started') and new.status = 'Not Started');
+
+    if is_claim or is_unclaim then
+      if new.rank is distinct from old.rank
+        or new.name is distinct from old.name
+        or new.category is distinct from old.category
+        or new.subcategory is distinct from old.subcategory
+        or new.content_type is distinct from old.content_type
+        or new.language is distinct from old.language
+        or new.product_url is distinct from old.product_url
+        or new.content_angle is distinct from old.content_angle
+        or new.owner is distinct from old.owner
+        or new.publish_date is distinct from old.publish_date
+        or new.review_status is distinct from old.review_status
+        or new.rejection_reason is distinct from old.rejection_reason
+        or new.thumbnail_url is distinct from old.thumbnail_url
+        or new.delivery_type is distinct from old.delivery_type then
+        raise exception 'Operators may not modify other fields during claim/unclaim';
+      end if;
+      return new;
+    end if;
+
+    -- Default operator validation (only allowing changing the video URL)
     if new.rank is distinct from old.rank
       or new.name is distinct from old.name
       or new.category is distinct from old.category
@@ -196,13 +223,14 @@ begin
       or new.product_url is distinct from old.product_url
       or new.content_angle is distinct from old.content_angle
       or new.owner is distinct from old.owner
+      or new.owner_id is distinct from old.owner_id
       or new.publish_date is distinct from old.publish_date
       or new.review_status is distinct from old.review_status
       or new.rejection_reason is distinct from old.rejection_reason
       or new.status is distinct from old.status
       or new.thumbnail_url is distinct from old.thumbnail_url
       or new.delivery_type is distinct from old.delivery_type then
-      raise exception 'Operators may only change the video URL (and claim ownership via owner_id)';
+      raise exception 'Operators may only change the video URL';
     end if;
     return new;
   end if;
@@ -231,12 +259,12 @@ alter table issues enable row level security;
 create policy "Public read" on products for select using (true);
 create policy "Public read" on issues for select using (true);
 
-create policy "Lead insert" on products for insert
-  with check (get_my_role() = 'lead');
+create policy "Lead and admin insert" on products for insert
+  with check (get_my_role() in ('lead', 'admin'));
 create policy "Authenticated update" on products for update
   using (auth.role() = 'authenticated');
-create policy "Lead delete" on products for delete
-  using (get_my_role() = 'lead');
+create policy "Lead and admin delete" on products for delete
+  using (get_my_role() in ('lead', 'admin'));
 
 create policy "Authenticated insert" on issues for insert
   with check (auth.role() = 'authenticated');
@@ -475,13 +503,16 @@ create policy "Operator submit own current stage" on stage_deliverables for inse
       select 1 from products p
       where p.id = product_id
         and p.owner_id = auth.uid()
-        and p.status = stage
+        and (
+          p.status = stage
+          or (p.status = 'Design' and stage in ('Storyboarding', 'Scripting'))
+        )
     )
   );
-create policy "Lead submit any" on stage_deliverables for insert
-  with check (get_my_role() = 'lead' and submitted_by = auth.uid());
-create policy "Lead review" on stage_deliverables for update
-  using (get_my_role() = 'lead');
+create policy "Lead and admin submit any" on stage_deliverables for insert
+  with check (get_my_role() in ('lead', 'admin') and submitted_by = auth.uid());
+create policy "Lead and admin review" on stage_deliverables for update
+  using (get_my_role() in ('lead', 'admin'));
 
 -- Keep a single is_current row per (product, stage) on resubmission.
 -- security definer because the operator who inserts a new row has no
@@ -517,7 +548,9 @@ returns void as $$
 declare
   v_product_id uuid;
   v_stage text;
-  v_next text;
+  v_product_status text;
+  v_storyboarding_accepted boolean;
+  v_scripting_accepted boolean;
 begin
   if p_decision not in ('accepted', 'rejected') then
     raise exception 'decision must be accepted or rejected';
@@ -536,33 +569,65 @@ begin
       reviewed_at = now()
   where id = p_deliverable_id;
 
+  if p_decision = 'rejected' then
+    perform set_config('app.allow_stage_advance', 'on', true);
+    update products
+    set review_status = 'Rejected',
+        rejection_reason = p_note
+    where id = v_product_id;
+  end if;
+
   if p_decision = 'accepted' then
-    v_next := case v_stage
-      when 'Storyboarding' then 'Scripting'
-      when 'Scripting' then 'Prompting'
-      when 'Prompting' then 'Editing'
-      else null
-    end;
-    if v_next is not null then
-      update products set status = v_next where id = v_product_id;
+    select status into v_product_status from products where id = v_product_id;
+    if v_product_status = 'Design' then
+      select exists (
+        select 1 from stage_deliverables
+        where product_id = v_product_id
+          and stage = 'Storyboarding'
+          and is_current = true
+          and decision = 'accepted'
+      ) into v_storyboarding_accepted;
+
+      select exists (
+        select 1 from stage_deliverables
+        where product_id = v_product_id
+          and stage = 'Scripting'
+          and is_current = true
+          and decision = 'accepted'
+      ) into v_scripting_accepted;
+
+      if v_storyboarding_accepted and v_scripting_accepted then
+        perform set_config('app.allow_stage_advance', 'on', true);
+        update products
+        set status = 'Production',
+            review_status = 'Accepted',
+            rejection_reason = null
+        where id = v_product_id;
+      else
+        perform set_config('app.allow_stage_advance', 'on', true);
+        update products
+        set review_status = 'Pending',
+            rejection_reason = null
+        where id = v_product_id;
+      end if;
     end if;
   end if;
 end;
-$$ language plpgsql;
+$$ language plpgsql security definer set search_path = public;
 
--- submit_video_for_review(): the Editing-leg equivalent of an Operator
--- "submitting" — moves the product Editing -> In Review. security definer
+-- submit_video_for_review(): the Production-leg equivalent of an Operator
+-- "submitting" — moves the product Production -> In Review. security definer
 -- plus the app.allow_stage_advance flag (honored by
 -- enforce_product_update_permissions above) so it can advance the stage,
 -- but validates the caller owns the product (or is a Lead) and it's
--- actually in Editing. This is the only way an Operator advances a stage,
--- and it's a single fixed transition, not an arbitrary one.
+-- actually in Production. Verifies at least one video has been uploaded.
 create or replace function submit_video_for_review(p_product_id uuid)
 returns void as $$
 declare
   v_status text;
   v_owner uuid;
   v_role user_role := get_my_role();
+  v_has_video boolean;
 begin
   select status, owner_id into v_status, v_owner
   from products where id = p_product_id;
@@ -575,9 +640,19 @@ begin
   if v_role = 'operator' and v_owner is distinct from auth.uid() then
     raise exception 'not your product';
   end if;
-  if v_status <> 'Editing' then
-    raise exception 'product is not in Editing';
+  if v_status <> 'Production' then
+    raise exception 'product is not in Production';
   end if;
+
+  select exists (
+    select 1 from video_versions
+    where product_id = p_product_id
+  ) into v_has_video;
+
+  if not v_has_video then
+    raise exception 'You must upload at least one video version before submitting for review';
+  end if;
+
   perform set_config('app.allow_stage_advance', 'on', true);
   update products set status = 'In Review' where id = p_product_id;
 end;
@@ -663,12 +738,71 @@ create trigger production_plans_set_updated_at
 alter table production_plans enable row level security;
 
 create policy "Public read" on production_plans for select using (true);
-create policy "Lead insert" on production_plans for insert
-  with check (get_my_role() = 'lead');
-create policy "Lead update" on production_plans for update
-  using (get_my_role() = 'lead');
-create policy "Lead delete" on production_plans for delete
-  using (get_my_role() = 'lead');
+create policy "Admin insert" on production_plans for insert
+  with check (get_my_role() = 'admin');
+create policy "Admin update" on production_plans for update
+  using (get_my_role() = 'admin');
+create policy "Admin delete" on production_plans for delete
+  using (get_my_role() = 'admin');
+
+-- Daily target history table: tracks active daily target snapshots over time
+create table if not exists daily_target_history (
+  id uuid primary key default gen_random_uuid(),
+  date date not null unique default current_date,
+  target integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table daily_target_history enable row level security;
+
+create policy "Public read daily target history" on daily_target_history
+  for select using (true);
+
+create policy "Lead and admin upsert daily target history" on daily_target_history
+  for all using (get_my_role() in ('lead', 'admin'));
+
+create or replace function sum_jsonb_values(val jsonb)
+returns integer as $$
+declare
+  r record;
+  total integer := 0;
+begin
+  if val is null then
+    return 0;
+  end if;
+  for r in select value from jsonb_each_text(val) loop
+    total := total + coalesce(nullif(r.value, '')::integer, 0);
+  end loop;
+  return total;
+exception
+  when others then
+    return 0;
+end;
+$$ language plpgsql immutable;
+
+create or replace function log_daily_target_history()
+returns trigger as $$
+declare
+  v_target integer;
+  v_today date := current_date;
+begin
+  if new.is_active then
+    v_target := sum_jsonb_values(new.category_targets);
+    insert into daily_target_history (date, target)
+    values (v_today, v_target)
+    on conflict (date) do update
+    set target = excluded.target;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists production_plans_log_daily_target on production_plans;
+create trigger production_plans_log_daily_target
+  after insert or update of category_targets, is_active on production_plans
+  for each row
+  execute function log_daily_target_history();
 
 -- Durable audit trail for Bucky (the AI assistant)'s mutating tool calls —
 -- who, what tool, with what arguments, and what happened. Append-only, no
@@ -752,12 +886,13 @@ create policy "Own delete" on bucky_rate_limit_log for delete
 -- replaces, this is a "save my own conversation" concern, not a
 -- server-route one.
 create table bucky_messages (
-  id text primary key,
+  id text not null,
   user_id uuid not null references profiles(id) on delete cascade,
   role text not null check (role in ('user', 'assistant', 'system')),
   parts jsonb not null,
   metadata jsonb,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (id, user_id)
 );
 create index bucky_messages_user_created_idx
   on bucky_messages (user_id, created_at asc);

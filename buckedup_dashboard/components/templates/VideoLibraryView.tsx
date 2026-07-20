@@ -12,6 +12,7 @@ import {
   type PipelineStatus,
   type Product,
   type StatusFilter,
+  type StageDeliverable,
 } from "@/lib/types";
 import {
   categoryCountProducts,
@@ -24,7 +25,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useIssues } from "@/lib/useIssues";
 import { useAuth } from "@/lib/useAuth";
 import { useProfiles } from "@/lib/useProfiles";
-import { useStageDeliverables } from "@/lib/useStageDeliverables";
 import { KanbanBoard } from "@/components/organisms/KanbanBoard";
 import { CategoryFolderGrid } from "@/components/molecules/CategoryFolderGrid";
 import { ProductThumbnailGrid } from "@/components/molecules/ProductThumbnailGrid";
@@ -34,10 +34,10 @@ import { ProductionModal } from "@/components/organisms/ProductionModal";
 import { ProductReviewModal } from "@/components/organisms/ProductReviewModal";
 import { StageHistoryLog } from "@/components/organisms/StageHistoryLog";
 
-// Stages an Operator can submit a deliverable for (the 3 doc/text stages
-// plus Editing's video). A Lead reviews the same set plus In Review.
-const OPERATOR_SUBMIT_STAGES = [...DELIVERABLE_STAGES, "Editing"] as string[];
-const LEAD_REVIEW_STAGES = [...DELIVERABLE_STAGES, "Editing", "In Review"] as string[];
+// Stages an Operator can submit a deliverable for (Design and Production).
+// A Lead reviews in Design and In Review stages.
+const OPERATOR_SUBMIT_STAGES = ["Design", "Production"] as string[];
+const LEAD_REVIEW_STAGES = ["Design", "In Review"] as string[];
 
 type LibraryLayout = "table" | "board" | "grid";
 
@@ -62,10 +62,13 @@ export type LibraryProductFocus = { product: Product; source: "review" | "produc
 interface VideoLibraryViewProps {
   onOpenModal: (key: string) => void;
   products: Product[];
+  currentByKey: Map<string, StageDeliverable>;
   loading: boolean;
   error: string | null;
   externalSearch?: string | null;
   onExternalSearchApplied?: () => void;
+  externalReviewRank?: number | null;
+  onExternalReviewRankApplied?: () => void;
   theme: "dark" | "light";
   onProductFocus?: (focus: LibraryProductFocus | null) => void;
 }
@@ -73,10 +76,13 @@ interface VideoLibraryViewProps {
 export function VideoLibraryView({
   onOpenModal,
   products,
+  currentByKey,
   loading,
   error,
   externalSearch,
   onExternalSearchApplied,
+  externalReviewRank,
+  onExternalReviewRankApplied,
   theme,
   onProductFocus,
 }: VideoLibraryViewProps) {
@@ -86,6 +92,7 @@ export function VideoLibraryView({
     useState<StatusFilter>("all");
   const [mineOnly, setMineOnly] = useState(false);
   const [rejectedOnly, setRejectedOnly] = useState(false);
+  const [currentSort, setCurrentSort] = useState<"highest" | "lowest" | "oldest">("highest");
   const [searchTerm, setSearchTerm] = useState("");
   const [layout, setLayout] = useState<LibraryLayout>("table");
   // Which category folder is open in Grid view (null = show the folders).
@@ -113,6 +120,8 @@ export function VideoLibraryView({
     if (externalSearch) onExternalSearchApplied?.();
   }, [externalSearch, onExternalSearchApplied]);
 
+  // (Moved below state declarations)
+
   const [expandedRanks, setExpandedRanks] = useState<Set<number>>(new Set());
   const [formModal, setFormModal] = useState<{
     mode: "add" | "edit";
@@ -121,8 +130,26 @@ export function VideoLibraryView({
   const [requestCatalogModalOpen, setRequestCatalogModalOpen] = useState(false);
   const [productionModal, setProductionModal] = useState<Product | null>(null);
   const [reviewModal, setReviewModal] = useState<Product | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+
+  // Same pattern for jumping straight into a review modal from the Reviews tab.
+  const [appliedReviewRank, setAppliedReviewRank] = useState<number | null | undefined>(undefined);
+  
+  if (externalReviewRank !== undefined && externalReviewRank !== appliedReviewRank) {
+    setAppliedReviewRank(externalReviewRank);
+    if (externalReviewRank !== null) {
+      const product = products.find(p => p.rank === externalReviewRank);
+      if (product) {
+        setReviewModal(product);
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (externalReviewRank !== undefined && externalReviewRank !== null) {
+      onExternalReviewRankApplied?.();
+    }
+  }, [externalReviewRank, onExternalReviewRankApplied]);
 
   // Reports which product (if any) is currently being worked on — via the
   // review, production, or edit-form modal — up to Dashboard for Bucky's
@@ -147,8 +174,36 @@ export function VideoLibraryView({
   const { issues, reportIssue, resolveIssue } = useIssues();
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
-  const { currentByKey } = useStageDeliverables();
   const isAuthenticated = !!user;
+
+  const handleClaim = async (productId: string, productName: string) => {
+    if (!user) return;
+    if (!window.confirm(`Are you sure you want to claim "${productName}"?`)) {
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: user.id, status: "Design" })
+      .eq("id", productId);
+    if (error) {
+      alert(`Claim failed: ${error.message}`);
+    }
+  };
+
+  const handleUnclaim = async (productId: string, productName: string) => {
+    if (!window.confirm(`Are you sure you want to unclaim "${productName}"?`)) {
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: null, status: "Not Started" })
+      .eq("id", productId);
+    if (error) {
+      alert(`Unclaim failed: ${error.message}`);
+    }
+  };
 
   // Default "My Items" to ON for operators so they see their own work first.
   const mineOnlyInitRef = useRef(false);
@@ -158,19 +213,18 @@ export function VideoLibraryView({
       setMineOnly(true);
     }
   }, [role]);
-  // Lead: full catalog access (add/edit/delete products, move stage via
-  // ProductFormModal's Stage field) plus reviewing submitted deliverables.
+  // Lead and Admin: full catalog access (add/edit/delete products, move
+  // stage via ProductFormModal's Stage field) plus reviewing submitted
+  // deliverables. Admin has identical library powers to Lead — the sole
+  // difference is Admin also manages user accounts (Lead cannot).
   // Operator: execution-only — submits the deliverable for the current
-  // stage, never moves the stage itself. Admin: governance-only, no
-  // catalog access. See supabase/schema.sql's
+  // stage, never moves the stage itself. See supabase/schema.sql's
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
-  const canManageCatalog = role === "lead";
-  // Admin is governance-only: they can view the catalog but only its
-  // Published slice, with no write affordances and no Board (nothing to
-  // drag). Enforced in-page here rather than via a separate cut-down
-  // component so the same filter/RowDetail machinery is reused.
-  const isAdmin = role === "admin";
+  const canManageCatalog = role === "lead" || role === "admin";
+  // Admin now has full library access (same as Lead), so no special
+  // restrictions or filtered views apply — isAdmin is unused.
+  const isAdmin = false;
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
   const profileEmailById = useMemo(
@@ -180,7 +234,7 @@ export function VideoLibraryView({
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
-    return products.filter((product) => {
+    const filtered = products.filter((product) => {
       // Admin only ever sees Published items, regardless of the pills.
       if (isAdmin && productBucket(product) !== "published") {
         return false;
@@ -211,6 +265,21 @@ export function VideoLibraryView({
       }
       return true;
     });
+
+    return filtered.sort((a, b) => {
+      if (currentSort === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      const priorityMap: Record<string, number> = { "High": 3, "Medium": 2, "Low": 1 };
+      const valA = priorityMap[a.priority ?? "Low"] || 1;
+      const valB = priorityMap[b.priority ?? "Low"] || 1;
+      
+      if (valA !== valB) {
+        return currentSort === "highest" ? valB - valA : valA - valB;
+      }
+      // fallback to rank (creation order roughly)
+      return a.rank - b.rank;
+    });
   }, [
     products,
     isAdmin,
@@ -221,6 +290,7 @@ export function VideoLibraryView({
     rejectedOnly,
     user,
     searchTerm,
+    currentSort,
   ]);
 
   const handleCategoryChange = (value: string) => {
@@ -231,7 +301,7 @@ export function VideoLibraryView({
 
   // Lead-only inline stage change from the list row (Lead has unrestricted
   // status write per enforce_product_update_permissions). Also the natural
-  // spot for the Not Started -> Storyboarding kickoff. The realtime
+  // spot for the Not Started -> Design kickoff. The realtime
   // products subscription refreshes the list.
   const handleInlineStage = async (product: Product, next: PipelineStatus) => {
     if (product.items[0].status === next) return;
@@ -251,16 +321,7 @@ export function VideoLibraryView({
     });
   };
 
-  const handleDeleteProduct = async (product: Product) => {
-    setDeleting(true);
-    try {
-      const supabase = createClient();
-      await supabase.from("products").delete().eq("id", product.id);
-    } finally {
-      setDeleting(false);
-      setDeleteConfirm(null);
-    }
-  };
+
 
   if (loading && products.length === 0) {
     return (
@@ -421,6 +482,23 @@ export function VideoLibraryView({
                 <path d="M21 21l-4.3-4.3" />
               </svg>
             </div>
+            <select
+              value={currentSort}
+              onChange={(e) => setCurrentSort(e.target.value as any)}
+              style={{
+                height: "38px",
+                borderRadius: "12px",
+                padding: "0 12px",
+                border: "1px solid var(--border-color)",
+                backgroundColor: "var(--bg-card)",
+                color: "var(--ink)",
+                fontSize: "14px",
+              }}
+            >
+              <option value="highest">Priority (Highest First)</option>
+              <option value="lowest">Priority (Lowest First)</option>
+              <option value="oldest">Oldest First</option>
+            </select>
             {canManageCatalog ? (
               <div style={{ display: "flex", gap: 8 }}>
                 <button
@@ -494,7 +572,7 @@ export function VideoLibraryView({
               <div className="video-list">
               {filteredProducts.map((product, index) => {
                 const displayRank = index + 1;
-                const priority = displayRank <= 10 ? "High" : displayRank <= 20 ? "Medium" : "Low";
+                const priority = product.priority ?? "Low";
                 const priorityClass = priority === "High" ? "bg-red-500/10 text-red-500 border-red-500/20" : priority === "Medium" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-500 border-blue-500/20";
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
@@ -507,8 +585,12 @@ export function VideoLibraryView({
                 ).length;
 
                 // Deliverable-flow flags for this row (Phase D).
-                const currentDeliverable =
-                  currentByKey.get(`${product.id}:${item.status}`) ?? null;
+                const isDesign = item.status === "Design";
+                const isReview = item.status === "In Review";
+                const storyboardDel = currentByKey.get(`${product.id}:Storyboarding`) ?? null;
+                const scriptDel = currentByKey.get(`${product.id}:Scripting`) ?? null;
+                const hasSubmittedAnyDeliverables = !!storyboardDel || !!scriptDel;
+
                 // Operators may only submit for products they own (the
                 // stage_deliverables insert RLS requires owner_id = auth.uid),
                 // so don't show a doomed button for others' items.
@@ -518,14 +600,16 @@ export function VideoLibraryView({
                   product.deliveryType === "pipeline" &&
                   OPERATOR_SUBMIT_STAGES.includes(item.status);
                 const canReview =
-                  role === "lead" &&
+                  (role === "lead" || role === "admin") &&
                   product.deliveryType === "pipeline" &&
                   LEAD_REVIEW_STAGES.includes(item.status);
                 // A Lead's "needs attention": a pending doc deliverable, or a
                 // video parked in In Review.
                 const awaitingReview =
-                  currentDeliverable?.decision === "pending" ||
-                  item.status === "In Review";
+                  isReview ||
+                  (isDesign &&
+                    (storyboardDel?.decision === "pending" ||
+                      scriptDel?.decision === "pending"));
                 const publishedText = product.publishDate
                   ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
                   : "—";
@@ -536,7 +620,7 @@ export function VideoLibraryView({
                       className="video-list-card"
                       onClick={() => onOpenModal(modalKey)}
                     >
-                      <div className="vlc-rank" title={`Database ID: ${product.rank}`}>{displayRank}</div>
+                      <div className="vlc-rank" title={`Queue Index: ${displayRank}`}>{displayRank}</div>
 
                       <div className="vlc-thumb">
                         {product.thumbnailUrl ? (
@@ -582,6 +666,10 @@ export function VideoLibraryView({
                           Date Published: {publishedText}
                           <span className="vlc-meta-sep"> · </span>
                           {languageFlag(product.language)} {product.language}
+                          <span className="vlc-meta-sep"> · </span>
+                          Owner: <span style={{ color: product.ownerId ? "var(--castleton)" : "var(--ink-soft)", fontWeight: product.ownerId ? "bold" : "normal" }}>
+                            {product.ownerId ? (profileEmailById.get(product.ownerId) ?? "Assigned") : "Unassigned"}
+                          </span>
                         </div>
                         {product.contentAngle ? (
                           <div className="vlc-desc">{product.contentAngle}</div>
@@ -592,7 +680,7 @@ export function VideoLibraryView({
                         className="vlc-side"
                         onClick={(event) => event.stopPropagation()}
                       >
-                        <div className="vlc-side-top">
+                        <div className="vlc-side-top" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           {canManageCatalog ? (
                             <select
                               className="vlc-stage-select"
@@ -610,6 +698,51 @@ export function VideoLibraryView({
                             <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
                               {item.status}
                             </span>
+                          )}
+
+                          {role === "operator" && (
+                            <>
+                              {!product.ownerId && (
+                                <button
+                                  type="button"
+                                  className="issue-submit-btn"
+                                  style={{
+                                    padding: "4px 12px",
+                                    borderRadius: "8px",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                    height: "auto",
+                                    whiteSpace: "nowrap"
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleClaim(product.id, product.name);
+                                  }}
+                                >
+                                  Claim
+                                </button>
+                              )}
+                              {product.ownerId === user?.id && !hasSubmittedAnyDeliverables && (
+                                <button
+                                  type="button"
+                                  className="issue-submit-btn issue-delete-btn"
+                                  style={{
+                                    padding: "4px 12px",
+                                    borderRadius: "8px",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                    height: "auto",
+                                    whiteSpace: "nowrap"
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleUnclaim(product.id, product.name);
+                                  }}
+                                >
+                                  Unclaim
+                                </button>
+                              )}
+                            </>
                           )}
 
                           <div className="row-actions">
@@ -721,9 +854,7 @@ export function VideoLibraryView({
                           }
                           onReportIssue={reportIssue}
                           onResolveIssue={(id) => resolveIssue(id, product.id)}
-                          canDelete={canManageCatalog}
                           canReportIssue={role !== "operator"}
-                          onDeleteRequest={() => setDeleteConfirm(product)}
                         />
                       </div>
                     </div>
@@ -756,11 +887,6 @@ export function VideoLibraryView({
       {productionModal ? (
         <ProductionModal
           product={productionModal}
-          currentDeliverable={
-            currentByKey.get(
-              `${productionModal.id}:${productionModal.items[0].status}`,
-            ) ?? null
-          }
           onClose={() => setProductionModal(null)}
         />
       ) : null}
@@ -768,106 +894,8 @@ export function VideoLibraryView({
       {reviewModal ? (
         <ProductReviewModal
           product={reviewModal}
-          currentDeliverable={
-            currentByKey.get(
-              `${reviewModal.id}:${reviewModal.items[0].status}`,
-            ) ?? null
-          }
           onClose={() => setReviewModal(null)}
         />
-      ) : null}
-
-      {deleteConfirm ? (
-        <div
-          onClick={() => setDeleteConfirm(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            background: "rgba(0,0,0,0.72)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#0d1310",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 16,
-              width: "100%",
-              maxWidth: 440,
-              margin: "0 16px",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
-              overflow: "hidden",
-            }}
-          >
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px 16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                    <path d="M10 11v6" /><path d="M14 11v6" />
-                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                  </svg>
-                </div>
-                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#f87171" }}>Delete product?</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm(null)}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 4 }}
-              >✕</button>
-            </div>
-
-            {/* Body */}
-            <div style={{ padding: "0 24px 8px", color: "rgba(255,255,255,0.65)", fontSize: 14, lineHeight: 1.65 }}>
-              <p style={{ margin: "0 0 8px" }}>You are about to permanently delete:</p>
-              <p style={{ margin: "0 0 10px", fontWeight: 700, color: "#fff", fontSize: 15, padding: "8px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
-                "{deleteConfirm.name}"
-              </p>
-              <p style={{ margin: 0 }}>This removes the product and all its data from the database. <strong style={{ color: "#fca5a5" }}>This cannot be undone.</strong></p>
-            </div>
-
-            {/* Actions */}
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", padding: "20px 24px 24px" }}>
-              <button
-                type="button"
-                className="issue-submit-btn"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
-                onClick={() => setDeleteConfirm(null)}
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="issue-submit-btn"
-                style={{ background: "#7f1d1d", border: "1px solid #f87171", color: "#fca5a5", display: "inline-flex", alignItems: "center", gap: 6 }}
-                onClick={() => handleDeleteProduct(deleteConfirm)}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  "Deleting…"
-                ) : (
-                  <>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6" /><path d="M14 11v6" />
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                    </svg>
-                    Yes, delete
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
       ) : null}
     </div>
   );
@@ -884,9 +912,7 @@ interface RowDetailProps {
     severity: IssueSeverity,
   ) => Promise<void>;
   onResolveIssue: (id: string) => Promise<void>;
-  canDelete: boolean;
   canReportIssue: boolean;
-  onDeleteRequest: () => void;
 }
 
 function RowDetail({
@@ -896,9 +922,7 @@ function RowDetail({
   ownerEmail,
   onReportIssue,
   onResolveIssue,
-  canDelete,
   canReportIssue,
-  onDeleteRequest,
 }: RowDetailProps) {
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState<IssueSeverity>("medium");
@@ -933,7 +957,7 @@ function RowDetail({
         ) : null}
       </div>
       {product.contentAngle ? (
-        <div className="callout">
+        <div className="callout content-angle-callout">
           <div className="content-angle-label">Content angle</div>
           {product.contentAngle}
         </div>
@@ -953,8 +977,9 @@ function RowDetail({
             {issues.map((issue) => (
               <li
                 key={issue.id}
-                className={`issue-item issue-${issue.severity}${issue.status === "resolved" ? " resolved" : ""
-                  }`}
+                className={`issue-item issue-${issue.severity}${
+                  issue.status === "resolved" ? " resolved" : ""
+                }`}
               >
                 <span className="issue-severity">{issue.severity}</span>
                 <span className="issue-desc">{issue.description}</span>
@@ -976,30 +1001,13 @@ function RowDetail({
           </ul>
         )}
         {isAuthenticated && canReportIssue ? (
-          <div className="issue-form" style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-            background: "rgba(255,255,255,0.02)",
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid rgba(255,255,255,0.05)",
-            marginTop: "16px"
-          }}>
-            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+          <>
+            <div className="issue-form">
               <select
                 value={severity}
                 onChange={(event) =>
                   setSeverity(event.target.value as IssueSeverity)
                 }
-                style={{
-                  padding: "10px",
-                  borderRadius: "8px",
-                  background: "rgba(0,0,0,0.2)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#fff",
-                  outline: "none"
-                }}
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -1011,63 +1019,39 @@ function RowDetail({
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && issues.every(i => i.status === "resolved")) handleSubmit();
-                }}
-                style={{
-                  flex: 1,
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  background: "rgba(0,0,0,0.2)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#fff",
-                  outline: "none"
+                  if (
+                    event.key === "Enter" &&
+                    issues.every((i) => i.status === "resolved")
+                  )
+                    handleSubmit();
                 }}
               />
-            </div>
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              {issues.some(i => i.status === "open") ? (
-                <div style={{ fontSize: "12px", color: "var(--saffron)", paddingLeft: "4px" }}>
-                  Please resolve the current active issue before reporting a new one.
-                </div>
-              ) : <div />}
               <button
                 type="button"
                 className="issue-submit-btn"
-                disabled={submitting || !description.trim() || issues.some(i => i.status === "open")}
+                disabled={
+                  submitting ||
+                  !description.trim() ||
+                  issues.some((i) => i.status === "open")
+                }
                 onClick={handleSubmit}
-                style={{ alignSelf: "flex-end" }}
               >
                 {submitting ? "Reporting…" : "Report issue"}
               </button>
             </div>
-            {canDelete ? (
-              <button
-                type="button"
-                className="issue-submit-btn"
-                onClick={onDeleteRequest}
-                title="Delete this product listing from the database"
+            {issues.some((i) => i.status === "open") && (
+              <div
                 style={{
-                  background: "rgba(127, 29, 29, 0.6)",
-                  border: "1px solid rgba(248, 113, 113, 0.45)",
-                  color: "#fca5a5",
-                  display: "inline-flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: "6px",
+                  fontSize: "12px",
+                  color: "var(--saffron)",
+                  marginTop: "6px",
+                  paddingLeft: "4px",
                 }}
               >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                </svg>
-                Delete product
-              </button>
-            ) : null}
-          </div>
+                Please resolve the current active issue before reporting a new one.
+              </div>
+            )}
+          </>
         ) : (
           <div className="issue-empty">
             <Link href="/login">Sign in</Link> to report an issue.

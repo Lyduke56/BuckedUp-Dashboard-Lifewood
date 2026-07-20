@@ -1,4 +1,4 @@
-export type ViewId = "overview" | "catalog" | "library" | "analytics" | "admin" | "planning" | "bucky";
+export type ViewId = "overview" | "catalog" | "library" | "analytics" | "admin" | "planning" | "bucky" | "reviews";
 
 /**
  * operator = production staff, execution-only: uploads deliverables per
@@ -28,10 +28,8 @@ export type ProductBucket = "not-started" | "in-progress" | "published";
 
 export type PipelineStatus =
   | "Not Started"
-  | "Storyboarding"
-  | "Scripting"
-  | "Prompting"
-  | "Editing"
+  | "Design"
+  | "Production"
   | "In Review"
   | "Published";
 
@@ -63,6 +61,7 @@ export type DeliveryType = "pipeline" | "link";
 export interface Product {
   id: string;
   rank: number;
+  priority: "High" | "Medium" | "Low";
   name: string;
   category: string;
   subcategory: string;
@@ -102,12 +101,12 @@ export interface Issue {
 }
 
 /**
- * A per-stage QA/QC deliverable an Operator submits for one of the three
- * document/text stages (Storyboarding/Scripting/Prompting) and a Lead
- * reviews. The Editing->Published video leg uses video_versions instead.
+ * A per-stage QA/QC deliverable an Operator submits for one of the two
+ * document/text stages (Storyboarding/Scripting) and a Lead
+ * reviews. The Production video leg uses video_versions instead.
  * See supabase/schema.sql's stage_deliverables table.
  */
-export type DeliverableStage = "Storyboarding" | "Scripting" | "Prompting";
+export type DeliverableStage = "Storyboarding" | "Scripting";
 export type DeliverableKind = "file" | "text";
 export type DeliverableDecision = "pending" | "accepted" | "rejected";
 
@@ -129,12 +128,11 @@ export interface StageDeliverable {
 
 /**
  * The stages whose deliverable is a document/text row in stage_deliverables
- * (as opposed to Editing, whose deliverable is a video in video_versions).
+ * (as opposed to Production, whose deliverable is a video in video_versions).
  */
 export const DELIVERABLE_STAGES: DeliverableStage[] = [
   "Storyboarding",
   "Scripting",
-  "Prompting",
 ];
 
 /**

@@ -3,10 +3,10 @@
 import { ProductionPlanView } from "@/components/templates/ProductionPlanView";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
-// Lead's Planning tab: configuring the production plan (targets, deadline,
-// pacing) moved from Admin to Lead in Phase A, since production_plans is
-// now lead-only to write. Thin wrapper around the unchanged
-// ProductionPlanView so the tab has its own titled surface.
+// Admin's Planning tab: configuring the production plan (targets, deadline,
+// pacing) is Admin exclusive, since production_plans is now admin-only to
+// write. Thin wrapper around the unchanged ProductionPlanView so the tab
+// has its own titled surface.
 export function PlanningView() {
   return (
     <div>

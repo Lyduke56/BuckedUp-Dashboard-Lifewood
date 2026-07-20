@@ -163,7 +163,7 @@ function LoginForm() {
       <div className="fluid-orb orb-2"></div>
       <div className="fluid-orb orb-3"></div>
 
-      <div className="login-tilt-container" style={{ width: "100%", maxWidth: "680px" }}>
+      <div className="login-tilt-container" style={{ width: "100%", maxWidth: "680px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="brand-row login-brand-row">
             <div className="brand-logo-container">
@@ -232,6 +232,18 @@ function LoginForm() {
             {!submitting && <SignInIcon />}
           </button>
         </form>
+
+        <div style={{
+          marginTop: "30px",
+          fontSize: "18px",
+          fontWeight: 600,
+          color: "rgba(255, 255, 255, 0.9)",
+          letterSpacing: "0.08em",
+          textShadow: "0 2px 8px rgba(0, 0, 0, 0.5)",
+          pointerEvents: "none"
+        }}>
+          Powered by Lifewood PH
+        </div>
       </div>
     </div>
   );

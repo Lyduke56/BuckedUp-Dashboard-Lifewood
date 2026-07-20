@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/useAuth";
 
 interface OverviewViewProps {
   onBrowseLibrary: () => void;
+  onNavigateToProduct: (productName: string) => void;
   products: Product[];
   isLoading?: boolean;
   hasError?: boolean;
@@ -18,6 +19,7 @@ interface OverviewViewProps {
 
 export function OverviewView({
   onBrowseLibrary,
+  onNavigateToProduct,
   products,
   isLoading,
   hasError,
@@ -30,11 +32,17 @@ export function OverviewView({
     ? products.filter(p => p.ownerId === user?.id)
     : products;
 
+  const subtitle =
+    role === "operator"
+      ? "Your assigned items and personal production progress."
+      : undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
         title={projectName} 
         overline="CURRENT PIPELINE"
+        subtitle={subtitle}
       />
       <ProjectProgressCard products={userProducts} isPersonal={role === "operator"} />
       <KpiRow products={userProducts} isLoading={isLoading} hasError={hasError} />
@@ -58,7 +66,7 @@ export function OverviewView({
           </div>
 
           {/* Recent deliveries */}
-          <RecentActivityWidget products={userProducts} isOperatorView={role === "operator"} />
+          <RecentActivityWidget products={userProducts} isOperatorView={role === "operator"} onNavigateToProduct={onNavigateToProduct} />
         </div>
 
         {/* Right column — Production Output Widget stretches to fill the full height */}

@@ -361,7 +361,7 @@ export function BuckyWidget({
     const existingIds = new Set(messagesRef.current.map((m) => m.id));
     const newAlerts: UIMessage[] = [];
 
-    const staleId = `bucky-alert-stale-${role}-${dateKey}`;
+    const staleId = `bucky-alert-stale-${user.id}-${dateKey}`;
     if (!existingIds.has(staleId)) {
       const stale = products.filter((p) => {
         const item = p.items[0];
@@ -396,7 +396,7 @@ export function BuckyWidget({
       }
     }
 
-    const pacingId = `bucky-alert-pacing-${dateKey}`;
+    const pacingId = `bucky-alert-pacing-${user.id}-${dateKey}`;
     if (!existingIds.has(pacingId)) {
       const today = dailyProgress[dailyProgress.length - 1];
       if (today) {
@@ -517,7 +517,15 @@ export function BuckyWidget({
           >
             <div className="bucky-header">
               <div className="bucky-header-title">
-                <Bot size={18} />
+                <Image
+                  src="/image 3.svg"
+                  width={18}
+                  height={18}
+                  alt="Bucky Logo"
+                  style={{ width: "18px", height: "18px" }}
+                  className="rounded-full object-cover pointer-events-non"
+                  draggable={false}
+                />
                 Bucky
               </div>
               <div className="bucky-header-actions">
@@ -573,7 +581,7 @@ export function BuckyWidget({
             <div className="bucky-messages" ref={messagesContainerRef} onScroll={handleMessagesScroll}>
               <div className="bucky-msg-wrapper bucky">
                 <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
-                  <Image src="/bucky_default.svg" width={32} height={32} alt="Bucky" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />
+                  <Image src="/image 3.svg" width={32} height={32} alt="Bucky" style={{ width: "32px", height: "32px" }} className="rounded-full w-full h-full object-contain p-1.5 pointer-events-none bg-white" draggable={false} />
                 </div>
                 <div className="bucky-msg bucky-msg-bucky">{GREETING}</div>
               </div>
@@ -589,7 +597,7 @@ export function BuckyWidget({
                     return (
                       <div key={key} className={`bucky-msg-wrapper ${isUser ? "user" : "bucky"}`}>
                         <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
-                          {isUser ? <User size={16} /> : <Image src="/bucky_default.svg" width={32} height={32} alt="Bucky" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />}
+                          {isUser ? <User size={16} /> : <Image src="/image 3.svg" width={32} height={32} alt="Bucky" style={{ width: "32px", height: "32px" }} className="rounded-full w-full h-full object-contain p-1.5 pointer-events-none bg-white" draggable={false} />}
                         </div>
                         <div className={`bucky-msg bucky-msg-${isUser ? "user" : "bucky"}`}>
                           {isUser
@@ -694,7 +702,7 @@ export function BuckyWidget({
                 <div className="bucky-msg-wrapper bucky">
                   <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
                     <motion.div animate={{ y: [0, -1, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full">
-                      <Image src="/bucky_loading.svg" width={32} height={32} alt="Bucky Loading" className="rounded-full w-full h-full object-cover pointer-events-none bg-white" draggable={false} />
+                      <Image src="/image 3.svg" width={32} height={32} alt="Bucky Loading" style={{ width: "32px", height: "32px" }} className="rounded-full w-full h-full object-contain p-1.5 pointer-events-none bg-white" draggable={false} />
                     </motion.div>
                   </div>
                   <div className="bucky-msg bucky-msg-bucky bucky-typing">
@@ -778,11 +786,11 @@ export function BuckyWidget({
         onClick={() => setOpen((prev) => !prev)}
         aria-label={open ? "Close Bucky" : "Open Bucky"}
       >
-        <div 
+        <div
           className="absolute inset-[-6px] rounded-full border-[3px] border-transparent border-t-[var(--saffron)] border-l-[var(--saffron)] opacity-80 pointer-events-none animate-spin"
           style={{ animationDuration: busy ? '3s' : '12s' }}
         />
-        <div 
+        <div
           className="absolute inset-[-12px] rounded-full border-[2px] border-dashed border-[var(--saffron)] opacity-40 pointer-events-none animate-[spin_1s_linear_infinite_reverse]"
           style={{ animationDuration: busy ? '8s' : '24s' }}
         />
@@ -801,17 +809,17 @@ export function BuckyWidget({
         <AnimatePresence mode="wait">
           {open ? (
             <motion.div key="close" className="w-full h-full relative pointer-events-none" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Image src="/bucky_query.svg" alt="Bucky Query" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+              <Image src="/image 3.svg" alt="Bucky Query" width={56} height={56} style={{ width: "56px", height: "56px" }} className="rounded-full object-contain p-2.5 w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           ) : busy ? (
             <motion.div key="busy" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
               <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full absolute inset-0">
-                <Image src="/bucky_loading.svg" alt="Bucky Loading" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+                <Image src="/image 3.svg" alt="Bucky Loading" width={56} height={56} style={{ width: "56px", height: "56px" }} className="rounded-full object-contain p-2.5 w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
               </motion.div>
             </motion.div>
           ) : (
             <motion.div key="bot" className="w-full h-full relative pointer-events-none" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Image src="/bucky_default.svg" alt="Bucky Default" width={56} height={56} className="rounded-full object-cover w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
+              <Image src="/image 3.svg" alt="Bucky Default" width={56} height={56} style={{ width: "56px", height: "56px" }} className="rounded-full object-contain p-2.5 w-full h-full absolute inset-0 pointer-events-none bg-white" draggable={false} />
             </motion.div>
           )}
         </AnimatePresence>

@@ -86,16 +86,17 @@ export function BuckyTranscriptModal({ userId, userEmail, onClose }: BuckyTransc
                     const isUser = message.role === "user";
                     return (
                       <div key={key} className={`bucky-msg-wrapper ${isUser ? "user" : "bucky"}`}>
-                        <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none">
+                        <div className="bucky-avatar border-none overflow-hidden bg-transparent shadow-none" style={{ width: "38px", height: "38px" }}>
                           {isUser ? (
-                            <User size={16} />
+                            <User size={18} />
                           ) : (
                             <Image
-                              src="/bucky_default.svg"
-                              width={32}
-                              height={32}
+                              src="/image 3.svg"
+                              width={38}
+                              height={38}
                               alt="Bucky"
-                              className="rounded-full w-full h-full object-cover pointer-events-none bg-white"
+                              style={{ width: "38px", height: "38px" }}
+                              className="rounded-full w-full h-full object-contain p-1 pointer-events-none bg-white"
                               draggable={false}
                             />
                           )}

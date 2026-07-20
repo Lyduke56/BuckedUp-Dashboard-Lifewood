@@ -24,6 +24,7 @@ interface ProductFormModalProps {
 
 interface FormState {
   rank: string;
+  priority: "High" | "Medium" | "Low";
   name: string;
   category: string;
   subcategory: string;
@@ -47,6 +48,7 @@ function initialState(
     const item = product.items[0];
     return {
       rank: String(product.rank ?? nextRank ?? 0),
+      priority: product.priority ?? "Low",
       name: product.name ?? "",
       category: product.category ?? "",
       subcategory: product.subcategory ?? "",
@@ -65,6 +67,7 @@ function initialState(
   const firstCategory = Object.keys(CATEGORY_TREE)[0];
   return {
     rank: String(nextRank),
+    priority: "Low",
     name: "",
     category: firstCategory,
     subcategory: CATEGORY_TREE[firstCategory][0],
@@ -99,16 +102,23 @@ export function ProductFormModal({
   const { profiles } = useProfiles();
   const { user, role } = useAuth();
   const { currentByKey } = useStageDeliverables();
+  const hasStoryboard = product ? !!currentByKey.get(`${product.id}:Storyboarding`) : false;
+  const hasScript = product ? !!currentByKey.get(`${product.id}:Scripting`) : false;
+  const hasSubmittedAnyDeliverables = hasStoryboard || hasScript;
   const isOperator = role === "operator";
   const canEditThumbnail = !isOperator;
 
   const currentStatus = product ? product.items[0].status : null;
-  const currentDeliverable = product && currentStatus ? (currentByKey.get(`${product.id}:${currentStatus}`) ?? null) : null;
-  const isDeliverableStage = currentStatus && (DELIVERABLE_STAGES as string[]).includes(currentStatus);
+  const [activeSubStage, setActiveSubStage] = useState<"Storyboarding" | "Scripting">("Storyboarding");
 
-  const [delKind, setDelKind] = useState<"file" | "text">(
-    currentStatus === "Prompting" ? "text" : "file",
-  );
+  const currentDeliverable = product && currentStatus
+    ? (currentStatus === "Design"
+      ? (currentByKey.get(`${product.id}:${activeSubStage}`) ?? null)
+      : null)
+    : null;
+  const isDeliverableStage = currentStatus === "Design";
+
+  const [delKind, setDelKind] = useState<"file" | "text">("file");
   const [delText, setDelText] = useState("");
   const [delError, setDelError] = useState<string | null>(null);
   const [delSubmitting, setDelSubmitting] = useState(false);
@@ -121,14 +131,13 @@ export function ProductFormModal({
   const [lastSyncedStatus, setLastSyncedStatus] = useState(currentStatus);
   if (currentStatus !== lastSyncedStatus) {
     setLastSyncedStatus(currentStatus);
-    setDelKind(currentStatus === "Prompting" ? "text" : "file");
+    setDelKind("file");
   }
 
   const handleDeliverableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!product || !currentStatus) return;
+    if (!product || currentStatus !== "Design") return;
 
-    const effectiveKind = currentStatus === "Prompting" ? "text" : delKind;
     const file = delFileInputRef.current?.files?.[0] ?? null;
 
     if (file && file.size > 25 * 1024 * 1024) {
@@ -136,11 +145,11 @@ export function ProductFormModal({
       return;
     }
 
-    if (effectiveKind === "file" && !file) {
+    if (delKind === "file" && !file) {
       setDelError("Choose a file to upload.");
       return;
     }
-    if (effectiveKind === "text" && !delText.trim()) {
+    if (delKind === "text" && !delText.trim()) {
       setDelError("Enter the deliverable text.");
       return;
     }
@@ -153,8 +162,8 @@ export function ProductFormModal({
     const uid = userData.user?.id ?? null;
 
     let fileUrl: string | null = null;
-    if (effectiveKind === "file" && file) {
-      const path = `${product.id}/${currentStatus}/${Date.now()}-${file.name}`;
+    if (delKind === "file" && file) {
+      const path = `${product.id}/${activeSubStage}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage
         .from("stage-documents")
         .upload(path, file, { contentType: file.type });
@@ -169,10 +178,10 @@ export function ProductFormModal({
 
     const { error: insErr } = await supabase.from("stage_deliverables").insert({
       product_id: product.id,
-      stage: currentStatus,
-      kind: effectiveKind,
+      stage: activeSubStage,
+      kind: delKind,
       file_url: fileUrl,
-      text_content: effectiveKind === "text" ? delText.trim() : null,
+      text_content: delKind === "text" ? delText.trim() : null,
       submitted_by: uid,
     });
 
@@ -181,7 +190,7 @@ export function ProductFormModal({
       setDelError(insErr.message);
       return;
     }
-    
+
     // Clear the form
     setDelText("");
     if (delFileInputRef.current) delFileInputRef.current.value = "";
@@ -204,18 +213,43 @@ export function ProductFormModal({
 
   const handleClaimOwnership = async () => {
     if (!product || !user) return;
+    if (!window.confirm(`Are you sure you want to claim "${product.name}"?`)) {
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const supabase = createClient();
     const { error } = await supabase
       .from("products")
-      .update({ owner_id: user.id })
+      .update({ owner_id: user.id, status: "Design" })
       .eq("id", product.id);
     setSubmitting(false);
     if (error) {
       setError(error.message);
     } else {
       update("ownerId", user.id);
+      update("status", "Design");
+    }
+  };
+
+  const handleUnclaimOwnership = async () => {
+    if (!product || !user) return;
+    if (!window.confirm(`Are you sure you want to unclaim "${product.name}"?`)) {
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("products")
+      .update({ owner_id: null, status: "Not Started" })
+      .eq("id", product.id);
+    setSubmitting(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      update("ownerId", "");
+      update("status", "Not Started");
     }
   };
 
@@ -285,7 +319,9 @@ export function ProductFormModal({
 
     const supabase = createClient();
     const payload = {
+      // is only for compatibility/unique constraint under the hood.
       rank,
+      priority: form.priority,
       name: form.name.trim(),
       category: form.category,
       subcategory: form.subcategory,
@@ -434,14 +470,16 @@ export function ProductFormModal({
             ) : null}
 
             <label className="form-field">
-              <span>Rank</span>
-              <input
-                type="number"
-                value={form.rank}
+              <span>Priority</span>
+              <select
+                value={form.priority}
                 disabled={isOperator}
-                onChange={(event) => update("rank", event.target.value)}
-                required
-              />
+                onChange={(event) => update("priority", event.target.value as "High" | "Medium" | "Low")}
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
             </label>
             <label className="form-field">
               <span>Name</span>
@@ -556,6 +594,16 @@ export function ProductFormModal({
                       {submitting ? "Claiming..." : "Claim"}
                     </button>
                   )}
+                  {product?.ownerId === user?.id && !hasSubmittedAnyDeliverables && (
+                    <button
+                      type="button"
+                      className="issue-submit-btn issue-delete-btn"
+                      disabled={submitting}
+                      onClick={handleUnclaimOwnership}
+                    >
+                      {submitting ? "Unclaiming..." : "Unclaim"}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <select
@@ -653,40 +701,39 @@ export function ProductFormModal({
               </div>
             </div>
 
-             <div className="form-actions">
-                <>
-                  {mode === "edit" && !isOperator ? (
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={handleDelete}
-                      disabled={deleting || submitting}
-                    >
-                      {deleting ? "Deleting…" : "Delete"}
-                    </button>
-                  ) : (
-                    <span />
-                  )}
-                  {!isOperator && (
-                    <button
-                      type="submit"
-                      className="issue-submit-btn"
-                      disabled={submitting || deleting}
-                    >
-                      {submitting
-                        ? "Saving…"
-                        : mode === "edit"
-                          ? "Save changes"
-                          : "Add product"}
-                    </button>
-                  )}
-                </>
+            <div className="form-actions">
+              <>
+                {mode === "edit" && !isOperator ? (
+                  <button
+                    type="button"
+                    className="delete-btn"
+                    onClick={handleDelete}
+                    disabled={deleting || submitting}
+                  >
+                    {deleting ? "Deleting…" : "Delete"}
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {!isOperator && (
+                  <button
+                    type="submit"
+                    className="issue-submit-btn"
+                    disabled={submitting || deleting}
+                  >
+                    {submitting
+                      ? "Saving…"
+                      : mode === "edit"
+                        ? "Save changes"
+                        : "Add product"}
+                  </button>
+                )}
+              </>
             </div>
           </form>
 
           {/* RIGHT COLUMN: Video Versions & Thumbnail Portal */}
-          {!isOperator && (
-            <div className="modal-right-column">
+          <div className="modal-right-column">
             {mode === "edit" && product ? (
               <VideoVersionsPanel
                 productId={product.id}
@@ -728,118 +775,10 @@ export function ProductFormModal({
                 </button>
               </div>
             ) : null}
-
-            {/* Operator/Stage Deliverables Section */}
-            {mode === "edit" && product && currentStatus && isOperator && (
-              <div className="operator-deliverables-panel" style={{ marginTop: "20px", borderTop: "1px solid var(--line)", paddingTop: "20px" }}>
-                <div className="content-angle-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <span>Stage Deliverable ({currentStatus})</span>
-                  {currentDeliverable && (
-                    <span className="status-pill" style={{
-                      backgroundColor:
-                        currentDeliverable.decision === "accepted"
-                          ? "var(--castleton)20"
-                          : currentDeliverable.decision === "rejected"
-                            ? "#dc354520"
-                            : "var(--saffron)20",
-                      color:
-                        currentDeliverable.decision === "accepted"
-                          ? "var(--castleton)"
-                          : currentDeliverable.decision === "rejected"
-                            ? "#dc3545"
-                            : "var(--saffron)",
-                      border: "none",
-                      fontSize: "10px",
-                      textTransform: "uppercase"
-                    }}>
-                      {currentDeliverable.decision}
-                    </span>
-                  )}
-                </div>
-
-                {delError ? <div className="callout form-error" style={{ margin: "8px 0" }}>{delError}</div> : null}
-
-                {currentDeliverable?.decision === "rejected" && currentDeliverable.decisionNote && (
-                  <div className="callout form-error" style={{ margin: "8px 0", backgroundColor: "#dc354510", color: "#dc3545", borderColor: "#dc354530" }}>
-                    <strong>Rejection reason:</strong> {currentDeliverable.decisionNote}
-                  </div>
-                )}
-
-                {product.ownerId !== user?.id && product.ownerId ? (
-                  <div className="issue-empty" style={{ marginTop: "12px", color: "var(--ink-soft)" }}>
-                    Only the assigned owner can submit deliverables for this product.
-                  </div>
-                ) : isDeliverableStage ? (
-                  <form onSubmit={handleDeliverableSubmit} style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {currentStatus !== "Prompting" && (
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>Deliverable type</span>
-                        <select
-                          value={delKind}
-                          onChange={(event) => setDelKind(event.target.value as "file" | "text")}
-                        >
-                          <option value="file">File (PDF or DOCX)</option>
-                          <option value="text">Text</option>
-                        </select>
-                      </label>
-                    )}
-
-                    {(currentStatus === "Prompting" ? "text" : delKind) === "file" ? (
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>File</span>
-                        <input ref={delFileInputRef} type="file" accept={DOC_ACCEPT} />
-                      </label>
-                    ) : (
-                      <label className="form-field" style={{ margin: 0 }}>
-                        <span>{currentStatus === "Prompting" ? "Prompt" : "Text"}</span>
-                        <textarea
-                          value={delText}
-                          onChange={(event) => setDelText(event.target.value)}
-                          rows={4}
-                          placeholder={
-                            currentStatus === "Prompting"
-                              ? "The prompt(s) for this stage…"
-                              : "Paste the deliverable text…"
-                          }
-                        />
-                      </label>
-                    )}
-
-                    <button type="submit" className="issue-submit-btn" disabled={delSubmitting} style={{ marginTop: "4px" }}>
-                      {delSubmitting ? "Submitting…" : "Submit deliverable"}
-                    </button>
-                  </form>
-                ) : currentStatus === "Editing" ? (
-                  <div style={{ marginTop: "12px" }}>
-                    <div className="form-hint" style={{ marginBottom: "8px" }}>
-                      Uploaded the final cut? Submit it for the Lead&apos;s review.
-                    </div>
-                    <button
-                      type="button"
-                      className="issue-submit-btn"
-                      style={{ width: "100%" }}
-                      disabled={delSubmittingReview}
-                      onClick={handleVideoSubmitForReview}
-                    >
-                      {delSubmittingReview ? "Submitting…" : "Submit for review"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="issue-empty" style={{ marginTop: "12px" }}>
-                    {currentStatus === "In Review"
-                      ? "Awaiting Lead's review — nothing to submit."
-                      : currentStatus === "Published"
-                        ? "Published — no deliverables required."
-                        : "No deliverable required at this stage."}
-                  </div>
-                )}
-              </div>
-            )}
+          </div>
         </div>
-      )}
       </div>
-    </div>
-  </div>,
-  document.body,
-);
+    </div>,
+    document.body,
+  );
 }

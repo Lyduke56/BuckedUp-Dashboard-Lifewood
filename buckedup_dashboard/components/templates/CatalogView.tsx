@@ -61,7 +61,7 @@ export function CatalogView({
   onProductFocus,
 }: CatalogViewProps) {
   const { role } = useAuth();
-  const canEdit = role === "lead";
+  const canEdit = role === "lead" || role === "admin";
 
   // ── Filter state ──
   const [search, setSearch] = useState("");
@@ -109,7 +109,7 @@ export function CatalogView({
     if (!productData.rawCatalogProduct) return;
     const supabase = createClient();
     const newActiveState = !productData.isActive;
-    
+
     // Optimistic UI update (requires a way to update the parent catalog state, or just refresh the page)
     // Since catalog is passed as prop, we'll mutate it locally for immediate effect, but the real fix is via subscription/refresh.
     productData.isActive = newActiveState;
@@ -684,7 +684,7 @@ function CatalogDetailModal({ product, aigcStatus, linkedProduct, canEdit, onClo
 
           {/* Right Column: Details */}
           <div className="flex-1 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
-            
+
             {/* AIGC Production status */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1.5">

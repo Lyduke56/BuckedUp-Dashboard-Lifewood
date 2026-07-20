@@ -418,12 +418,6 @@ export function ProductionPlanView() {
 
   return (
     <div>
-      <div className="section-heading">Production plan</div>
-      <div className="section-sub">
-        The corporate targets the dashboard measures itself against —
-        today&apos;s throughput, deadline pacing, and per-language/category
-        breakdowns. Public read, admin-only edit.
-      </div>
 
       <form className="form-grid plan-form" onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
         {error ? <div className="callout form-error">{error}</div> : null}

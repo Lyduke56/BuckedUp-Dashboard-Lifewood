@@ -26,7 +26,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
 
     move_product_stage: tool({
       description:
-        "Directly set a product's pipeline stage to any of the 7 stages, bypassing normal review. Prefer review_deliverable or review_video when actually reviewing a submission — use this for corrections or exceptions. Requires confirmation before it runs.",
+        "Directly set a product's pipeline stage to any of the 5 stages, bypassing normal review. Prefer review_deliverable or review_video when actually reviewing a submission — use this for corrections or exceptions. Requires confirmation before it runs.",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
         newStatus: z.enum(STATUS_ORDER as [string, ...string[]]),
@@ -53,13 +53,14 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
 
     review_deliverable: tool({
       description:
-        "Accept or reject the current pending deliverable for a product's document stage (Storyboarding/Scripting/Prompting). Accepting advances the product to the next stage. A note is required when rejecting. Requires confirmation before it runs.",
+        "Accept or reject a specific document deliverable (Storyboarding or Scripting) for a product in its Design stage. Accepting both advances the product to Production. A note is required when rejecting. Requires confirmation before it runs.",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
+        stage: z.enum(["Storyboarding", "Scripting"]).describe("The deliverable stage to review: 'Storyboarding' or 'Scripting'."),
         decision: z.enum(["accepted", "rejected"]),
         note: z.string().optional(),
       }),
-      execute: ({ rank, id, decision, note }) =>
+      execute: ({ rank, id, stage, decision, note }) =>
         safe(async () => {
           if (!rank && !id) return { error: "Provide either rank or id." };
           let query = supabase.from("products").select("id, name, status");
@@ -67,9 +68,9 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
           const { data: product, error } = await query.maybeSingle();
           if (error) return { error: error.message };
           if (!product) return { error: "No product found." };
-          if (!DOC_STAGES.includes(product.status as (typeof DOC_STAGES)[number])) {
+          if (product.status !== "Design") {
             return {
-              error: `${product.name} is currently in "${product.status}" — deliverable review only applies to Storyboarding, Scripting, or Prompting.`,
+              error: `${product.name} is currently in "${product.status}" — deliverable review only applies during the Design stage.`,
             };
           }
           if (decision === "rejected" && !note) {
@@ -79,12 +80,12 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
             .from("stage_deliverables")
             .select("id")
             .eq("product_id", product.id)
-            .eq("stage", product.status)
+            .eq("stage", stage)
             .eq("is_current", true)
             .maybeSingle();
           if (deliverableError) return { error: deliverableError.message };
           if (!deliverable) {
-            return { error: `No pending deliverable found for ${product.name} in ${product.status}.` };
+            return { error: `No pending deliverable found for ${product.name} in ${stage}.` };
           }
           const { error: rpcError } = await supabase.rpc("review_stage_deliverable", {
             p_deliverable_id: deliverable.id,
@@ -92,7 +93,7 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
             p_note: note ?? null,
           });
           if (rpcError) return { error: rpcError.message };
-          return { reviewed: true, product: product.name, stage: product.status, decision };
+          return { reviewed: true, product: product.name, stage, decision };
         }),
     }),
 

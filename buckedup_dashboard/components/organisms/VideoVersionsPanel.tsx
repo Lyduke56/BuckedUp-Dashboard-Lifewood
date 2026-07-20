@@ -220,8 +220,14 @@ export function VideoVersionsPanel({
         <ul className="video-version-list">
           {versions.map((version) => (
             <li key={version.id} className="video-version-item">
-              <a href={version.video_url} target="_blank" rel="noopener noreferrer">
-                {fileNameFromUrl(version.video_url)}
+              <a 
+                href={version.video_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-outline px-3 py-1.5 rounded-md flex items-center gap-2 text-xs no-underline"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                {version.video_url.includes('youtube.com') || version.video_url.includes('youtu.be') ? 'Watch Video' : fileNameFromUrl(version.video_url)}
               </a>
               {version.note ? (
                 <span className="video-version-note">{version.note}</span>
