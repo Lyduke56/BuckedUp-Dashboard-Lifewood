@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import { getModalKey } from "@/lib/utils";
 import { PageHeader } from "@/components/molecules/PageHeader";
+import { STATUS_CLASS } from "@/lib/data";
+import { useProfiles } from "@/lib/useProfiles";
+
+const LANGUAGE_FLAG: Record<string, string> = {
+  English: "🇺🇸",
+  Spanish: "🇪🇸",
+};
+
+function languageFlag(language: string): string {
+  return LANGUAGE_FLAG[language] ?? "🌐";
+}
 
 interface ClientVideoLibraryViewProps {
   products: Product[];
@@ -25,6 +36,12 @@ export function ClientVideoLibraryView({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
+  const { profiles } = useProfiles();
+  const profileEmailById = useMemo(
+    () => new Map(profiles.map((profile) => [profile.id, profile.email])),
+    [profiles],
+  );
 
   const [appliedExternalSearch, setAppliedExternalSearch] = useState<string | null | undefined>(undefined);
   if (externalSearch && externalSearch !== appliedExternalSearch) {
@@ -72,42 +89,7 @@ export function ClientVideoLibraryView({
           subtitle="Browse through the finished videos and download. You can leave feedbacks or comments."
         />
         <div className="library-container" style={{ padding: '32px' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '32px'
-          }}>
-            {[...Array(8)].map((_, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{
-                  width: '100%',
-                  aspectRatio: '16/9',
-                  borderRadius: '12px',
-                  background: 'var(--header-border, rgba(150, 150, 150, 0.2))',
-                  animation: 'skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                }} />
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: 'var(--header-border, rgba(150, 150, 150, 0.2))',
-                    animation: 'skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                  }} />
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '6px' }}>
-                    <div style={{ height: '16px', width: '85%', background: 'var(--header-border, rgba(150, 150, 150, 0.2))', borderRadius: '4px', animation: 'skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-                    <div style={{ height: '12px', width: '60%', background: 'var(--header-border, rgba(150, 150, 150, 0.2))', borderRadius: '4px', animation: 'skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite', opacity: 0.7 }} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <style>{`
-            @keyframes skeleton-pulse {
-              0%, 100% { opacity: 0.6; }
-              50% { opacity: 0.2; }
-            }
-          `}</style>
+          <div className="empty-state">Loading published videos…</div>
         </div>
       </div>
     );
@@ -218,99 +200,109 @@ export function ClientVideoLibraryView({
           </div>
         </div>
 
-        <div className="library-body isolated-scroll" style={{ padding: '32px' }}>
+        <div className="library-body isolated-scroll" style={{ padding: '24px 32px' }}>
           {displayProducts.length === 0 ? (
             <div className="empty-state">No published videos found.</div>
           ) : (
-            <div className="thumb-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '32px'
-            }}>
-              {displayProducts.map((product) => {
-                const publishedDate = product.publishDate
+            <div className="video-list">
+              {displayProducts.map((product, index) => {
+                const item = product.items[0];
+                const modalKey = getModalKey(product.rank, 0);
+                const displayRank = index + 1; // Since it's a filtered list, we show their sequential rank instead of absolute DB rank to avoid gaps
+
+                const priorityClass =
+                  product.priority === "High"
+                    ? "priority-high"
+                    : product.priority === "Medium"
+                      ? "priority-medium"
+                      : "priority-low";
+                const priority = product.priority.toUpperCase();
+
+                const publishedText = product.publishDate
                   ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
-                  : "";
+                  : "—";
 
                 return (
-                  <button
-                    key={product.rank}
-                    type="button"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}
-                    onClick={() => onOpenModal(getModalKey(product.rank, 0))}
-                  >
-                    <div style={{
-                      width: '100%',
-                      aspectRatio: '16/9',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      background: 'var(--card-bg)',
-                      border: '1px solid var(--border-color)',
-                      position: 'relative'
-                    }}>
-                      {product.thumbnailUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.thumbnailUrl} alt={`${product.name} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-soft)' }}>
-                          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <path d="M21 15l-5-5L5 21" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
+                  <div key={product.rank} className="video-list-card-wrap">
+                    <div
+                      className="video-list-card"
+                      onClick={() => onOpenModal(modalKey)}
+                    >
+                      <div className="vlc-rank" title={`Index: ${displayRank}`}>{displayRank}</div>
 
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                      <div style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: 'var(--accent, #f8cb00)',
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#000',
-                        fontWeight: 'bold',
-                        fontSize: '16px'
-                      }}>
-                        {product.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{
-                          fontWeight: 600,
-                          fontSize: '15px',
-                          color: 'var(--ink)',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          lineHeight: '1.3'
-                        }}>
-                          {product.name}
-                        </div>
-                        <div style={{ fontSize: '13px', color: 'var(--ink-soft)' }}>
-                          {product.category} • {product.subcategory}
-                        </div>
-                        {publishedDate && (
-                          <div style={{ fontSize: '12px', color: 'var(--ink-soft)', opacity: 0.8 }}>
-                            {publishedDate}
+                      <div className="vlc-thumb">
+                        {product.thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.thumbnailUrl} alt={`${product.name} thumbnail`} />
+                        ) : (
+                          <div className="vlc-thumb-placeholder">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <path d="M21 15l-5-5L5 21" />
+                            </svg>
                           </div>
                         )}
                       </div>
+
+                      <div className="vlc-main">
+                        <div className="vlc-title" title={product.name}>
+                          {product.name}
+                        </div>
+                        <div className="vlc-pills">
+                          <span className={`status-pill ${priorityClass} font-bold mr-1`}>{priority} PRIORITY</span>
+                          <span className="vlc-tag">{product.category}</span>
+                          <span className="vlc-tag vlc-tag-sub">{product.subcategory}</span>
+                          {product.deliveryType === "link" ? (
+                            <span className="vlc-tag vlc-tag-link">Link-only</span>
+                          ) : null}
+                        </div>
+                        <div className="vlc-meta">
+                          Date Published: {publishedText}
+                          <span className="vlc-meta-sep"> · </span>
+                          {languageFlag(product.language)} {product.language}
+                          <span className="vlc-meta-sep"> · </span>
+                          Owner: <span style={{ color: product.ownerId ? "var(--castleton)" : "var(--ink-soft)", fontWeight: product.ownerId ? "bold" : "normal" }}>
+                            {product.ownerId ? (profileEmailById.get(product.ownerId) ?? "Assigned") : "Unassigned"}
+                          </span>
+                        </div>
+                        {product.contentAngle ? (
+                          <div className="vlc-desc">{product.contentAngle}</div>
+                        ) : null}
+                      </div>
+
+                      <div
+                        className="vlc-side"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <div className="vlc-side-top" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
+                            {item.status.toUpperCase()}
+                          </span>
+
+                          <div className="row-actions">
+                            {item.videoUrl ? (
+                              <a
+                                href={item.videoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="row-action-btn row-action-edit"
+                                title="Download video"
+                                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
