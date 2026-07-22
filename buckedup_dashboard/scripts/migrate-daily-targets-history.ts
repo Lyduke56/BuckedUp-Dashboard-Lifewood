@@ -37,9 +37,9 @@ DROP POLICY IF EXISTS "Public read daily target history" ON daily_target_history
 CREATE POLICY "Public read daily target history" ON daily_target_history
   FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Lead upsert daily target history" ON daily_target_history;
-CREATE POLICY "Lead upsert daily target history" ON daily_target_history
-  FOR ALL USING (get_my_role() = 'lead');
+DROP POLICY IF EXISTS "Admin upsert daily target history" ON daily_target_history;
+CREATE POLICY "Admin upsert daily target history" ON daily_target_history
+  FOR ALL USING (get_my_role() = 'admin');
 
 -- 4. Create helper function to sum category targets inside jsonb
 CREATE OR REPLACE FUNCTION sum_jsonb_values(val jsonb)

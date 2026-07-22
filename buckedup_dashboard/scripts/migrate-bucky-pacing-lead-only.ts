@@ -1,6 +1,6 @@
 /**
  * Scopes the scheduled proactive pacing alert (bucky_check_proactive_alerts,
- * used by both the client-side effect and the daily pg_cron job) to leads
+ * used by both the client-side effect and the daily pg_cron job) to admins
  * only. Operators previously received it too — but Planning and Analytics
  * (where production-plan targets and daily-pacing charts live) are both
  * deliberately hidden from operators in the dashboard UI (see TabBar.tsx),
@@ -9,7 +9,7 @@
  * this function) is untouched — that's about an operator's own claimed
  * work, not company-wide targets, so it has no reason to be hidden.
  *
- * Run: npx tsx scripts/migrate-bucky-pacing-lead-only.ts
+ * Run: npx tsx scripts/migrate-bucky-pacing-admin-only.ts
  */
 
 import { readFileSync } from "fs";
@@ -48,9 +48,9 @@ declare
   v_today_target integer;
   v_today_published integer;
 begin
-  -- 1. Lead stale-item check: products stuck in 'In Review' >= 3 days.
-  -- Team-wide (review is a lead responsibility), one shared notification
-  -- per lead.
+  -- 1. Admin stale-item check: products stuck in 'In Review' >= 3 days.
+  -- Team-wide (review is a admin responsibility), one shared notification
+  -- per admin.
   with lead_stale as (
     select p.rank, p.name, latest.entered_at,
       round(extract(epoch from (now() - latest.entered_at)) / 86400.0, 1) as days
@@ -76,7 +76,7 @@ begin
   from lead_stale;
 
   if v_lead_message is not null then
-    for v_recipient in select id from profiles where role = 'lead' loop
+    for v_recipient in select id from profiles where role = 'admin' loop
       insert into notifications (recipient_id, type, message, product_id)
       values (
         v_recipient.id,
@@ -135,7 +135,7 @@ begin
   end loop;
 
   -- 3. Pacing check: today's published count vs. today's target. NOW
-  -- LEAD-ONLY (was lead + operator) -- pacing/targets are a Planning-tab
+  -- LEAD-ONLY (was admin + operator) -- pacing/targets are a Planning-tab
   -- concept, deliberately hidden from operators in the dashboard UI.
   select * into v_active_plan from production_plans where is_active = true limit 1;
 
@@ -151,7 +151,7 @@ begin
     and entered_at::date = v_today;
 
   if v_today_published < v_today_target then
-    for v_recipient in select id from profiles where role = 'lead' loop
+    for v_recipient in select id from profiles where role = 'admin' loop
       insert into notifications (recipient_id, type, message, product_id)
       values (
         v_recipient.id,
@@ -171,7 +171,7 @@ $$ language plpgsql security definer set search_path = public;
 async function main() {
   const url = `https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`;
 
-  console.log("Scoping bucky_check_proactive_alerts()'s pacing check to leads only...");
+  console.log("Scoping bucky_check_proactive_alerts()'s pacing check to admins only...");
   const res = await fetch(url, {
     method: "POST",
     headers: {

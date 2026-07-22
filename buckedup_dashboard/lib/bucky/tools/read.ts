@@ -20,7 +20,7 @@ const ACTIVE_STAGES: Set<(typeof STATUS_ORDER)[number]> = new Set(
 
 // Every tool below queries through the caller's own session client (passed
 // in from the route handler, which already verified the caller is an
-// admin) — so Postgres RLS applies exactly as it would if the admin had
+// super-admin) — so Postgres RLS applies exactly as it would if the super-admin had
 // clicked through the UI themselves. No service-role client is used here;
 // Bucky's read scope is bounded by what the signed-in session can already
 // see, nothing more.
@@ -434,7 +434,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
     }),
 
     list_users: tool({
-      description: "List all user accounts and their roles (operator/lead/admin).",
+      description: "List all user accounts and their roles (operator/admin/super-admin).",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -578,7 +578,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 
     list_recent_deletions: tool({
       description:
-        "List products recently deleted through Bucky that are still within their undo window and can be brought back with restore_product. Lead/admin only in practice (nothing shows up for operators).",
+        "List products recently deleted through Bucky that are still within their undo window and can be brought back with restore_product. Admin/super-admin only in practice (nothing shows up for operators).",
       inputSchema: z.object({}),
       execute: () =>
         safe(async () => {
@@ -587,7 +587,7 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
           // safe to run unconditionally before listing — mirrors
           // lib/bucky/rateLimit.ts's own clean-before-count pattern. A
           // no-op (and silently ignored) for operator callers, since only
-          // lead/admin have that delete policy at all.
+          // admin/super-admin have that delete policy at all.
           await supabase
             .from("bucky_deleted_product_snapshots")
             .delete()
@@ -615,8 +615,8 @@ export function createBuckyReadTools(supabase: SupabaseServerClient) {
 // could ask this directly, and the Phase 5/11 proactive-pacing-alert
 // volunteered it unprompted. Matches this codebase's standing rule that
 // the tool list itself is the security boundary, not prompt wording —
-// same role-gate-returns-{} pattern as the admin/operator/lead action
-// builders (see admin.ts/operator.ts/lead.ts).
+// same role-gate-returns-{} pattern as the super-admin/operator/admin action
+// builders (see super-admin.ts/operator.ts/admin.ts).
 function buildPlanReadTools(supabase: SupabaseServerClient) {
   return {
     get_production_plan: tool({
@@ -672,6 +672,6 @@ export function createBuckyPlanReadTools(
   supabase: SupabaseServerClient,
   role: UserRole,
 ): ReturnType<typeof buildPlanReadTools> {
-  if (role !== "lead" && role !== "admin") return {} as ReturnType<typeof buildPlanReadTools>;
+  if (role !== "admin" && role !== "super-admin") return {} as ReturnType<typeof buildPlanReadTools>;
   return buildPlanReadTools(supabase);
 }

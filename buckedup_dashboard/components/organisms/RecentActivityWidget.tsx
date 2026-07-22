@@ -105,7 +105,7 @@ export function RecentActivityWidget({ products, isOperatorView, onNavigateToPro
     );
   }
 
-  // Default view: Recent Deliveries (admin / lead)
+  // Default view: Recent Deliveries (super-admin / admin)
   const recent = [...products]
     .filter((p) => p.reviewStatus === "Accepted" || p.items.some(i => i.status === "Published"))
     .sort((a, b) => {

@@ -52,7 +52,7 @@ export function buildInviteEmailHtml(email: string, actionLink: string): string 
           <tr>
             <td align="center" style="padding:14px 40px 0 40px;">
               <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.6; color:rgba(255,255,255,0.55);">
-                An admin created an account for <strong style="color:rgba(255,255,255,0.8);">${safeEmail}</strong> on the BuckedUp &times; Lifewood dashboard. Accept the invite below to set your password and get started.
+                An super-admin created an account for <strong style="color:rgba(255,255,255,0.8);">${safeEmail}</strong> on the BuckedUp &times; Lifewood dashboard. Accept the invite below to set your password and get started.
               </p>
             </td>
           </tr>

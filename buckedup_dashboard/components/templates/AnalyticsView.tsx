@@ -221,7 +221,7 @@ export function AnalyticsView({ products }: AnalyticsViewProps) {
                 <div>
                   <h4 className="text-sm font-bold text-[var(--text-main)] mb-1">Live editing</h4>
                   <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
-                    Products and stages are edited directly in this dashboard by signed-in editors and admins, and sync live via Supabase.
+                    Products and stages are edited directly in this dashboard by signed-in editors and super-admins, and sync live via Supabase.
                   </p>
                 </div>
               </div>

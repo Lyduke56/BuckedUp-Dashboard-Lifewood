@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/lib/supabase/super-admin";
 import { sendInviteEmail } from "@/lib/sendInviteEmail";
 import type { UserRole } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-const ROLE_VALUES: UserRole[] = ["operator", "lead", "admin"];
+const ROLE_VALUES: UserRole[] = ["operator", "admin", "client"];
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2. Caller must be admin — read under the caller's own session (the
+  // 2. Caller must be super-admin — read under the caller's own session (the
   // existing "Authenticated read" policy on profiles already allows this,
   // no service-role client needed for the check itself).
   const { data: callerProfile } = await supabase
@@ -29,8 +29,8 @@ export async function POST(request: Request) {
     .select("role")
     .eq("id", user.id)
     .single();
-  if (callerProfile?.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (callerProfile?.role !== "super-admin") {
+    return NextResponse.json({ error: "Super-Admin access required" }, { status: 403 });
   }
 
   // 3. Validate the request body.
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     let created: User;
 
     // Gmail relay when configured — bypasses Supabase's built-in mailer
-    // (2/hour cap, and its SMTP settings need org-admin permissions this
+    // (2/hour cap, and its SMTP settings need org-super-admin permissions this
     // project's Supabase role doesn't have) by splitting invite-link
     // creation (generateLink, a service-role call, no email sent) from
     // the actual send (our own Gmail SMTP relay). Falls back to

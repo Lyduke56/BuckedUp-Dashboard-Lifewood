@@ -41,9 +41,9 @@ DROP POLICY IF EXISTS "Own select" ON bucky_messages;
 CREATE POLICY "Own select" ON bucky_messages FOR SELECT
   USING (user_id = auth.uid());
 
-DROP POLICY IF EXISTS "Admin read" ON bucky_messages;
-CREATE POLICY "Admin read" ON bucky_messages FOR SELECT
-  USING (get_my_role() = 'admin');
+DROP POLICY IF EXISTS "Super-Admin read" ON bucky_messages;
+CREATE POLICY "Super-Admin read" ON bucky_messages FOR SELECT
+  USING (get_my_role() = 'super-admin');
 
 DROP POLICY IF EXISTS "Own insert" ON bucky_messages;
 CREATE POLICY "Own insert" ON bucky_messages FOR INSERT

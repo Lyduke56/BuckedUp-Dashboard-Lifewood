@@ -17,9 +17,9 @@ function formatRelative(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-// Admin-only: lets admins read back who's been talking to Bucky (the AI
+// Super-Admin-only: lets super-admins read back who's been talking to Bucky (the AI
 // assistant) and what was said/done, since bucky_messages has been
-// durably saved and admin-readable since Phase 10 but had no screen to
+// durably saved and super-admin-readable since Phase 10 but had no screen to
 // browse it. Purely a list-then-modal read view -- no writes happen here.
 export function BuckyConversationsView() {
   const { conversationUsers, loading } = useBuckyConversationUsers();

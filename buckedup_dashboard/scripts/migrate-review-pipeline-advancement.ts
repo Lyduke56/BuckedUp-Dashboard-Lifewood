@@ -19,7 +19,7 @@ if (!ACCESS_TOKEN) {
 }
 
 const SQL = `
--- 1. Ensure enforce_product_update_permissions allows both Lead and Admin unrestricted product column updates
+-- 1. Ensure enforce_product_update_permissions allows both Admin and Super-Admin unrestricted product column updates
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
@@ -33,7 +33,7 @@ begin
     return new;
   end if;
 
-  if my_role in ('lead', 'admin') then
+  if my_role in ('admin', 'super-admin') then
     return new;
   end if;
 

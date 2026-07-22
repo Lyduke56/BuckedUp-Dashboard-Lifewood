@@ -78,18 +78,18 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- 2. Expand catalog_products RLS to allow Admin write access alongside Lead
-drop policy if exists "Lead insert" on catalog_products;
-create policy "Lead and admin insert" on catalog_products for insert
-  with check (get_my_role() in ('lead', 'admin'));
+-- 2. Expand catalog_products RLS to allow Super-Admin write access alongside Admin
+drop policy if exists "Admin insert" on catalog_products;
+create policy "Admin and super-admin insert" on catalog_products for insert
+  with check (get_my_role() in ('admin', 'super-admin'));
 
-drop policy if exists "Lead update" on catalog_products;
-create policy "Lead and admin update" on catalog_products for update
-  using (get_my_role() in ('lead', 'admin'));
+drop policy if exists "Admin update" on catalog_products;
+create policy "Admin and super-admin update" on catalog_products for update
+  using (get_my_role() in ('admin', 'super-admin'));
 
-drop policy if exists "Lead delete" on catalog_products;
-create policy "Lead and admin delete" on catalog_products for delete
-  using (get_my_role() in ('lead', 'admin'));
+drop policy if exists "Admin delete" on catalog_products;
+create policy "Admin and super-admin delete" on catalog_products for delete
+  using (get_my_role() in ('admin', 'super-admin'));
 `;
 
 async function main() {

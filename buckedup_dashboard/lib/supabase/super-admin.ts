@@ -5,7 +5,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * entirely. Server-only (SUPABASE_SERVICE_ROLE_KEY is never prefixed
  * NEXT_PUBLIC_, so it's never bundled to the browser). Only instantiate
  * this AFTER a route handler has independently verified the caller is
- * authenticated and authorized (see app/api/admin/create-user/route.ts) —
+ * authenticated and authorized (see app/api/super-admin/create-user/route.ts) —
  * this client itself performs no authorization checks of its own.
  */
 export function createAdminClient() {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/lib/supabase/super-admin";
 
 export async function DELETE(
   request: Request,
@@ -17,14 +17,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // 2. Caller must be admin.
+  // 2. Caller must be super-admin.
   const { data: callerProfile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
-  if (callerProfile?.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (callerProfile?.role !== "super-admin") {
+    return NextResponse.json({ error: "Super-Admin access required" }, { status: 403 });
   }
 
   // 3. Can't delete your own account from this UI.
@@ -35,8 +35,8 @@ export async function DELETE(
     );
   }
 
-  // 4. Can't delete the last remaining admin — would lock everyone out of
-  // account management. Read under the caller's own session (admin can
+  // 4. Can't delete the last remaining super-admin — would lock everyone out of
+  // account management. Read under the caller's own session (super-admin can
   // already read any profile via the existing "Authenticated read" policy).
   const { data: targetProfile } = await supabase
     .from("profiles")
@@ -44,14 +44,14 @@ export async function DELETE(
     .eq("id", id)
     .single();
 
-  if (targetProfile?.role === "admin") {
+  if (targetProfile?.role === "super-admin") {
     const { count } = await supabase
       .from("profiles")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "super-admin");
     if ((count ?? 0) <= 1) {
       return NextResponse.json(
-        { error: "Can't delete the last admin account" },
+        { error: "Can't delete the last super-admin account" },
         { status: 400 },
       );
     }

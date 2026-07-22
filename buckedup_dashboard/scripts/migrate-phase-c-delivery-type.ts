@@ -5,8 +5,8 @@
  * C:\Users\John Peter\.claude\plans\jaunty-conjuring-cook.md, Phase C.
  *
  * No trigger/RLS change needed: enforce_product_update_permissions()
- * governs UPDATEs, and products insert is already lead-only — the
- * link+Published combination is just values in a normal Lead insert.
+ * governs UPDATEs, and products insert is already admin-only — the
+ * link+Published combination is just values in a normal Admin insert.
  *
  * Requires SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_URL in .env.local.
  *

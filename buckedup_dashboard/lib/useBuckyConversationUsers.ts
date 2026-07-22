@@ -23,18 +23,18 @@ interface MessageRow {
   created_at: string;
 }
 
-// Admin-only list of who has ever talked to Bucky, aggregated client-side
+// Super-Admin-only list of who has ever talked to Bucky, aggregated client-side
 // from bucky_messages -- deliberately fetches only (user_id, created_at),
 // never `parts`, so this list stays light regardless of how long
 // individual transcripts get. A selected user's full transcript is loaded
 // separately, on demand, via loadChatHistory() in BuckyTranscriptModal.
-// RLS ("Admin read" on bucky_messages) is the real gate; this hook has no
+// RLS ("Super-Admin read" on bucky_messages) is the real gate; this hook has no
 // role check of its own, matching this codebase's "UI hides, DB blocks"
-// convention -- a non-admin session simply gets zero rows back.
+// convention -- a non-super-admin session simply gets zero rows back.
 //
 // One-shot load, not realtime-subscribed like most hooks in this app:
 // bucky_messages isn't in the supabase_realtime publication, and this is a
-// low-frequency admin-review screen, not a live monitoring dashboard, so
+// low-frequency super-admin-review screen, not a live monitoring dashboard, so
 // that's a deliberate simplification rather than an oversight.
 export function useBuckyConversationUsers(): UseBuckyConversationUsersState {
   const { profiles } = useProfiles();

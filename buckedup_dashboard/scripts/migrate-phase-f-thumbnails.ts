@@ -1,7 +1,7 @@
 /**
  * Phase F migration: products.thumbnail_url + a thumbnails storage bucket
- * (image/png|jpeg|webp, 5MB). Lead-only write (thumbnails are set at
- * listing-creation/edit time, a Lead-exclusive action). See
+ * (image/png|jpeg|webp, 5MB). Admin-only write (thumbnails are set at
+ * listing-creation/edit time, a Admin-exclusive action). See
  * C:\Users\John Peter\.claude\plans\jaunty-conjuring-cook.md, Phase F.
  *
  * Requires SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_URL in .env.local.
@@ -46,15 +46,15 @@ on conflict (id) do nothing;
 drop policy if exists "Public read thumbnails" on storage.objects;
 create policy "Public read thumbnails" on storage.objects for select
   using (bucket_id = 'thumbnails');
-drop policy if exists "Lead upload thumbnails" on storage.objects;
-create policy "Lead upload thumbnails" on storage.objects for insert
-  with check (bucket_id = 'thumbnails' and get_my_role() = 'lead');
-drop policy if exists "Lead update thumbnails" on storage.objects;
-create policy "Lead update thumbnails" on storage.objects for update
-  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
-drop policy if exists "Lead delete thumbnails" on storage.objects;
-create policy "Lead delete thumbnails" on storage.objects for delete
-  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
+drop policy if exists "Admin upload thumbnails" on storage.objects;
+create policy "Admin upload thumbnails" on storage.objects for insert
+  with check (bucket_id = 'thumbnails' and get_my_role() = 'admin');
+drop policy if exists "Admin update thumbnails" on storage.objects;
+create policy "Admin update thumbnails" on storage.objects for update
+  using (bucket_id = 'thumbnails' and get_my_role() = 'admin');
+drop policy if exists "Admin delete thumbnails" on storage.objects;
+create policy "Admin delete thumbnails" on storage.objects for delete
+  using (bucket_id = 'thumbnails' and get_my_role() = 'admin');
 `;
 
 async function main() {

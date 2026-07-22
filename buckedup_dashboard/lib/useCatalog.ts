@@ -53,7 +53,7 @@ interface UseCatalogState {
  * useVideoRequests so the Dashboard can treat both data sets uniformly.
  *
  * Only active products are returned by default. Pass `includeInactive: true`
- * to include discontinued items (useful for admin audit views).
+ * to include discontinued items (useful for super-admin audit views).
  */
 export function useCatalog(includeInactive = false): UseCatalogState {
   const [catalog, setCatalog] = useState<CatalogProduct[]>([]);

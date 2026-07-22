@@ -6,7 +6,7 @@ A few things worth knowing before the details below:
 
 - **Bucky remembers your conversation.** If you close the dashboard and come back later, your chat with Bucky is still there. There's a small trash-can icon in Bucky's header if you ever want to start a fresh conversation.
 - **Bucky never does anything serious without asking you first.** For any action that changes real data in a meaningful way, Bucky will show a card describing exactly what it's about to do, with **Confirm** and **Cancel** buttons. Nothing happens until you click Confirm. A smaller set of low-risk, routine actions (marked **Instant** below) run right away, the same way clicking a button in the dashboard would.
-- **What Bucky can do depends on who's logged in.** Everyone can ask Bucky questions. Beyond that, Admins, Leads, and Operators each get a different set of actions, matching what that role is already responsible for in the dashboard. Each is covered separately below.
+- **What Bucky can do depends on who's logged in.** Everyone can ask Bucky questions. Beyond that, Super-Admins, Admins, and Operators each get a different set of actions, matching what that role is already responsible for in the dashboard. Each is covered separately below.
 - **The pipeline has 5 stages.** Every video moves through **Not Started → Design → Production → In Review → Published**. The Design stage is where the storyboard and script get written and approved; Production is where the video itself gets made.
 - **You can talk to Bucky instead of typing.** Look for a microphone icon next to the message box — click it, say what you want, and it fills in the message box for you to review (it never sends automatically, so you always get to check it first). There's also a speaker icon in Bucky's header you can turn on to have replies read aloud, plus a small speaker icon on each individual reply if you just want to hear that one. Voice input depends on your browser: **Chrome and Edge work best**. Firefox doesn't support it (no mic icon appears), and **Brave shows the mic icon but blocks the speech service behind it** — if you speak and nothing appears, Bucky will show a note explaining it; switch to Chrome or Edge for voice. Reading replies aloud works almost everywhere, including Brave.
 - **Bucky proactively surfaces things once a day even if nobody's looking.** Separately from the "watches things for you" sections below (which check the moment you open the chat), the same checks also run automatically once a day in the background and show up as a regular notification in the bell icon at the top of the dashboard — so a stale item or a pacing problem still gets flagged even on a day nobody opens Bucky at all.
@@ -17,7 +17,7 @@ For every capability, there's a sample message in quotes — copy it, paste it i
 
 ## Ask Bucky Anything (every role)
 
-These questions work the same for Admin, Lead, and Operator:
+These questions work the same for Super-Admin, Admin, and Operator:
 
 | What Bucky can tell you | Try typing this |
 |---|---|
@@ -34,13 +34,13 @@ These questions work the same for Admin, Lead, and Operator:
 
 **One exception**: the current production plan and deadline is **not**
 available to Operators — see the note under Operator below for why. It's
-covered under Admin and Lead instead.
+covered under Super-Admin and Admin instead.
 
 ---
 
-## 1. Admin
+## 1. Super-Admin
 
-Admins have the widest reach: they manage accounts and the production plan (which no one else can touch), **and** they can do everything a Lead can — review work, move videos between stages, create and delete videos, and manage the catalog. Every Admin action asks for confirmation first, except the instant ones noted below.
+Super-Admins have the widest reach: they manage accounts and the production plan (which no one else can touch), **and** they can do everything a Admin can — review work, move videos between stages, create and delete videos, and manage the catalog. Every Super-Admin action asks for confirmation first, except the instant ones noted below.
 
 ### Accounts (confirm first)
 
@@ -53,10 +53,10 @@ Removes someone's access entirely.
 > "Delete the account for jane@example.com."
 
 **3. Change someone's role**
-Switches an existing account between Operator, Lead, and Admin.
-> "Change mike@example.com's role to Lead."
+Switches an existing account between Operator, Admin, and Super-Admin.
+> "Change mike@example.com's role to Admin."
 
-### Production plan (Admin is the only role that can change it — reading it is instant, no confirmation needed)
+### Production plan (Super-Admin is the only role that can change it — reading it is instant, no confirmation needed)
 
 **4. Update the production plan** (confirm first)
 Change the deadline, targets, or notes — only what you mention gets changed, everything else (including any Excel-imported daily pacing schedule) stays as-is.
@@ -67,17 +67,17 @@ Change the deadline, targets, or notes — only what you mention gets changed, e
 
 ### Pipeline & catalog
 
-Admin also gets every Lead action below — approving/rejecting storyboards, scripts, and videos, moving videos between stages, creating and deleting videos, managing the catalog, and the undo tools. They work exactly as described in the Lead section, so they aren't repeated here.
+Super-Admin also gets every Admin action below — approving/rejecting storyboards, scripts, and videos, moving videos between stages, creating and deleting videos, managing the catalog, and the undo tools. They work exactly as described in the Admin section, so they aren't repeated here.
 
 ### Reviewing Bucky's Conversations
 
-Admins also get an extra tab in the dashboard called **Bucky**, next to the Admin tab. It lists every account that's ever talked to Bucky — email, role, how many messages, when they last chatted — and clicking one opens the full conversation, read-only. This isn't something you type to Bucky; it's a separate screen for keeping an eye on how Bucky's being used across the team.
+Super-Admins also get an extra tab in the dashboard called **Bucky**, next to the Super-Admin tab. It lists every account that's ever talked to Bucky — email, role, how many messages, when they last chatted — and clicking one opens the full conversation, read-only. This isn't something you type to Bucky; it's a separate screen for keeping an eye on how Bucky's being used across the team.
 
 ---
 
-## 2. Lead
+## 2. Admin
 
-Leads run the day-to-day pipeline — reviewing work, moving videos forward, and managing the catalog. Bucky mirrors everything a Lead can already do in the dashboard. (One change from before: the production plan is now managed by Admins, so Leads can read it but not change it.)
+Admins run the day-to-day pipeline — reviewing work, moving videos forward, and managing the catalog. Bucky mirrors everything a Admin can already do in the dashboard. (One change from before: the production plan is now managed by Super-Admins, so Admins can read it but not change it.)
 
 ### Instant Actions (run right away, no confirmation needed)
 
@@ -90,7 +90,7 @@ Marks a reported problem as fixed.
 > "Mark the audio sync issue on product #7 as resolved."
 
 **3. Check the production plan**
-Read-only for Leads — targets, deadline, and pacing.
+Read-only for Admins — targets, deadline, and pacing.
 > "What's our current production plan and deadline?"
 
 **4. See what's been deleted and can still be restored**
@@ -137,10 +137,10 @@ Hides the listing rather than destroying it — recoverable any time (see "Bring
 
 ### Bucky Also Watches Things For You
 
-You don't need to ask for these — Lead's Bucky checks automatically every time the dashboard loads, and shows a small red dot on its icon if it has something to flag. The same checks also run once a day in the background (see the note near the top of this doc) and show up in the notification bell even if nobody opens the chat:
+You don't need to ask for these — Admin's Bucky checks automatically every time the dashboard loads, and shows a small red dot on its icon if it has something to flag. The same checks also run once a day in the background (see the note near the top of this doc) and show up in the notification bell even if nobody opens the chat:
 
 - **Videos stuck in review too long.** If anything has been sitting In Review for 3 or more days, Bucky will mention it as soon as you open the chat.
-- **Falling behind today's target.** If the team is behind pace on today's video output, Bucky will let you know how many more are needed to stay on track — Leads only; see the note under Operator for why Operators don't get this one.
+- **Falling behind today's target.** If the team is behind pace on today's video output, Bucky will let you know how many more are needed to stay on track — Admins only; see the note under Operator for why Operators don't get this one.
 
 ---
 
@@ -148,7 +148,7 @@ You don't need to ask for these — Lead's Bucky checks automatically every time
 
 Operators do the hands-on work — claiming videos, writing storyboards and scripts, and submitting finished videos. Bucky's actions for Operator match exactly what an Operator can already do in the dashboard, and every one of them runs immediately, no approval step, the same as clicking the equivalent button.
 
-**One thing Operators can't ask Bucky about: the production plan, deadline, or company-wide pacing/targets.** That's not an oversight — the dashboard itself hides the Planning and Analytics tabs from Operators for the same reason, so Bucky matches it rather than being a workaround. Ask a Lead or Admin instead.
+**One thing Operators can't ask Bucky about: the production plan, deadline, or company-wide pacing/targets.** That's not an oversight — the dashboard itself hides the Planning and Analytics tabs from Operators for the same reason, so Bucky matches it rather than being a workaround. Ask a Admin or Super-Admin instead.
 
 ### Instant Actions (all run right away, no confirmation needed)
 
@@ -169,7 +169,7 @@ Changed your mind, or picked the wrong one? As long as it hasn't moved past Desi
 > "Unclaim product #15."
 
 **5. Submit your storyboard or script**
-Turns in your write-up for the Design stage — tell Bucky which one it is (storyboard or script). Once a Lead approves both, the video moves on to Production automatically.
+Turns in your write-up for the Design stage — tell Bucky which one it is (storyboard or script). Once a Admin approves both, the video moves on to Production automatically.
 > "Submit my storyboard for product #15: [paste your write-up here]."
 
 **6. Submit a finished video for review**
@@ -186,4 +186,4 @@ You don't need to ask for these — Operator's Bucky checks automatically every 
 
 - **Your own claimed videos stuck too long.** If something you've claimed hasn't moved in 3 or more days, Bucky will remind you as soon as you open the chat.
 
-That's the only proactive check Operators get — the pacing-behind-target alert is Lead-only, for the same reason the production plan itself is off-limits above.
+That's the only proactive check Operators get — the pacing-behind-target alert is Admin-only, for the same reason the production plan itself is off-limits above.

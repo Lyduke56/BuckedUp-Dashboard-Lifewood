@@ -1,6 +1,6 @@
 // Human-readable summaries of Bucky action-tool calls, shared between the
 // live widget (BuckyWidget.tsx, confirm cards + completed-result summaries)
-// and the read-only admin transcript viewer (BuckyTranscriptModal.tsx).
+// and the read-only super-admin transcript viewer (BuckyTranscriptModal.tsx).
 function withArticle(word: unknown): string {
   const w = String(word);
   return `${/^[aeiou]/i.test(w) ? "an" : "a"} ${w}`;

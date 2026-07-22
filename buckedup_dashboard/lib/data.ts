@@ -116,7 +116,7 @@ export const REVIEW_STATUS_HEX: Record<string, string> = {
   Rejected: "#D03B3B",
 };
 
-// Fallback only — used until an admin creates a production_plans row (see
+// Fallback only — used until an super-admin creates a production_plans row (see
 // lib/useProductionPlan.ts). Once one exists, ProjectProgressCard and
 // DailyProgressChart read the real daily_video_target/start_date/deadline
 // instead of these.

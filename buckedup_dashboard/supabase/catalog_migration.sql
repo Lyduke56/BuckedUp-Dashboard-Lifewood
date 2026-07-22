@@ -59,18 +59,18 @@ create policy "Public read"
   on catalog_products for select
   using (true);
 
--- Leads and Admins may write, consistent with the products table permission model.
-create policy "Lead and admin insert"
+-- Admins and Super-Admins may write, consistent with the products table permission model.
+create policy "Admin and super-admin insert"
   on catalog_products for insert
-  with check (get_my_role() in ('lead', 'admin'));
+  with check (get_my_role() in ('admin', 'super-admin'));
 
-create policy "Lead and admin update"
+create policy "Admin and super-admin update"
   on catalog_products for update
-  using (get_my_role() in ('lead', 'admin'));
+  using (get_my_role() in ('admin', 'super-admin'));
 
-create policy "Lead and admin delete"
+create policy "Admin and super-admin delete"
   on catalog_products for delete
-  using (get_my_role() in ('lead', 'admin'));
+  using (get_my_role() in ('admin', 'super-admin'));
 
 -- ============================================================
 -- 4. Auto-maintain updated_at (reuses the existing trigger fn)
@@ -99,7 +99,7 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' then
+  if my_role = 'admin' then
     return new;
   end if;
 

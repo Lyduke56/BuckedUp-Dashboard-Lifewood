@@ -42,13 +42,13 @@ const GREETING =
 // prompts that need a specific product/email filled in are deliberately
 // left out of this list, rather than sending a half-finished request.
 const SUGGESTIONS: Record<UserRole, { label: string; prompt: string }[]> = {
-  admin: [
+  "super-admin": [
     { label: "What's in production?", prompt: "What's currently in production?" },
     { label: "Who's on the team?", prompt: "Who's on the team, and what are their roles?" },
     { label: "Quick summary", prompt: "Give me a quick summary of where we stand." },
     { label: "Open issues?", prompt: "What issues are currently open?" },
   ],
-  lead: [
+  "admin": [
     { label: "What's in production?", prompt: "What's currently in production?" },
     { label: "Deliverables to review?", prompt: "What deliverables are waiting on review right now?" },
     { label: "Today's output", prompt: "How many videos did we publish today?" },
@@ -59,6 +59,10 @@ const SUGGESTIONS: Record<UserRole, { label: string; prompt: string }[]> = {
     { label: "Open issues?", prompt: "What issues are currently open?" },
     { label: "Today's output", prompt: "How many videos did we publish today?" },
     { label: "Deliverables to review?", prompt: "What deliverables are waiting on review right now?" },
+  ],
+  client: [
+    { label: "Show latest videos", prompt: "What are the latest published videos?" },
+    { label: "Search by catalog", prompt: "Can you find a video for a specific catalog item?" },
   ],
 };
 
@@ -86,16 +90,16 @@ function shouldAutoResubmitAfterApproval({ messages }: { messages: UIMessage[] }
 
 // Available to every authenticated role, wired to a real tool-calling
 // backend (app/api/bucky/chat/route.ts). Can answer questions about any
-// dashboard data for anyone. Admins additionally get three
+// dashboard data for anyone. Super-Admins additionally get three
 // account-management actions (create/delete/change role); operators get six
-// self-scoped work-execution tools that run immediately; leads get ten
+// self-scoped work-execution tools that run immediately; admins get ten
 // pipeline/catalog/plan-management tools — issue report/resolve run
 // immediately like operator's, the other eight (stage moves, deliverable/
 // video review, product/catalog CRUD, plan edits) require an explicit
 // confirm click here before they run. Conversation history persists to
 // localStorage per-user (see the load/save effects below), so it survives
 // a reload — use the header's clear-conversation button to start fresh.
-// Lead/operator also get proactive alerts (stale items, pacing behind
+// Admin/operator also get proactive alerts (stale items, pacing behind
 // target) posted unprompted on dashboard load — see the alert effect below.
 export function BuckyWidget({
   activeView,
@@ -142,7 +146,7 @@ export function BuckyWidget({
       api: "/api/bucky/chat",
       body: { activeView, currentProduct, currentCatalogProduct },
     }),
-    // Auto-resubmit once the admin has approved every pending approval in
+    // Auto-resubmit once the super-admin has approved every pending approval in
     // the last turn, so confirming doesn't need a separate "send" click.
     // Denials are handled locally without a round-trip — see the comment
     // on shouldAutoResubmitAfterApproval above.
@@ -370,7 +374,7 @@ export function BuckyWidget({
   // natural re-run of this effect.
   useEffect(() => {
     if (!historyLoaded) return;
-    if (role !== "lead" && role !== "operator") return;
+    if (role !== "admin" && role !== "operator") return;
     if (!user?.id) return;
 
     const dateKey = new Date().toISOString().slice(0, 10);
@@ -383,7 +387,7 @@ export function BuckyWidget({
         const item = p.items[0];
         const age = stageAgeByProductId.get(p.id);
         if (!item || !age) return false;
-        if (role === "lead") {
+        if (role === "admin") {
           return item.status === "In Review" && age.status === "In Review" && age.days >= STALE_DAYS_THRESHOLD;
         }
         return (
@@ -405,21 +409,21 @@ export function BuckyWidget({
           })
           .join(", ");
         const text =
-          role === "lead"
+          role === "admin"
             ? `Heads up — ${stale.length} item${stale.length === 1 ? " has" : "s have"} been sitting In Review for ${STALE_DAYS_THRESHOLD}+ days: ${list}. Want me to look into any of these?`
             : `Heads up — you have ${stale.length} claimed item${stale.length === 1 ? "" : "s"} that ${stale.length === 1 ? "hasn't" : "haven't"} moved in ${STALE_DAYS_THRESHOLD}+ days: ${list}. Might be worth picking ${stale.length === 1 ? "it" : "those"} back up.`;
         newAlerts.push({ id: staleId, role: "assistant", parts: [{ type: "text", text }] });
       }
     }
 
-    // Lead-only: pacing/targets are a Planning-tab concept, and Planning
+    // Admin-only: pacing/targets are a Planning-tab concept, and Planning
     // (along with Analytics, where the daily-target-vs-actual chart lives)
     // is deliberately hidden from operators elsewhere in the dashboard
     // (see TabBar.tsx) — this alert used to fire for operators too, which
     // quietly contradicted that. The stale-item check above stays for both
     // roles: it's about an operator's own claimed work, not company-wide
     // targets, so it doesn't have the same reason to be hidden.
-    if (role === "lead") {
+    if (role === "admin") {
       const pacingId = `bucky-alert-pacing-${user.id}-${dateKey}`;
       if (!existingIds.has(pacingId)) {
         const today = dailyProgress[dailyProgress.length - 1];

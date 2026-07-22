@@ -2,9 +2,9 @@ import nodemailer from "nodemailer";
 import { buildInviteEmailHtml } from "./inviteEmailHtml";
 
 // Gmail SMTP relay, used only when GMAIL_APP_PASSWORD is set — see
-// app/api/admin/create-user/route.ts, which falls back to Supabase's
+// app/api/super-admin/create-user/route.ts, which falls back to Supabase's
 // built-in inviteUserByEmail() mailer otherwise. Chosen over Supabase's
-// own SMTP settings (blocked: needs org-admin permissions the account
+// own SMTP settings (blocked: needs org-super-admin permissions the account
 // running this doesn't have) and over Resend (blocked: needs a verified
 // domain, and there's neither DNS access nor budget for one). Trade-off
 // accepted: invites come from a personal-looking Gmail address, not a
@@ -31,7 +31,7 @@ export async function sendInviteEmail(email: string, actionLink: string): Promis
       // A plain-text alternative alongside the HTML — HTML-only mail from
       // a personal Gmail relay (no domain reputation to lean on) reads as
       // more spam-like to filters than a proper multipart message.
-      text: `You've been invited to the BuckedUp x Lifewood Video Production Monitor.\n\nAn admin created an account for ${email}. Accept the invite to set your password and get started:\n${actionLink}\n\nDidn't expect this invite? You can safely ignore this email.`,
+      text: `You've been invited to the BuckedUp x Lifewood Video Production Monitor.\n\nAn super-admin created an account for ${email}. Accept the invite to set your password and get started:\n${actionLink}\n\nDidn't expect this invite? You can safely ignore this email.`,
     });
     return {};
   } catch (err) {

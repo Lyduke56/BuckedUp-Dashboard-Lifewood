@@ -1,7 +1,7 @@
 /**
- * Phase A migration: role rename (editor/approver/admin -> operator/lead/
- * admin), rewrite of enforce_product_update_permissions() for the new
- * grant shape, RLS policy updates (admin -> lead wherever it meant
+ * Phase A migration: role rename (editor/approver/super-admin -> operator/admin/
+ * super-admin), rewrite of enforce_product_update_permissions() for the new
+ * grant shape, RLS policy updates (super-admin -> admin wherever it meant
  * "operational power"), and a bulk reset of every product's status to
  * 'Not Started' for the new 7-stage pipeline. See
  * C:\Users\John Peter\.claude\plans\jaunty-conjuring-cook.md, Phase A.
@@ -44,23 +44,23 @@ const SQL = `
 --    do NOT register a hard type dependency for values used only inside
 --    their body text, so those don't need dropping first -- only their
 --    logic needs rewriting, done in step 4 below via CREATE OR REPLACE.
-drop policy if exists "Admin update" on profiles;
-drop policy if exists "Admin insert" on products;
-drop policy if exists "Admin delete" on products;
-drop policy if exists "Editor and admin insert" on video_versions;
-drop policy if exists "Editor and admin update" on video_versions;
-drop policy if exists "Editor and admin upload videos" on storage.objects;
-drop policy if exists "Editor and admin update videos" on storage.objects;
-drop policy if exists "Admin delete videos" on storage.objects;
-drop policy if exists "Admin insert" on production_plans;
-drop policy if exists "Admin update" on production_plans;
-drop policy if exists "Admin delete" on production_plans;
+drop policy if exists "Super-Admin update" on profiles;
+drop policy if exists "Super-Admin insert" on products;
+drop policy if exists "Super-Admin delete" on products;
+drop policy if exists "Editor and super-admin insert" on video_versions;
+drop policy if exists "Editor and super-admin update" on video_versions;
+drop policy if exists "Editor and super-admin upload videos" on storage.objects;
+drop policy if exists "Editor and super-admin update videos" on storage.objects;
+drop policy if exists "Super-Admin delete videos" on storage.objects;
+drop policy if exists "Super-Admin insert" on production_plans;
+drop policy if exists "Super-Admin update" on production_plans;
+drop policy if exists "Super-Admin delete" on production_plans;
 drop function if exists get_my_role();
 
--- 2. Enum rebuild: editor->operator (1:1), approver->lead (absorbed),
---    admin keeps its label with new (narrower) meaning.
+-- 2. Enum rebuild: editor->operator (1:1), approver->admin (absorbed),
+--    super-admin keeps its label with new (narrower) meaning.
 drop type if exists user_role_new;
-create type user_role_new as enum ('operator', 'lead', 'admin');
+create type user_role_new as enum ('operator', 'admin', 'super-admin');
 
 -- The column's existing default ('editor'::user_role) can't be
 -- auto-cast to the new enum type -- drop it before the type change,
@@ -70,7 +70,7 @@ alter table profiles alter column role drop default;
 alter table profiles alter column role type user_role_new
   using (case role::text
            when 'editor' then 'operator'
-           when 'approver' then 'lead'
+           when 'approver' then 'admin'
            else role::text
          end)::user_role_new;
 
@@ -80,18 +80,18 @@ drop type user_role;
 alter type user_role_new rename to user_role;
 
 -- 3. Recreate get_my_role() (now against the renamed type) and every
---    policy dropped in step 1 -- admin-meant-power ones become lead,
+--    policy dropped in step 1 -- super-admin-meant-power ones become admin,
 --    editor-meant-production-access ones become operator; profiles'
---    "Admin update" keeps its original meaning (only admins change roles).
+--    "Super-Admin update" keeps its original meaning (only super-admins change roles).
 create or replace function get_my_role()
 returns user_role as $$
   select role from public.profiles where id = auth.uid();
 $$ language sql security definer stable;
 
-create policy "Admin update" on profiles for update
-  using (get_my_role() = 'admin');
+create policy "Super-Admin update" on profiles for update
+  using (get_my_role() = 'super-admin');
 
--- 4. handle_new_user(): first signup still becomes admin, everyone else
+-- 4. handle_new_user(): first signup still becomes super-admin, everyone else
 --    now defaults to operator (was editor).
 create or replace function handle_new_user()
 returns trigger as $$
@@ -100,20 +100,20 @@ declare
 begin
   select not exists(select 1 from public.profiles) into is_first;
   insert into public.profiles (id, email, role)
-  values (new.id, new.email, (case when is_first then 'admin' else 'operator' end)::user_role);
+  values (new.id, new.email, (case when is_first then 'super-admin' else 'operator' end)::user_role);
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;
 
 -- 5. enforce_product_update_permissions(): full rewrite for the new grant
---    shape (lead = unrestricted, operator = video_url/owner_id only,
---    admin = no product-column access at all).
+--    shape (admin = unrestricted, operator = video_url/owner_id only,
+--    super-admin = no product-column access at all).
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
 declare
   my_role user_role := get_my_role();
 begin
-  if my_role = 'lead' then
+  if my_role = 'admin' then
     return new;
   end if;
 
@@ -141,34 +141,34 @@ end;
 $$ language plpgsql;
 
 -- 6. Recreate the remaining policies dropped in step 1 with their new
---    role names -- admin-meant-power ones become lead, editor-meant-
+--    role names -- super-admin-meant-power ones become admin, editor-meant-
 --    production-access ones become operator. (products' policies were
 --    already recreated implicitly-adjacent above; production_plans'
---    "Lead update" is new -- the old set never had an update-vs-insert
+--    "Admin update" is new -- the old set never had an update-vs-insert
 --    split, this just names each verb explicitly.)
-create policy "Lead insert" on products for insert
-  with check (get_my_role() = 'lead');
-create policy "Lead delete" on products for delete
-  using (get_my_role() = 'lead');
+create policy "Admin insert" on products for insert
+  with check (get_my_role() = 'admin');
+create policy "Admin delete" on products for delete
+  using (get_my_role() = 'admin');
 
-create policy "Operator and lead insert" on video_versions for insert
-  with check (get_my_role() in ('operator', 'lead'));
-create policy "Operator and lead update" on video_versions for update
-  using (get_my_role() in ('operator', 'lead'));
+create policy "Operator and admin insert" on video_versions for insert
+  with check (get_my_role() in ('operator', 'admin'));
+create policy "Operator and admin update" on video_versions for update
+  using (get_my_role() in ('operator', 'admin'));
 
-create policy "Operator and lead upload videos" on storage.objects for insert
-  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
-create policy "Operator and lead update videos" on storage.objects for update
-  using (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
-create policy "Lead delete videos" on storage.objects for delete
-  using (bucket_id = 'videos' and get_my_role() = 'lead');
+create policy "Operator and admin upload videos" on storage.objects for insert
+  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'admin'));
+create policy "Operator and admin update videos" on storage.objects for update
+  using (bucket_id = 'videos' and get_my_role() in ('operator', 'admin'));
+create policy "Admin delete videos" on storage.objects for delete
+  using (bucket_id = 'videos' and get_my_role() = 'admin');
 
-create policy "Lead insert" on production_plans for insert
-  with check (get_my_role() = 'lead');
-create policy "Lead update" on production_plans for update
-  using (get_my_role() = 'lead');
-create policy "Lead delete" on production_plans for delete
-  using (get_my_role() = 'lead');
+create policy "Admin insert" on production_plans for insert
+  with check (get_my_role() = 'admin');
+create policy "Admin update" on production_plans for update
+  using (get_my_role() = 'admin');
+create policy "Admin delete" on production_plans for delete
+  using (get_my_role() = 'admin');
 
 -- 7. Bulk reset every product to Not Started for the new 7-stage pipeline
 --    (Not Started -> Storyboarding -> Scripting -> Prompting -> Editing ->

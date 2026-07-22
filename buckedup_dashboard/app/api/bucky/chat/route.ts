@@ -4,9 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import {
   createBuckyReadTools,
   createBuckyPlanReadTools,
-  createBuckyActionTools,
+  createBuckySuperAdminActionTools,
   createBuckyOperatorActionTools,
-  createBuckyLeadActionTools,
+  createBuckyAdminActionTools,
   BUCKY_TOOL_APPROVAL,
   BUCKY_TOOL_METADATA,
   type AnyBuckyToolName,
@@ -15,7 +15,7 @@ import { buildSystemPrompt, type BuckyCatalogContext, type BuckyProductContext }
 import { checkAndRecordRateLimit } from "@/lib/bucky/rateLimit";
 import type { UserRole, ViewId } from "@/lib/types";
 
-const VALID_ROLES: UserRole[] = ["admin", "lead", "operator"];
+const VALID_ROLES: UserRole[] = ["super-admin", "admin", "operator"];
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
@@ -33,19 +33,19 @@ const MODEL = "openai/gpt-oss-20b:free";
 const FALLBACK_MODELS = [MODEL, "meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"];
 
 export async function POST(request: Request) {
-  // Same auth pattern as app/api/admin/create-user/route.ts: session check,
+  // Same auth pattern as app/api/super-admin/create-user/route.ts: session check,
   // then re-check the caller's own role under their own session, before
   // doing anything privileged. Every tool below queries through this same
   // session client, so it inherits this authorization automatically.
   //
-  // Bucky is reachable by any authenticated role now (admin/lead/operator)
+  // Bucky is reachable by any authenticated role now (super-admin/admin/operator)
   // — the read tools already query through RLS, which is public-read on
   // every table they touch, so widening access exposes nothing new. What
   // stays role-gated is the *action* tool sets: account-management and
-  // production-plan tools (createBuckyActionTools) are admin-only,
+  // production-plan tools (createBuckySuperAdminActionTools) are super-admin-only,
   // work-execution tools (createBuckyOperatorActionTools) are
   // operator-only, pipeline/catalog-management tools
-  // (createBuckyLeadActionTools) go to lead AND admin — admin became a
+  // (createBuckyAdminActionTools) go to admin AND super-admin — super-admin became a
   // full super-user in the 5-stage pipeline refactor.
   const supabase = await createClient();
   const {
@@ -103,9 +103,9 @@ export async function POST(request: Request) {
     tools: {
       ...createBuckyReadTools(supabase),
       ...createBuckyPlanReadTools(supabase, role),
-      ...createBuckyActionTools(supabase, request, role),
+      ...createBuckySuperAdminActionTools(supabase, request, role),
       ...createBuckyOperatorActionTools(supabase, role, user.id),
-      ...createBuckyLeadActionTools(supabase, role, user.id),
+      ...createBuckyAdminActionTools(supabase, role, user.id),
     },
     // Mutating actions never run on the model's say-so alone — the tool
     // call only proposes the action; execute() only actually runs once the

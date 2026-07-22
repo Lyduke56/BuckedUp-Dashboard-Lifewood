@@ -61,7 +61,7 @@ export function CatalogView({
   onProductFocus,
 }: CatalogViewProps) {
   const { role } = useAuth();
-  const canEdit = role === "lead" || role === "admin";
+  const canEdit = role === "admin";
 
   // ── Filter state ──
   const [search, setSearch] = useState("");
@@ -348,7 +348,7 @@ export function CatalogView({
                 </button>
               </div>
 
-              {/* + Add Product button for Leads */}
+              {/* + Add Product button for Admins */}
               {canEdit && (
                 <button
                   type="button"

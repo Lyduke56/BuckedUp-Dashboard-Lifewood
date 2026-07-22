@@ -39,17 +39,17 @@ CREATE INDEX IF NOT EXISTS bucky_deleted_product_snapshots_expiry_idx
 
 ALTER TABLE bucky_deleted_product_snapshots ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Lead read" ON bucky_deleted_product_snapshots;
-CREATE POLICY "Lead read" ON bucky_deleted_product_snapshots FOR SELECT
-  USING (get_my_role() = 'lead');
+DROP POLICY IF EXISTS "Admin read" ON bucky_deleted_product_snapshots;
+CREATE POLICY "Admin read" ON bucky_deleted_product_snapshots FOR SELECT
+  USING (get_my_role() = 'admin');
 
-DROP POLICY IF EXISTS "Lead insert" ON bucky_deleted_product_snapshots;
-CREATE POLICY "Lead insert" ON bucky_deleted_product_snapshots FOR INSERT
-  WITH CHECK (get_my_role() = 'lead' AND user_id = auth.uid());
+DROP POLICY IF EXISTS "Admin insert" ON bucky_deleted_product_snapshots;
+CREATE POLICY "Admin insert" ON bucky_deleted_product_snapshots FOR INSERT
+  WITH CHECK (get_my_role() = 'admin' AND user_id = auth.uid());
 
-DROP POLICY IF EXISTS "Lead delete expired" ON bucky_deleted_product_snapshots;
-CREATE POLICY "Lead delete expired" ON bucky_deleted_product_snapshots FOR DELETE
-  USING (get_my_role() = 'lead' AND expires_at < now());
+DROP POLICY IF EXISTS "Admin delete expired" ON bucky_deleted_product_snapshots;
+CREATE POLICY "Admin delete expired" ON bucky_deleted_product_snapshots FOR DELETE
+  USING (get_my_role() = 'admin' AND expires_at < now());
 
 CREATE OR REPLACE FUNCTION restore_deleted_product(p_snapshot_id uuid)
 RETURNS uuid AS $$
@@ -58,8 +58,8 @@ DECLARE
   v_snapshot jsonb;
   v_new_id uuid;
 BEGIN
-  IF get_my_role() <> 'lead' THEN
-    RAISE EXCEPTION 'Only leads can restore a deleted product';
+  IF get_my_role() <> 'admin' THEN
+    RAISE EXCEPTION 'Only admins can restore a deleted product';
   END IF;
 
   SELECT * INTO v_row FROM bucky_deleted_product_snapshots

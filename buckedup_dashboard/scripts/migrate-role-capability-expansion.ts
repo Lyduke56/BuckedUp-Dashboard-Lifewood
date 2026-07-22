@@ -23,7 +23,7 @@ if (!ACCESS_TOKEN) {
 
 const SQL = `
 -- ============================================================
--- 1. enforce_product_update_permissions — add admin passthrough
+-- 1. enforce_product_update_permissions — add super-admin passthrough
 -- ============================================================
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
@@ -36,7 +36,7 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' or my_role = 'admin' then
+  if my_role = 'admin' or my_role = 'super-admin' then
     return new;
   end if;
 
@@ -66,66 +66,66 @@ end;
 $$ language plpgsql;
 
 -- ============================================================
--- 2. products RLS — expand INSERT and DELETE to include admin
+-- 2. products RLS — expand INSERT and DELETE to include super-admin
 -- ============================================================
-drop policy if exists "Lead insert" on products;
-create policy "Lead and admin insert" on products for insert
-  with check (get_my_role() in ('lead', 'admin'));
+drop policy if exists "Admin insert" on products;
+create policy "Admin and super-admin insert" on products for insert
+  with check (get_my_role() in ('admin', 'super-admin'));
 
-drop policy if exists "Lead delete" on products;
-create policy "Lead and admin delete" on products for delete
-  using (get_my_role() in ('lead', 'admin'));
-
--- ============================================================
--- 3. stage_deliverables RLS — expand to include admin
--- ============================================================
-drop policy if exists "Lead submit any" on stage_deliverables;
-create policy "Lead and admin submit any" on stage_deliverables for insert
-  with check (get_my_role() in ('lead', 'admin') and submitted_by = auth.uid());
-
-drop policy if exists "Lead review" on stage_deliverables;
-create policy "Lead and admin review" on stage_deliverables for update
-  using (get_my_role() in ('lead', 'admin'));
+drop policy if exists "Admin delete" on products;
+create policy "Admin and super-admin delete" on products for delete
+  using (get_my_role() in ('admin', 'super-admin'));
 
 -- ============================================================
--- 4. video_versions RLS — expand to include admin
+-- 3. stage_deliverables RLS — expand to include super-admin
 -- ============================================================
-drop policy if exists "Operator and lead insert" on video_versions;
-create policy "Operator, lead, and admin insert" on video_versions for insert
-  with check (get_my_role() in ('operator', 'lead', 'admin'));
+drop policy if exists "Admin submit any" on stage_deliverables;
+create policy "Admin and super-admin submit any" on stage_deliverables for insert
+  with check (get_my_role() in ('admin', 'super-admin') and submitted_by = auth.uid());
 
-drop policy if exists "Operator and lead update" on video_versions;
-create policy "Operator, lead, and admin update" on video_versions for update
-  using (get_my_role() in ('operator', 'lead', 'admin'));
-
--- ============================================================
--- 5. Storage "videos" bucket — expand upload/update/delete to admin
--- ============================================================
-drop policy if exists "Operator and lead upload videos" on storage.objects;
-create policy "Operator, lead, and admin upload videos" on storage.objects for insert
-  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'lead', 'admin'));
-
-drop policy if exists "Operator and lead update videos" on storage.objects;
-create policy "Operator, lead, and admin update videos" on storage.objects for update
-  using (bucket_id = 'videos' and get_my_role() in ('operator', 'lead', 'admin'));
-
-drop policy if exists "Lead delete videos" on storage.objects;
-create policy "Admin delete videos" on storage.objects for delete
-  using (bucket_id = 'videos' and get_my_role() in ('lead', 'admin'));
+drop policy if exists "Admin review" on stage_deliverables;
+create policy "Admin and super-admin review" on stage_deliverables for update
+  using (get_my_role() in ('admin', 'super-admin'));
 
 -- ============================================================
--- 6. production_plans — shift write access from lead to admin
+-- 4. video_versions RLS — expand to include super-admin
 -- ============================================================
-drop policy if exists "Lead insert" on production_plans;
-drop policy if exists "Lead update" on production_plans;
-drop policy if exists "Lead delete" on production_plans;
+drop policy if exists "Operator and admin insert" on video_versions;
+create policy "Operator, admin, and super-admin insert" on video_versions for insert
+  with check (get_my_role() in ('operator', 'admin', 'super-admin'));
 
-create policy "Admin insert" on production_plans for insert
-  with check (get_my_role() = 'admin');
-create policy "Admin update" on production_plans for update
-  using (get_my_role() = 'admin');
-create policy "Admin delete" on production_plans for delete
-  using (get_my_role() = 'admin');
+drop policy if exists "Operator and admin update" on video_versions;
+create policy "Operator, admin, and super-admin update" on video_versions for update
+  using (get_my_role() in ('operator', 'admin', 'super-admin'));
+
+-- ============================================================
+-- 5. Storage "videos" bucket — expand upload/update/delete to super-admin
+-- ============================================================
+drop policy if exists "Operator and admin upload videos" on storage.objects;
+create policy "Operator, admin, and super-admin upload videos" on storage.objects for insert
+  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'admin', 'super-admin'));
+
+drop policy if exists "Operator and admin update videos" on storage.objects;
+create policy "Operator, admin, and super-admin update videos" on storage.objects for update
+  using (bucket_id = 'videos' and get_my_role() in ('operator', 'admin', 'super-admin'));
+
+drop policy if exists "Admin delete videos" on storage.objects;
+create policy "Super-Admin delete videos" on storage.objects for delete
+  using (bucket_id = 'videos' and get_my_role() in ('admin', 'super-admin'));
+
+-- ============================================================
+-- 6. production_plans — shift write access from admin to super-admin
+-- ============================================================
+drop policy if exists "Admin insert" on production_plans;
+drop policy if exists "Admin update" on production_plans;
+drop policy if exists "Admin delete" on production_plans;
+
+create policy "Super-Admin insert" on production_plans for insert
+  with check (get_my_role() = 'super-admin');
+create policy "Super-Admin update" on production_plans for update
+  using (get_my_role() = 'super-admin');
+create policy "Super-Admin delete" on production_plans for delete
+  using (get_my_role() = 'super-admin');
 `;
 
 async function main() {

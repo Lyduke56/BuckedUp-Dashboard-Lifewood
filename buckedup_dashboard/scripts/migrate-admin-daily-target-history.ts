@@ -19,10 +19,10 @@ if (!ACCESS_TOKEN) {
 }
 
 const SQL = `
--- 1. Expand daily_target_history RLS to allow both Lead and Admin
-drop policy if exists "Lead upsert daily target history" on daily_target_history;
-create policy "Lead and admin upsert daily target history" on daily_target_history
-  for all using (get_my_role() in ('lead', 'admin'));
+-- 1. Expand daily_target_history RLS to allow both Admin and Super-Admin
+drop policy if exists "Admin upsert daily target history" on daily_target_history;
+create policy "Admin and super-admin upsert daily target history" on daily_target_history
+  for all using (get_my_role() in ('admin', 'super-admin'));
 
 -- 2. Make log_daily_target_history() security definer so the trigger never fails on role permissions
 create or replace function log_daily_target_history()

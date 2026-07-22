@@ -33,18 +33,18 @@ export function escapeIlikePattern(value: string): string {
 
 // How long a Bucky-deleted product stays restorable before the grace
 // window closes (see delete_product/restore_product/list_recent_deletions
-// in lead.ts/read.ts, and restore_deleted_product() in schema.sql). A
+// in admin.ts/read.ts, and restore_deleted_product() in schema.sql). A
 // named constant so it's trivial to retune later.
 export const UNDO_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-// The two document/text pipeline stages that get a lead-reviewed
+// The two document/text pipeline stages that get a admin-reviewed
 // deliverable (Storyboarding/Scripting) — the Production->Published
 // leg uses video_versions instead, not this table (see schema.sql).
-// Shared by lead.ts (review_deliverable's stage validation) and read.ts
+// Shared by admin.ts (review_deliverable's stage validation) and read.ts
 // (get_deliverable_summary's stage x decision breakdown).
 export const DOC_STAGES = ["Storyboarding", "Scripting"] as const;
 
-// Shared by every product-locating tool below (operator's and lead's) —
+// Shared by every product-locating tool below (operator's and admin's) —
 // mirrors get_product's same-shaped params so the model can reuse whichever
 // it already has from a prior read-tool call.
 export const PRODUCT_LOCATOR_SHAPE = {
@@ -54,7 +54,7 @@ export const PRODUCT_LOCATOR_SHAPE = {
 
 // Shared by every tool that locates a product by rank or id. Hoisted to
 // module scope (rather than a per-builder closure) since both the operator
-// and lead action-tool builders need it. Also returns the product's name —
+// and admin action-tool builders need it. Also returns the product's name —
 // not just its id — so callers can report a real name in their result
 // (e.g. submit_video_for_review/set_video_version) instead of the bare
 // rank/id the model happened to call the tool with; describeToolResult
@@ -78,7 +78,7 @@ export async function resolveProductId(
   return { id: data.id, name: data.name };
 }
 
-// Issue tools — shared by operator and lead (RLS allows any authenticated
+// Issue tools — shared by operator and admin (RLS allows any authenticated
 // role to insert/update issues; the table has no "reported-by" column, so
 // no userId is needed here). Neither requires toolApproval — low-risk,
 // matches the real UI's own frictionless report/resolve buttons regardless

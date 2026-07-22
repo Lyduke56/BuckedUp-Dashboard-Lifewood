@@ -94,7 +94,7 @@ function LoginForm() {
   const displayError =
     error ??
     (inviteLinkInvalid
-      ? "That invite link is invalid or has expired. Ask an admin to resend the invite."
+      ? "That invite link is invalid or has expired. Ask an super-admin to resend the invite."
       : null);
 
   const handleSubmit = async (event: FormEvent) => {

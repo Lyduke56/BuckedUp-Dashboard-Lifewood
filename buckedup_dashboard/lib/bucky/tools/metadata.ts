@@ -1,14 +1,14 @@
 import type { createBuckyReadTools, createBuckyPlanReadTools } from "./read";
-import type { createBuckyActionTools } from "./admin";
+import type { createBuckySuperAdminActionTools } from "./super-admin";
 import type { createBuckyOperatorActionTools } from "./operator";
-import type { createBuckyLeadActionTools } from "./lead";
+import type { createBuckyAdminActionTools } from "./admin";
 
 export type AnyBuckyToolName =
   | keyof ReturnType<typeof createBuckyReadTools>
   | keyof ReturnType<typeof createBuckyPlanReadTools>
-  | keyof ReturnType<typeof createBuckyActionTools>
+  | keyof ReturnType<typeof createBuckySuperAdminActionTools>
   | keyof ReturnType<typeof createBuckyOperatorActionTools>
-  | keyof ReturnType<typeof createBuckyLeadActionTools>;
+  | keyof ReturnType<typeof createBuckyAdminActionTools>;
 
 export type BuckyToolAuditMeta = {
   /** Writes to the DB / calls a mutating route — gates whether this tool
@@ -22,7 +22,7 @@ export type BuckyToolAuditMeta = {
 // (previously a literal object in route.ts, kept in sync with tools.ts by
 // hand), and which tools are worth writing an audit-log row for. Every key
 // of AnyBuckyToolName is REQUIRED here — TypeScript refuses to compile if a
-// new tool gets added to any builder in read.ts/admin.ts/operator.ts/lead.ts
+// new tool gets added to any builder in read.ts/super-admin.ts/operator.ts/admin.ts
 // without a matching entry below, so "forgot to gate a new mutating tool
 // behind approval" becomes a compile error instead of a silent gap.
 export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> = {
@@ -41,11 +41,11 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   get_deliverable_summary: { mutating: false, approval: "none" },
   get_ownership_breakdown: { mutating: false, approval: "none" },
   list_recent_deletions: { mutating: false, approval: "none" },
-  // admin (governance)
+  // super-admin (governance)
   create_user: { mutating: true, approval: "user-approval" },
   delete_user: { mutating: true, approval: "user-approval" },
   change_role: { mutating: true, approval: "user-approval" },
-  // shared issue tools (operator + lead) — frictionless, matches the real
+  // shared issue tools (operator + admin) — frictionless, matches the real
   // UI's own report/resolve buttons regardless of who's clicking them
   report_issue: { mutating: true, approval: "none" },
   resolve_issue: { mutating: true, approval: "none" },
@@ -55,7 +55,7 @@ export const BUCKY_TOOL_METADATA: Record<AnyBuckyToolName, BuckyToolAuditMeta> =
   submit_deliverable: { mutating: true, approval: "none" },
   submit_video_for_review: { mutating: true, approval: "none" },
   set_video_version: { mutating: true, approval: "none" },
-  // lead's pipeline/catalog/plan management — team-visible, confirm-gated
+  // admin's pipeline/catalog/plan management — team-visible, confirm-gated
   move_product_stage: { mutating: true, approval: "user-approval" },
   review_deliverable: { mutating: true, approval: "user-approval" },
   review_video: { mutating: true, approval: "user-approval" },

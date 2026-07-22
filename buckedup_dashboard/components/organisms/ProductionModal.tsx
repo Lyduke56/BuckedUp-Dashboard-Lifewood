@@ -140,7 +140,7 @@ export function ProductionModal({
             <div className="form-actions" style={{ marginTop: "16px" }}>
               <span className="form-hint">
                 {hasVideo
-                  ? "Are you satisfied with your uploaded video? Submit it to the Lead for final review."
+                  ? "Are you satisfied with your uploaded video? Submit it to the Admin for final review."
                   : "Upload a video cut above to enable submission."}
               </span>
               <button
@@ -156,7 +156,7 @@ export function ProductionModal({
         ) : (
           <div className="empty-state" style={{ marginTop: "16px" }}>
             {status === "In Review"
-              ? "This item is awaiting the Lead's review — nothing to submit right now."
+              ? "This item is awaiting the Admin's review — nothing to submit right now."
               : status === "Published"
                 ? "This item is published — nothing left to submit."
                 : "No deliverable is required at this stage yet."}

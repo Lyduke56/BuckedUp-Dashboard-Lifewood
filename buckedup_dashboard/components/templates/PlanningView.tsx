@@ -3,8 +3,8 @@
 import { ProductionPlanView } from "@/components/templates/ProductionPlanView";
 import { PageHeader } from "@/components/molecules/PageHeader";
 
-// Admin's Planning tab: configuring the production plan (targets, deadline,
-// pacing) is Admin exclusive, since production_plans is now admin-only to
+// Super-Admin's Planning tab: configuring the production plan (targets, deadline,
+// pacing) is Super-Admin exclusive, since production_plans is now super-admin-only to
 // write. Thin wrapper around the unchanged ProductionPlanView so the tab
 // has its own titled surface.
 export function PlanningView() {

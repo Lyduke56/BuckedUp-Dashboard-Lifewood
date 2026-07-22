@@ -37,7 +37,7 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' then
+  if my_role = 'admin' then
     return new;
   end if;
 

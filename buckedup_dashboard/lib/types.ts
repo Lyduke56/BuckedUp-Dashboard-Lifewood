@@ -1,20 +1,20 @@
-export type ViewId = "overview" | "catalog" | "library" | "analytics" | "admin" | "planning" | "bucky" | "reviews";
+export type ViewId = "overview" | "catalog" | "library" | "analytics" | "super-admin" | "planning" | "bucky" | "reviews";
 
 /**
  * operator = production staff, execution-only: uploads deliverables per
  * stage (video_url) and can claim ownership on upload, reports/resolves
  * issues — never creates a listing and never moves `products.status`.
- * lead = the operational owner: fusion of the old approver + old admin's
+ * admin = the operational owner: fusion of the old approver + old super-admin's
  * catalog powers — creates listings/products, configures the production
  * plan, reviews Operator-submitted deliverables, and is the only role
  * that actually moves a product's stage.
- * admin = governance only — manages Lead/Operator user accounts, no
+ * super-admin = governance only — manages Admin/Operator user accounts, no
  * product-catalog write access at all. Enforced by supabase/schema.sql's
  * RLS policies and enforce_product_update_permissions trigger — the UI
  * hides controls a role can't use, but the database is what actually
  * blocks it.
  */
-export type UserRole = "operator" | "lead" | "admin";
+export type UserRole = "operator" | "admin" | "super-admin" | "client";
 
 export interface Profile {
   id: string;
@@ -101,9 +101,18 @@ export interface Issue {
   createdAt: string;
 }
 
+export interface Feedback {
+  id: string;
+  productId: string;
+  userId: string;
+  userEmail?: string;
+  content: string;
+  createdAt: string;
+}
+
 /**
  * A per-stage QA/QC deliverable an Operator submits for one of the two
- * document/text stages (Storyboarding/Scripting) and a Lead
+ * document/text stages (Storyboarding/Scripting) and a Admin
  * reviews. The Production video leg uses video_versions instead.
  * See supabase/schema.sql's stage_deliverables table.
  */
@@ -149,7 +158,7 @@ export interface DailyCompletionPoint {
 }
 
 /**
- * The corporate-level plan the pipeline is measured against — admin-only
+ * The corporate-level plan the pipeline is measured against — super-admin-only
  * write, public read (see supabase/schema.sql's production_plans table).
  * Only one row has isActive at a time, DB-enforced via a unique partial
  * index; the app always reads "the" plan as `is_active = true`.

@@ -49,9 +49,9 @@ DROP POLICY IF EXISTS "Own inserts" ON bucky_audit_log;
 CREATE POLICY "Own inserts" ON bucky_audit_log FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
-DROP POLICY IF EXISTS "Admin read" ON bucky_audit_log;
-CREATE POLICY "Admin read" ON bucky_audit_log FOR SELECT
-  USING (get_my_role() = 'admin');
+DROP POLICY IF EXISTS "Super-Admin read" ON bucky_audit_log;
+CREATE POLICY "Super-Admin read" ON bucky_audit_log FOR SELECT
+  USING (get_my_role() = 'super-admin');
 `;
 
 async function main() {

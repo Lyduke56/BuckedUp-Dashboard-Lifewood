@@ -11,25 +11,25 @@
 -- This is an internal Lifewood tool: `operator` = production staff (does
 -- the grunt work — uploads deliverables per stage, reports/resolves
 -- issues, never creates listings and never moves the pipeline stage
--- directly), `lead` = the operational owner (fusion of the old approver +
--- old admin's catalog powers — creates listings/products, configures the
+-- directly), `admin` = the operational owner (fusion of the old approver +
+-- old super-admin's catalog powers — creates listings/products, configures the
 -- production plan, reviews Operator-submitted deliverables, and is the
--- only role that actually moves a product's stage), `admin` = governance
--- only (manages Lead/Operator user accounts, no product-catalog access at
--- all). The first person ever to sign in becomes admin automatically.
+-- only role that actually moves a product's stage), `super-admin` = governance
+-- only (manages Admin/Operator user accounts, no product-catalog access at
+-- all). The first person ever to sign in becomes super-admin automatically.
 
 create extension if not exists "pgcrypto";
 
-create type user_role as enum ('operator', 'lead', 'admin');
+create type user_role as enum ('operator', 'admin', 'super-admin', 'client');
 
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   role user_role not null default 'operator',
-  -- Set true only by the admin-created-account flow (see
-  -- app/api/admin/create-user/route.ts) so the new user is forced through
+  -- Set true only by the super-admin-created-account flow (see
+  -- app/api/super-admin/create-user/route.ts) so the new user is forced through
   -- ForcePasswordChangeView on their first login instead of using the
-  -- admin-issued temporary password indefinitely.
+  -- super-admin-issued temporary password indefinitely.
   must_change_password boolean not null default false,
   theme text not null default 'light',
   created_at timestamptz not null default now()
@@ -42,10 +42,10 @@ returns user_role as $$
   select role from public.profiles where id = auth.uid();
 $$ language sql security definer stable;
 
--- Auto-provision a profile on signup. First-ever signup becomes admin
--- (there's no other way to get an admin account before one exists);
--- everyone after defaults to operator and gets promoted to lead/admin by
--- an admin later.
+-- Auto-provision a profile on signup. First-ever signup becomes super-admin
+-- (there's no other way to get an super-admin account before one exists);
+-- everyone after defaults to operator and gets promoted to admin/super-admin by
+-- an super-admin later.
 create or replace function handle_new_user()
 returns trigger as $$
 declare
@@ -53,7 +53,7 @@ declare
 begin
   select not exists(select 1 from public.profiles) into is_first;
   insert into public.profiles (id, email, role)
-  values (new.id, new.email, (case when is_first then 'admin' else 'operator' end)::user_role);
+  values (new.id, new.email, (case when is_first then 'super-admin' else 'operator' end)::user_role);
   return new;
 end;
 $$ language plpgsql security definer set search_path = public;
@@ -62,13 +62,16 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
 
--- Only admins may change a profile's role — stops self-promotion even
+-- Only super-admins may change a profile's role — stops self-promotion even
 -- though profiles update is otherwise open to the row's own owner.
 create or replace function enforce_profile_role_change()
 returns trigger as $$
 begin
-  if new.role is distinct from old.role and get_my_role() <> 'admin' then
-    raise exception 'Only admins can change roles';
+  if new.role is distinct from old.role and get_my_role() <> 'super-admin' then
+    raise exception 'Only super-admins can change roles';
+  end if;
+  if new.role = 'super-admin' and old.role <> 'super-admin' then
+    raise exception 'Cannot assign super-admin role to others';
   end if;
   return new;
 end;
@@ -83,12 +86,12 @@ alter table profiles enable row level security;
 
 create policy "Authenticated read" on profiles for select
   using (auth.role() = 'authenticated');
-create policy "Admin update" on profiles for update
-  using (get_my_role() = 'admin');
+create policy "Super-Admin update" on profiles for update
+  using (get_my_role() = 'super-admin');
 
--- "Admin update" above is the ONLY update policy on profiles — nobody,
+-- "Super-Admin update" above is the ONLY update policy on profiles — nobody,
 -- not even a user editing their own row, can update it unless their own
--- role is admin. A non-admin's self-service "I changed my password,
+-- role is super-admin. A non-super-admin's self-service "I changed my password,
 -- clear my flag" action needs its own narrow escape hatch, not a broader
 -- policy change: deliberately parameterless, only ever touches
 -- auth.uid()'s own row, so "can't target another user's flag" is true by
@@ -134,7 +137,7 @@ create table products (
   status text not null default 'Not Started',
   -- 'pipeline' = normal content, goes through all 7 stages. 'link' = an
   -- external URL/asset counted as Published the moment it's created,
-  -- bypassing the pipeline entirely (a Lead sets status='Published' +
+  -- bypassing the pipeline entirely (a Admin sets status='Published' +
   -- video_url at insert time; no trigger special-case is needed since
   -- enforce_product_update_permissions() governs UPDATEs, not INSERTs).
   delivery_type text not null default 'pipeline'
@@ -151,6 +154,14 @@ create table issues (
   description text not null,
   severity text not null check (severity in ('low', 'medium', 'high')),
   status text not null default 'open' check (status in ('open', 'resolved')),
+  created_at timestamptz not null default now()
+);
+
+create table feedback (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references products(id) on delete cascade,
+  user_id uuid not null references profiles(id) on delete cascade,
+  content text not null,
   created_at timestamptz not null default now()
 );
 
@@ -171,17 +182,17 @@ create trigger products_set_updated_at
 
 -- Column-level permission split: operators are execution-only (video URL
 -- + claiming ownership on upload, nothing else — they never move the
--- pipeline stage or touch catalog metadata), leads are unrestricted
--- (catalog metadata, stage moves, review columns — leads absorb both the
--- old approver's review power and the old admin's catalog power), admins
+-- pipeline stage or touch catalog metadata), admins are unrestricted
+-- (catalog metadata, stage moves, review columns — admins absorb both the
+-- old approver's review power and the old super-admin's catalog power), super-admins
 -- get no product-column access at all (governance/user-management only).
 -- RLS alone can't express "this role may update this row but only these
 -- columns," so this is a trigger.
 --
--- Stage advancement itself is Lead-driven: a Lead moves `status` directly
+-- Stage advancement itself is Admin-driven: a Admin moves `status` directly
 -- (ProductFormModal) or via accepting a submitted deliverable (see
 -- review_stage_deliverable() once Phase D adds it) — Operators never set
--- `status` themselves, they only ever submit the deliverable a Lead
+-- `status` themselves, they only ever submit the deliverable a Admin
 -- reviews.
 create or replace function enforce_product_update_permissions()
 returns trigger as $$
@@ -199,7 +210,7 @@ begin
     return new;
   end if;
 
-  if my_role in ('lead', 'admin') then
+  if my_role = 'admin' then
     return new;
   end if;
 
@@ -249,7 +260,7 @@ begin
     return new;
   end if;
 
-  -- admin: governance-only — no product column is writable, regardless of
+  -- super-admin: governance-only — no product column is writable, regardless of
   -- value. Any other/unrecognized role also falls through here and is
   -- denied — fail closed.
   raise exception 'You do not have permission to edit this product';
@@ -264,26 +275,31 @@ create trigger products_enforce_update_permissions
 -- Row Level Security: reads stay public (the dashboard is open-viewing,
 -- same as it's always been); writes require an authenticated session,
 -- with the role-based split above enforced by the trigger. Insert and
--- delete are lead-only — creating a product requires the full catalog
+-- delete are admin-only — creating a product requires the full catalog
 -- fields an operator can't touch, and delete is the one genuinely
--- irreversible action (admins are governance-only and never write here).
+-- irreversible action (super-admins are governance-only and never write here).
 alter table products enable row level security;
 alter table issues enable row level security;
 
 create policy "Public read" on products for select using (true);
 create policy "Public read" on issues for select using (true);
 
-create policy "Lead and admin insert" on products for insert
-  with check (get_my_role() in ('lead', 'admin'));
+create policy "Admin insert" on products for insert
+  with check (get_my_role() = 'admin');
 create policy "Authenticated update" on products for update
   using (auth.role() = 'authenticated');
-create policy "Lead and admin delete" on products for delete
-  using (get_my_role() in ('lead', 'admin'));
+create policy "Admin delete" on products for delete
+  using (get_my_role() = 'admin');
 
 create policy "Authenticated insert" on issues for insert
   with check (auth.role() = 'authenticated');
 create policy "Authenticated update" on issues for update
   using (auth.role() = 'authenticated');
+
+alter table feedback enable row level security;
+create policy "Public read" on feedback for select using (true);
+create policy "Authenticated insert" on feedback for insert with check (auth.role() = 'authenticated' and user_id = auth.uid());
+create policy "Owner delete" on feedback for delete using (user_id = auth.uid());
 
 -- Stage-aging history: plain updated_at bumps on *any* edit (owner change,
 -- content angle tweak), not just a stage change, so it can't answer "how
@@ -430,13 +446,13 @@ create table video_versions (
 alter table video_versions enable row level security;
 
 create policy "Public read" on video_versions for select using (true);
-create policy "Operator and lead insert" on video_versions for insert
-  with check (get_my_role() in ('operator', 'lead'));
-create policy "Operator and lead update" on video_versions for update
-  using (get_my_role() in ('operator', 'lead'));
+create policy "Operator and admin insert" on video_versions for insert
+  with check (get_my_role() in ('operator', 'admin'));
+create policy "Operator and admin update" on video_versions for update
+  using (get_my_role() in ('operator', 'admin'));
 
 -- security invoker (the default) so this runs under the caller's own RLS —
--- an admin (governance-only, no operator/lead grant) calling this gets
+-- an super-admin (governance-only, no operator/admin grant) calling this gets
 -- rejected by video_versions' insert policy, same as if they'd tried it
 -- directly.
 create or replace function set_current_video_version(
@@ -476,16 +492,16 @@ on conflict (id) do nothing;
 
 create policy "Public read videos" on storage.objects for select
   using (bucket_id = 'videos');
-create policy "Operator and lead upload videos" on storage.objects for insert
-  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
-create policy "Operator and lead update videos" on storage.objects for update
-  using (bucket_id = 'videos' and get_my_role() in ('operator', 'lead'));
-create policy "Lead delete videos" on storage.objects for delete
-  using (bucket_id = 'videos' and get_my_role() = 'lead');
+create policy "Operator and admin upload videos" on storage.objects for insert
+  with check (bucket_id = 'videos' and get_my_role() in ('operator', 'admin'));
+create policy "Operator and admin update videos" on storage.objects for update
+  using (bucket_id = 'videos' and get_my_role() in ('operator', 'admin'));
+create policy "Admin delete videos" on storage.objects for delete
+  using (bucket_id = 'videos' and get_my_role() = 'admin');
 
 -- Per-stage deliverables (QA/QC): the document/text artifacts an Operator
 -- submits for the three pre-video stages (Storyboarding/Scripting/
--- Prompting), which a Lead reviews. Append-only with is_current, mirroring
+-- Prompting), which a Admin reviews. Append-only with is_current, mirroring
 -- video_versions, so resubmissions keep a history. The Editing->Published
 -- leg deliberately reuses video_versions instead of this table — that's
 -- the one stage whose deliverable is a video.
@@ -513,9 +529,9 @@ alter table stage_deliverables enable row level security;
 create policy "Public read" on stage_deliverables for select using (true);
 
 -- Operator may only submit for a product they own, and only for the stage
--- the product is currently in. A Lead may submit on any product's behalf.
--- Operator and Lead never touch the same row via the same verb (Operator
--- only inserts, Lead only updates), so plain RLS is enough — no
+-- the product is currently in. A Admin may submit on any product's behalf.
+-- Operator and Admin never touch the same row via the same verb (Operator
+-- only inserts, Admin only updates), so plain RLS is enough — no
 -- column-level trigger like products needs.
 create policy "Operator submit own current stage" on stage_deliverables for insert
   with check (
@@ -531,10 +547,10 @@ create policy "Operator submit own current stage" on stage_deliverables for inse
         )
     )
   );
-create policy "Lead and admin submit any" on stage_deliverables for insert
-  with check (get_my_role() in ('lead', 'admin') and submitted_by = auth.uid());
-create policy "Lead and admin review" on stage_deliverables for update
-  using (get_my_role() in ('lead', 'admin'));
+create policy "Admin submit any" on stage_deliverables for insert
+  with check (get_my_role() = 'admin' and submitted_by = auth.uid());
+create policy "Admin review" on stage_deliverables for update
+  using (get_my_role() = 'admin');
 
 -- Keep a single is_current row per (product, stage) on resubmission.
 -- security definer because the operator who inserts a new row has no
@@ -641,7 +657,7 @@ $$ language plpgsql security definer set search_path = public;
 -- "submitting" — moves the product Production -> In Review. security definer
 -- plus the app.allow_stage_advance flag (honored by
 -- enforce_product_update_permissions above) so it can advance the stage,
--- but validates the caller owns the product (or is a Lead) and it's
+-- but validates the caller owns the product (or is a Admin) and it's
 -- actually in Production. Verifies at least one video has been uploaded.
 create or replace function submit_video_for_review(p_product_id uuid)
 returns void as $$
@@ -656,7 +672,7 @@ begin
   if v_status is null then
     raise exception 'product not found';
   end if;
-  if v_role not in ('operator', 'lead') then
+  if v_role not in ('operator', 'admin') then
     raise exception 'not permitted';
   end if;
   if v_role = 'operator' and v_owner is distinct from auth.uid() then
@@ -695,14 +711,14 @@ on conflict (id) do nothing;
 
 create policy "Public read stage docs" on storage.objects for select
   using (bucket_id = 'stage-documents');
-create policy "Operator and lead upload stage docs" on storage.objects for insert
-  with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'lead'));
-create policy "Lead delete stage docs" on storage.objects for delete
-  using (bucket_id = 'stage-documents' and get_my_role() = 'lead');
+create policy "Operator and admin upload stage docs" on storage.objects for insert
+  with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'admin'));
+create policy "Admin delete stage docs" on storage.objects for delete
+  using (bucket_id = 'stage-documents' and get_my_role() = 'admin');
 
 -- Product thumbnails — small images shown in the List/Grid views. Set at
--- listing creation/edit time, a Lead-exclusive action, so writes are
--- lead-only. Stored in products.thumbnail_url.
+-- listing creation/edit time, a Admin-exclusive action, so writes are
+-- admin-only. Stored in products.thumbnail_url.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'thumbnails',
@@ -715,12 +731,12 @@ on conflict (id) do nothing;
 
 create policy "Public read thumbnails" on storage.objects for select
   using (bucket_id = 'thumbnails');
-create policy "Lead upload thumbnails" on storage.objects for insert
-  with check (bucket_id = 'thumbnails' and get_my_role() = 'lead');
-create policy "Lead update thumbnails" on storage.objects for update
-  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
-create policy "Lead delete thumbnails" on storage.objects for delete
-  using (bucket_id = 'thumbnails' and get_my_role() = 'lead');
+create policy "Admin upload thumbnails" on storage.objects for insert
+  with check (bucket_id = 'thumbnails' and get_my_role() = 'admin');
+create policy "Admin update thumbnails" on storage.objects for update
+  using (bucket_id = 'thumbnails' and get_my_role() = 'admin');
+create policy "Admin delete thumbnails" on storage.objects for delete
+  using (bucket_id = 'thumbnails' and get_my_role() = 'admin');
 
 -- Production plan: the corporate-level targets the pipeline is measured
 -- against — daily throughput, per-stage/language/category breakdowns, and
@@ -728,7 +744,7 @@ create policy "Lead delete thumbnails" on storage.objects for delete
 -- lib/data.ts carried since before this was a real database (their own
 -- comments anticipated exactly this: "should become a real setting ...
 -- once one exists"). Per-stage/language/category targets are jsonb
--- rather than child tables — they're small lead-edited config maps with
+-- rather than child tables — they're small admin-edited config maps with
 -- open-ended keys (language especially isn't a fixed enum), not
 -- high-volume relational data.
 create table production_plans (
@@ -760,12 +776,12 @@ create trigger production_plans_set_updated_at
 alter table production_plans enable row level security;
 
 create policy "Public read" on production_plans for select using (true);
-create policy "Admin insert" on production_plans for insert
-  with check (get_my_role() = 'admin');
-create policy "Admin update" on production_plans for update
-  using (get_my_role() = 'admin');
-create policy "Admin delete" on production_plans for delete
-  using (get_my_role() = 'admin');
+create policy "Super-Admin insert" on production_plans for insert
+  with check (get_my_role() = 'super-admin');
+create policy "Super-Admin update" on production_plans for update
+  using (get_my_role() = 'super-admin');
+create policy "Super-Admin delete" on production_plans for delete
+  using (get_my_role() = 'super-admin');
 
 -- Daily target history table: tracks active daily target snapshots over time
 create table if not exists daily_target_history (
@@ -781,8 +797,8 @@ alter table daily_target_history enable row level security;
 create policy "Public read daily target history" on daily_target_history
   for select using (true);
 
-create policy "Lead and admin upsert daily target history" on daily_target_history
-  for all using (get_my_role() in ('lead', 'admin'));
+create policy "Admin and super-admin upsert daily target history" on daily_target_history
+  for all using (get_my_role() in ('admin', 'super-admin'));
 
 create or replace function sum_jsonb_values(val jsonb)
 returns integer as $$
@@ -872,8 +888,8 @@ alter table bucky_audit_log enable row level security;
 -- "a real tool execution happened"), same as the rest of this schema.
 create policy "Own inserts" on bucky_audit_log for insert
   with check (user_id = auth.uid());
-create policy "Admin read" on bucky_audit_log for select
-  using (get_my_role() = 'admin');
+create policy "Super-Admin read" on bucky_audit_log for select
+  using (get_my_role() = 'super-admin');
 
 -- Backs Bucky's chat rate limit (lib/bucky/rateLimit.ts) — one row per
 -- chat request (every message, not just mutating tool calls, since even a
@@ -901,7 +917,7 @@ create policy "Own delete" on bucky_rate_limit_log for delete
 
 -- Bucky's chat history, per message (not one blob per user) — moved off
 -- localStorage so a conversation follows the user across devices and is
--- durably readable by an admin if ever needed. id is the AI SDK's own
+-- durably readable by an super-admin if ever needed. id is the AI SDK's own
 -- generated message id, used directly as the primary key rather than a
 -- separate mapping. Saved from the client (BuckyWidget.tsx), not
 -- app/api/bucky/chat/route.ts — same as the localStorage version it
@@ -921,13 +937,13 @@ create index bucky_messages_user_created_idx
 
 alter table bucky_messages enable row level security;
 
--- Two permissive select policies (own OR admin) — Postgres ORs these
--- together, doesn't conflict. Update/delete stay own-only: an admin can
+-- Two permissive select policies (own OR super-admin) — Postgres ORs these
+-- together, doesn't conflict. Update/delete stay own-only: an super-admin can
 -- read a conversation, not tamper with it.
 create policy "Own select" on bucky_messages for select
   using (user_id = auth.uid());
-create policy "Admin read" on bucky_messages for select
-  using (get_my_role() = 'admin');
+create policy "Super-Admin read" on bucky_messages for select
+  using (get_my_role() = 'super-admin');
 create policy "Own insert" on bucky_messages for insert
   with check (user_id = auth.uid());
 create policy "Own update" on bucky_messages for update
@@ -980,9 +996,9 @@ declare
   v_today_target integer;
   v_today_published integer;
 begin
-  -- 1. Lead stale-item check: products stuck in 'In Review' >= 3 days.
-  -- Team-wide (review is a lead responsibility), one shared notification
-  -- per lead.
+  -- 1. Admin stale-item check: products stuck in 'In Review' >= 3 days.
+  -- Team-wide (review is a admin responsibility), one shared notification
+  -- per admin.
   with lead_stale as (
     select p.rank, p.name, latest.entered_at,
       round(extract(epoch from (now() - latest.entered_at)) / 86400.0, 1) as days
@@ -1008,7 +1024,7 @@ begin
   from lead_stale;
 
   if v_lead_message is not null then
-    for v_recipient in select id from profiles where role = 'lead' loop
+    for v_recipient in select id from profiles where role = 'admin' loop
       insert into notifications (recipient_id, type, message, product_id)
       values (
         v_recipient.id,
@@ -1069,12 +1085,12 @@ begin
   -- 3. Pacing check: today's published count vs. today's target, same
   -- precedence as useDailyProgress.ts (plan's daily_accumulative_targets
   -- for today -> daily_target_history for today -> DAILY_VIDEO_TARGET
-  -- fallback). Lead-only: pacing/targets are a Planning-tab concept, and
+  -- fallback). Admin-only: pacing/targets are a Planning-tab concept, and
   -- Planning (plus Analytics, where the daily-target-vs-actual chart
   -- lives) is deliberately hidden from operators in the dashboard UI
   -- (TabBar.tsx) -- this used to also notify operators, which quietly
-  -- contradicted that. Kept lead-only rather than lead+admin to match:
-  -- admin was never part of this alert's audience to begin with
+  -- contradicted that. Kept admin-only rather than admin+super-admin to match:
+  -- super-admin was never part of this alert's audience to begin with
   -- (governance-focused, no proactive alerts of any kind).
   select * into v_active_plan from production_plans where is_active = true limit 1;
 
@@ -1090,7 +1106,7 @@ begin
     and entered_at::date = v_today;
 
   if v_today_published < v_today_target then
-    for v_recipient in select id from profiles where role = 'lead' loop
+    for v_recipient in select id from profiles where role = 'admin' loop
       insert into notifications (recipient_id, type, message, product_id)
       values (
         v_recipient.id,
@@ -1114,7 +1130,7 @@ select cron.schedule(
 );
 
 -- Bucky's own undo window for delete_product -- captures a snapshot of the
--- product plus its child rows (except notifications, which a lead's own
+-- product plus its child rows (except notifications, which a admin's own
 -- session can't even read cross-user under RLS, and which are low-value
 -- transient state anyway) before the real delete happens, so a mistaken
 -- delete can be reversed within a short grace window. Deliberately lives
@@ -1137,24 +1153,24 @@ create index bucky_deleted_product_snapshots_expiry_idx
 
 alter table bucky_deleted_product_snapshots enable row level security;
 
--- Shared team resource (products aren't personal data), so any lead or
--- admin can see and restore any snapshot, not just their own. (Admin was
--- added in the 5-stage pipeline refactor, when admin gained the same
--- product delete powers as lead -- see "Lead and admin delete" on
+-- Shared team resource (products aren't personal data), so any admin or
+-- super-admin can see and restore any snapshot, not just their own. (Super-Admin was
+-- added in the 5-stage pipeline refactor, when super-admin gained the same
+-- product delete powers as admin -- see "Admin and super-admin delete" on
 -- products.)
-create policy "Lead and admin read" on bucky_deleted_product_snapshots for select
-  using (get_my_role() in ('lead', 'admin'));
-create policy "Lead and admin insert" on bucky_deleted_product_snapshots for insert
-  with check (get_my_role() in ('lead', 'admin') and user_id = auth.uid());
+create policy "Admin read" on bucky_deleted_product_snapshots for select
+  using (get_my_role() = 'admin');
+create policy "Admin insert" on bucky_deleted_product_snapshots for insert
+  with check (get_my_role() = 'admin' and user_id = auth.uid());
 -- Narrow: only rows whose window has already closed can be deleted --
 -- lets list_recent_deletions self-clean without a separate cron job, and
 -- can never be used to destroy a still-valid snapshot early.
-create policy "Lead and admin delete expired" on bucky_deleted_product_snapshots for delete
-  using (get_my_role() in ('lead', 'admin') and expires_at < now());
+create policy "Admin delete expired" on bucky_deleted_product_snapshots for delete
+  using (get_my_role() = 'admin' and expires_at < now());
 
 -- Security definer: a plain client insert can't do this restore --
 -- product_status_history has no insert policy at all (only its own
--- trigger writes it), and stage_deliverables' lead-insert policy requires
+-- trigger writes it), and stage_deliverables' admin-insert policy requires
 -- submitted_by = auth.uid(), which would wrongly reassign authorship to
 -- whoever clicks restore. Self-checks the caller's role since security
 -- definer bypasses RLS entirely for its own writes -- same shape as
@@ -1167,8 +1183,8 @@ declare
   v_snapshot jsonb;
   v_new_id uuid;
 begin
-  if get_my_role() not in ('lead', 'admin') then
-    raise exception 'Only leads and admins can restore a deleted product';
+  if get_my_role() not in ('admin', 'super-admin') then
+    raise exception 'Only admins and super-admins can restore a deleted product';
   end if;
 
   select * into v_row from bucky_deleted_product_snapshots

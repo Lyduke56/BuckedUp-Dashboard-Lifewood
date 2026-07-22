@@ -118,7 +118,7 @@ begin
   if v_status is null then
     raise exception 'product not found';
   end if;
-  if v_role not in ('operator', 'lead') then
+  if v_role not in ('operator', 'admin') then
     raise exception 'not permitted';
   end if;
   if v_role = 'operator' and v_owner is distinct from auth.uid() then

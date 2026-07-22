@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { roleLabel } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
 
-const ROLE_OPTIONS: UserRole[] = ["operator", "lead", "admin"];
+const ASSIGNABLE_ROLES: UserRole[] = ["operator", "admin", "client"];
+const ALL_ROLES: UserRole[] = ["operator", "admin", "client", "super-admin"];
 
 interface InvitedAccount {
   email: string;
@@ -44,7 +45,7 @@ export function ManageUsersView() {
     setCreating(true);
     setCreateError(null);
 
-    const res = await fetch("/api/admin/create-user", {
+    const res = await fetch("/api/super-admin/create-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: newEmail.trim(), role: newRole }),
@@ -70,7 +71,7 @@ export function ManageUsersView() {
     }
     setDeletingId(profileId);
     setError(null);
-    const res = await fetch(`/api/admin/users/${profileId}`, { method: "DELETE" });
+    const res = await fetch(`/api/super-admin/users/${profileId}`, { method: "DELETE" });
     setDeletingId(null);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -130,7 +131,7 @@ export function ManageUsersView() {
             value={newRole}
             onChange={(event) => setNewRole(event.target.value as UserRole)}
           >
-            {ROLE_OPTIONS.map((role) => (
+            {ASSIGNABLE_ROLES.map((role) => (
               <option key={role} value={role}>
                 {roleLabel(role)}
               </option>
@@ -182,7 +183,7 @@ export function ManageUsersView() {
                       handleRoleChange(profile.id, event.target.value as UserRole)
                     }
                   >
-                    {ROLE_OPTIONS.map((role) => (
+                    {(profile.role === "super-admin" ? ALL_ROLES : ASSIGNABLE_ROLES).map((role) => (
                       <option key={role} value={role}>
                         {roleLabel(role)}
                       </option>

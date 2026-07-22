@@ -17,7 +17,7 @@ interface BuckyTranscriptModalProps {
   onClose: () => void;
 }
 
-// Read-only replay of a saved Bucky conversation, for admins. Mirrors
+// Read-only replay of a saved Bucky conversation, for super-admins. Mirrors
 // BuckyWidget.tsx's per-part rendering (text/tool-call branches) using the
 // same shared renderMarkdown/toolCopy modules, but strips everything that
 // only makes sense in a LIVE conversation: no Confirm/Cancel buttons, no

@@ -1,6 +1,6 @@
 /**
  * Adds profiles.must_change_password + clear_must_change_password() RPC
- * for the new admin-created-account flow (admin sets a temp password,
+ * for the new super-admin-created-account flow (super-admin sets a temp password,
  * new user is forced to set their own on first login). See
  * C:\Users\John Peter\.claude\plans\jaunty-conjuring-cook.md.
  *

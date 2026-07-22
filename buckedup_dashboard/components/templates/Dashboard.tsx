@@ -16,7 +16,7 @@ import { CatalogView } from "@/components/templates/CatalogView";
 import { VideoLibraryView, type LibraryProductFocus } from "@/components/templates/VideoLibraryView";
 import { VideoModal } from "@/components/organisms/VideoModal";
 import { AnalyticsView } from "@/components/templates/AnalyticsView";
-import { AdminView } from "@/components/templates/AdminView";
+import { SuperAdminView } from "@/components/templates/SuperAdminView";
 import { PlanningView } from "@/components/templates/PlanningView";
 import { BuckyConversationsView } from "@/components/templates/BuckyConversationsView";
 import { BuckyWidget } from "@/components/organisms/BuckyWidget";
@@ -96,6 +96,12 @@ export function Dashboard() {
   }, [theme]);
 
   useEffect(() => {
+    if (role === "client" && activeView !== "library") {
+      setActiveView("library");
+    }
+  }, [role, activeView]);
+
+  useEffect(() => {
     // A small timeout ensures the new tab's content is painted before scrolling.
     // Target window, documentElement, and body to cover CSS overflow edge cases (e.g. body height: 100%).
     setTimeout(() => {
@@ -118,7 +124,7 @@ export function Dashboard() {
   };
 
   const pendingReviewsCount = useMemo(() => {
-    if (role !== "lead" && role !== "admin") return 0;
+    if (role !== "admin") return 0;
     
 
     let count = 0;
@@ -144,7 +150,7 @@ export function Dashboard() {
   }, [products, currentByKey, role]);
 
   // Replaces the entire dashboard shell (not layered over it) whenever an
-  // admin-created account hasn't set its own password yet — nothing else
+  // super-admin-created account hasn't set its own password yet — nothing else
   // mounts, so there's nothing to accidentally interact with underneath.
   if (mustChangePassword) {
     return <ForcePasswordChangeView />;
@@ -216,7 +222,7 @@ export function Dashboard() {
             onProductFocus={setLibraryFocus}
           />
         </div>
-        {(role === "lead" || role === "admin") ? (
+        {role === "admin" ? (
           <div className={`view${activeView === "reviews" ? " active" : ""}`}>
             <ReviewsView
               products={products}
@@ -231,17 +237,17 @@ export function Dashboard() {
         <div className={`view${activeView === "analytics" ? " active" : ""}`}>
           <AnalyticsView products={products} />
         </div>
-        {role === "admin" ? (
-          <div className={`view${activeView === "admin" ? " active" : ""}`}>
-            <AdminView />
+        {role === "super-admin" ? (
+          <div className={`view${activeView === "super-admin" ? " active" : ""}`}>
+            <SuperAdminView />
           </div>
         ) : null}
-        {role === "admin" ? (
+        {role === "super-admin" ? (
           <div className={`view${activeView === "planning" ? " active" : ""}`}>
             <PlanningView />
           </div>
         ) : null}
-        {role === "admin" ? (
+        {role === "super-admin" ? (
           <div className={`view${activeView === "bucky" ? " active" : ""}`}>
             <BuckyConversationsView />
           </div>
@@ -249,6 +255,7 @@ export function Dashboard() {
       </div>
       <VideoModal
         products={products}
+        catalog={catalog}
         modalKey={modalKey}
         onClose={() => setModalKey(null)}
       />

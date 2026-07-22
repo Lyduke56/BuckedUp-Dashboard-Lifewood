@@ -32,14 +32,14 @@ const BASE_TABS: Tab[] = [
   { id: "analytics", label: "Analytics", icon: AnalyticsIcon },
 ];
 
-// The 4th tab is role-specific: Admin manages users, Lead configures the
+// The 4th tab is role-specific: Super-Admin manages users, Admin configures the
 // production plan, Operator gets no 4th tab. (Both use the same UsersIcon
 // slot visually — they're never shown to the same person.)
-const ADMIN_TAB: Tab = { id: "admin", label: "Admin", icon: UsersIcon };
+const ADMIN_TAB: Tab = { id: "super-admin", label: "Super-Admin", icon: UsersIcon };
 const PLANNING_TAB: Tab = { id: "planning", label: "Planning", icon: UsersIcon };
 const CATALOG_TAB: Tab = { id: "catalog", label: "Catalog", icon: CatalogIcon };
-// Admin-only: lets admins read back Bucky (the AI assistant)'s saved
-// conversations. Not shown to lead/operator — they're the ones being
+// Super-Admin-only: lets super-admins read back Bucky (the AI assistant)'s saved
+// conversations. Not shown to admin/operator — they're the ones being
 // reviewed, not the reviewer.
 const BUCKY_TAB: Tab = { id: "bucky", label: "Bucky", icon: BuckyIcon };
 
@@ -51,13 +51,15 @@ export function TabBar({ activeView, onViewChange, role, pendingReviewsCount = 0
   };
 
   const tabs =
-    role === "admin"
-      ? [BASE_TABS[0], REVIEWS_TAB, CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB, ADMIN_TAB, BUCKY_TAB]
-      : role === "lead"
+    role === "super-admin"
+      ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1], BASE_TABS[2], PLANNING_TAB, ADMIN_TAB, BUCKY_TAB]
+      : role === "admin"
         ? [BASE_TABS[0], REVIEWS_TAB, CATALOG_TAB, BASE_TABS[1], BASE_TABS[2]]
         : role === "operator"
           ? [BASE_TABS[0], CATALOG_TAB, BASE_TABS[1]] // No Analytics for Operator
-          : BASE_TABS;
+          : role === "client"
+            ? [BASE_TABS[1]] // Only Video Library for Client
+            : BASE_TABS;
 
   return (
     <nav className="tab-bar">

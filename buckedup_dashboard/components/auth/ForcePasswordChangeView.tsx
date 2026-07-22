@@ -27,7 +27,7 @@ const MIN_PASSWORD_LENGTH = 8;
 // Full-screen, replaces Dashboard's entire render tree — not a modal
 // layered over content, so there's nothing underneath to interact with.
 // Renders whenever useAuth().mustChangePassword is true (set by the
-// admin-created-account flow); clears once the RPC below succeeds.
+// super-admin-created-account flow); clears once the RPC below succeeds.
 export function ForcePasswordChangeView() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

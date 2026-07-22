@@ -30,7 +30,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           }
           if (product.owner_id) {
             return {
-              error: `${product.name} is already owned by ${product.owner ?? "someone else"} — ask a lead to reassign it.`,
+              error: `${product.name} is already owned by ${product.owner ?? "someone else"} — ask a admin to reassign it.`,
             };
           }
           // The DB trigger only permits a claim as the exact transition
@@ -68,10 +68,10 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
           }
           // Mirrors the DB trigger's allowed unclaim transition: owned by
           // you, still in Design (or Not Started), back to unowned +
-          // Not Started. Anything further along must go through a lead.
+          // Not Started. Anything further along must go through a admin.
           if (product.status !== "Design" && product.status !== "Not Started") {
             return {
-              error: `${product.name} is already in "${product.status}" — work past Design can't be unclaimed; ask a lead to reassign it instead.`,
+              error: `${product.name} is already in "${product.status}" — work past Design can't be unclaimed; ask a admin to reassign it instead.`,
             };
           }
           const { error: updateError } = await supabase
@@ -157,7 +157,7 @@ function buildOperatorActionTools(supabase: SupabaseServerClient, userId: string
   };
 }
 
-// Same role-gate-returns-{} pattern as createBuckyActionTools above — the
+// Same role-gate-returns-{} pattern as createBuckySuperAdminActionTools above — the
 // model gets no schema for these tools unless the caller is an
 // operator, so it can't attempt one regardless of what it's asked.
 export function createBuckyOperatorActionTools(

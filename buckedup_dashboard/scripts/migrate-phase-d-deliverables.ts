@@ -1,11 +1,11 @@
 /**
- * Phase D migration: per-stage deliverables + Lead QA/QC review.
+ * Phase D migration: per-stage deliverables + Admin QA/QC review.
  * See C:\Users\John Peter\.claude\plans\jaunty-conjuring-cook.md, Phase D.
  *
  *  - stage_deliverables table (Storyboarding/Scripting/Prompting only;
  *    Editing->Published reuses video_versions as-is).
- *  - RLS: Operator inserts own product's current-stage deliverable; Lead
- *    updates (reviews). Operator and Lead never touch the same row via the
+ *  - RLS: Operator inserts own product's current-stage deliverable; Admin
+ *    updates (reviews). Operator and Admin never touch the same row via the
  *    same verb, so plain RLS is enough (no column-level trigger needed).
  *  - review_stage_deliverable() RPC (security invoker): sets the decision
  *    and, on accept, advances products.status to the next stage.
@@ -80,16 +80,16 @@ create policy "Operator submit own current stage" on stage_deliverables for inse
     )
   );
 
--- A Lead may also submit on a product's behalf (they have full catalog
+-- A Admin may also submit on a product's behalf (they have full catalog
 -- power), so the pipeline never gets stuck if no operator is assigned.
-drop policy if exists "Lead submit any" on stage_deliverables;
-create policy "Lead submit any" on stage_deliverables for insert
-  with check (get_my_role() = 'lead' and submitted_by = auth.uid());
+drop policy if exists "Admin submit any" on stage_deliverables;
+create policy "Admin submit any" on stage_deliverables for insert
+  with check (get_my_role() = 'admin' and submitted_by = auth.uid());
 
--- Only a Lead reviews (updates decision/reviewed_by/etc.).
-drop policy if exists "Lead review" on stage_deliverables;
-create policy "Lead review" on stage_deliverables for update
-  using (get_my_role() = 'lead');
+-- Only a Admin reviews (updates decision/reviewed_by/etc.).
+drop policy if exists "Admin review" on stage_deliverables;
+create policy "Admin review" on stage_deliverables for update
+  using (get_my_role() = 'admin');
 
 -- Keep a single is_current row per (product, stage) on resubmission.
 -- security definer because the operator who inserts a new row has no
@@ -174,7 +174,7 @@ begin
     return new;
   end if;
 
-  if my_role = 'lead' then
+  if my_role = 'admin' then
     return new;
   end if;
 
@@ -204,7 +204,7 @@ $$ language plpgsql;
 -- 2b. submit_video_for_review(): the Editing-leg equivalent of an Operator
 --     "submitting" — moves the product Editing -> In Review. security
 --     definer + the GUC flag above so it can advance the stage, but
---     validates the caller owns the product (or is a Lead) and it's
+--     validates the caller owns the product (or is a Admin) and it's
 --     actually in Editing. This is the only way an Operator advances a
 --     stage, and it's a single fixed transition, not an arbitrary one.
 create or replace function submit_video_for_review(p_product_id uuid)
@@ -219,7 +219,7 @@ begin
   if v_status is null then
     raise exception 'product not found';
   end if;
-  if v_role not in ('operator', 'lead') then
+  if v_role not in ('operator', 'admin') then
     raise exception 'not permitted';
   end if;
   if v_role = 'operator' and v_owner is distinct from auth.uid() then
@@ -249,12 +249,12 @@ on conflict (id) do nothing;
 drop policy if exists "Public read stage docs" on storage.objects;
 create policy "Public read stage docs" on storage.objects for select
   using (bucket_id = 'stage-documents');
-drop policy if exists "Operator and lead upload stage docs" on storage.objects;
-create policy "Operator and lead upload stage docs" on storage.objects for insert
-  with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'lead'));
-drop policy if exists "Lead delete stage docs" on storage.objects;
-create policy "Lead delete stage docs" on storage.objects for delete
-  using (bucket_id = 'stage-documents' and get_my_role() = 'lead');
+drop policy if exists "Operator and admin upload stage docs" on storage.objects;
+create policy "Operator and admin upload stage docs" on storage.objects for insert
+  with check (bucket_id = 'stage-documents' and get_my_role() in ('operator', 'admin'));
+drop policy if exists "Admin delete stage docs" on storage.objects;
+create policy "Admin delete stage docs" on storage.objects for delete
+  using (bucket_id = 'stage-documents' and get_my_role() = 'admin');
 
 -- 4. Realtime so the review UI updates live (idempotent — adding a table
 --    already in the publication errors otherwise).

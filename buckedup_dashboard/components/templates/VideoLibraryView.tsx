@@ -35,7 +35,7 @@ import { ProductReviewModal } from "@/components/organisms/ProductReviewModal";
 import { StageHistoryLog } from "@/components/organisms/StageHistoryLog";
 
 // Stages an Operator can submit a deliverable for (Design and Production).
-// A Lead reviews in Design and In Review stages.
+// A Admin reviews in Design and In Review stages.
 const OPERATOR_SUBMIT_STAGES = ["Design", "Production"] as string[];
 const LEAD_REVIEW_STAGES = ["Design", "In Review"] as string[];
 
@@ -94,7 +94,7 @@ export function VideoLibraryView({
   const [rejectedOnly, setRejectedOnly] = useState(false);
   const [currentSort, setCurrentSort] = useState<"highest" | "lowest" | "oldest">("highest");
   const [searchTerm, setSearchTerm] = useState("");
-  const [layout, setLayout] = useState<LibraryLayout>("table");
+  const [layoutState, setLayoutState] = useState<LibraryLayout>("table");
   // Which category folder is open in Grid view (null = show the folders).
   const [gridFolder, setGridFolder] = useState<string | null>(null);
 
@@ -175,6 +175,9 @@ export function VideoLibraryView({
   const { user, role } = useAuth();
   const { profiles } = useProfiles();
   const isAuthenticated = !!user;
+  
+  const layout = role === "client" ? "grid" : layoutState;
+  const setLayout = setLayoutState;
 
   const handleClaim = async (productId: string, productName: string) => {
     if (!user) return;
@@ -213,17 +216,15 @@ export function VideoLibraryView({
       setMineOnly(true);
     }
   }, [role]);
-  // Lead and Admin: full catalog access (add/edit/delete products, move
+  // Admin: full catalog access (add/edit/delete products, move
   // stage via ProductFormModal's Stage field) plus reviewing submitted
-  // deliverables. Admin has identical library powers to Lead — the sole
-  // difference is Admin also manages user accounts (Lead cannot).
+  // deliverables.
+  // Super-Admin: governance-only — read-only access to the library.
   // Operator: execution-only — submits the deliverable for the current
   // stage, never moves the stage itself. See supabase/schema.sql's
   // enforce_product_update_permissions() for the DB-level version of
   // this same split — this is UI convenience, not the security boundary.
-  const canManageCatalog = role === "lead" || role === "admin";
-  // Admin now has full library access (same as Lead), so no special
-  // restrictions or filtered views apply — isAdmin is unused.
+  const canManageCatalog = role === "admin";
   const isAdmin = false;
   const nextRank =
     products.length === 0 ? 1 : Math.max(...products.map((p) => p.rank)) + 1;
@@ -235,8 +236,8 @@ export function VideoLibraryView({
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase();
     const filtered = products.filter((product) => {
-      // Admin only ever sees Published items, regardless of the pills.
-      if (isAdmin && productBucket(product) !== "published") {
+      // Super-Admin and Client only ever see Published items, regardless of the pills.
+      if ((isAdmin || role === "client") && productBucket(product) !== "published") {
         return false;
       }
       if (currentCategory !== "all" && product.category !== currentCategory) {
@@ -299,7 +300,7 @@ export function VideoLibraryView({
     setGridFolder(null);
   };
 
-  // Lead-only inline stage change from the list row (Lead has unrestricted
+  // Admin-only inline stage change from the list row (Admin has unrestricted
   // status write per enforce_product_update_permissions). Also the natural
   // spot for the Not Started -> Design kickoff. The realtime
   // products subscription refreshes the list.
@@ -346,7 +347,7 @@ export function VideoLibraryView({
       <PageHeader
         title="Video Library | BuckedUp"
         overline="CATALOG"
-        subtitle="Priority-ranked shot list — grows automatically as new products are requested, across any category in the catalog."
+        subtitle={role === "client" ? "Browse through the finished videos and download." : "Priority-ranked shot list — grows automatically as new products are requested, across any category in the catalog."}
       />
       <div className="library-container">
         <div className="library-header">
@@ -405,7 +406,7 @@ export function VideoLibraryView({
                   </button>
                 ))}
                 <div style={{ width: '1px', height: '20px', background: 'var(--glass-border)', margin: '0 8px', alignSelf: 'center' }} />
-                {role === "operator" || role === "lead" ? (
+                {role === "operator" || role === "admin" ? (
                   <button
                     type="button"
                     className={`pill${mineOnly ? " active" : ""}`}
@@ -425,13 +426,14 @@ export function VideoLibraryView({
             )}
           </div>
           <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {isAdmin ? null : (
+            {!isAdmin && role !== "client" && (
               <div className="layout-toggle">
                 <button
                   type="button"
                   className={`pill${layout === "table" ? " active" : ""}`}
                   onClick={() => setLayout("table")}
-                  title="List view"
+                  title="List View"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <List size={16} />
                 </button>
@@ -439,7 +441,8 @@ export function VideoLibraryView({
                   type="button"
                   className={`pill${layout === "grid" ? " active" : ""}`}
                   onClick={() => setLayout("grid")}
-                  title="Grid view"
+                  title="Grid View"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <LayoutGrid size={16} />
                 </button>
@@ -447,7 +450,8 @@ export function VideoLibraryView({
                   type="button"
                   className={`pill${layout === "board" ? " active" : ""}`}
                   onClick={() => setLayout("board")}
-                  title="Board view"
+                  title="Board View"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <Kanban size={16} />
                 </button>
@@ -600,10 +604,10 @@ export function VideoLibraryView({
                   product.deliveryType === "pipeline" &&
                   OPERATOR_SUBMIT_STAGES.includes(item.status);
                 const canReview =
-                  (role === "lead" || role === "admin") &&
+                  role === "admin" &&
                   product.deliveryType === "pipeline" &&
                   LEAD_REVIEW_STAGES.includes(item.status);
-                // A Lead's "needs attention": a pending doc deliverable, or a
+                // A Admin's "needs attention": a pending doc deliverable, or a
                 // video parked in In Review.
                 const awaitingReview =
                   isReview ||

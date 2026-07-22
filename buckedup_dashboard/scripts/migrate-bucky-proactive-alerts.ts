@@ -62,9 +62,9 @@ DECLARE
   v_today_target integer;
   v_today_published integer;
 BEGIN
-  -- 1. Lead stale-item check: products stuck in 'In Review' >= 3 days.
-  -- Team-wide (review is a lead responsibility), one shared notification
-  -- per lead.
+  -- 1. Admin stale-item check: products stuck in 'In Review' >= 3 days.
+  -- Team-wide (review is a admin responsibility), one shared notification
+  -- per admin.
   WITH lead_stale AS (
     SELECT p.rank, p.name, latest.entered_at,
       round(extract(epoch FROM (now() - latest.entered_at)) / 86400.0, 1) AS days
@@ -90,7 +90,7 @@ BEGIN
   FROM lead_stale;
 
   IF v_lead_message IS NOT NULL THEN
-    FOR v_recipient IN SELECT id FROM profiles WHERE role = 'lead' LOOP
+    FOR v_recipient IN SELECT id FROM profiles WHERE role = 'admin' LOOP
       INSERT INTO notifications (recipient_id, type, message, product_id)
       VALUES (
         v_recipient.id,
@@ -151,7 +151,7 @@ BEGIN
   -- 3. Pacing check: today's published count vs. today's target, same
   -- precedence as useDailyProgress.ts (plan's daily_accumulative_targets
   -- for today -> daily_target_history for today -> DAILY_VIDEO_TARGET
-  -- fallback). Team-wide fact, notifies every lead and operator.
+  -- fallback). Team-wide fact, notifies every admin and operator.
   SELECT * INTO v_active_plan FROM production_plans WHERE is_active = true LIMIT 1;
 
   v_today_target := coalesce(
@@ -166,7 +166,7 @@ BEGIN
     AND entered_at::date = v_today;
 
   IF v_today_published < v_today_target THEN
-    FOR v_recipient IN SELECT id FROM profiles WHERE role IN ('lead', 'operator') LOOP
+    FOR v_recipient IN SELECT id FROM profiles WHERE role IN ('admin', 'operator') LOOP
       INSERT INTO notifications (recipient_id, type, message, product_id)
       VALUES (
         v_recipient.id,

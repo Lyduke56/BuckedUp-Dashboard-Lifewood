@@ -5,7 +5,7 @@ import type { PipelineStatus, Product, ProductBucket, UserRole } from "./types";
 
 // DB values stay lowercase (matches the Postgres enum + every RLS
 // policy/trigger comparing against them) — this is display-only. Roles
-// are "operator" | "lead" | "admin" (see lib/types.ts).
+// are "operator" | "admin" | "super-admin" (see lib/types.ts).
 export function roleLabel(role: UserRole): string {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
