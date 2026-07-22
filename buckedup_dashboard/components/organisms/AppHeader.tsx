@@ -80,9 +80,9 @@ export function AppHeader({
                   letterSpacing: '0.05em',
                   padding: '2px 6px',
                   borderRadius: '4px',
-                  background: role === 'super-admin' ? 'rgba(6, 182, 212, 0.15)' : role === 'admin' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(132, 204, 22, 0.15)',
-                  color: role === 'super-admin' ? '#06b6d4' : role === 'admin' ? '#eab308' : '#84cc16',
-                  border: `1px solid ${role === 'super-admin' ? 'rgba(6, 182, 212, 0.3)' : role === 'admin' ? 'rgba(234, 179, 8, 0.3)' : 'rgba(132, 204, 22, 0.3)'}`
+                  background: role === 'super-admin' ? 'rgba(6, 182, 212, 0.15)' : role === 'admin' ? 'rgba(234, 179, 8, 0.15)' : role === 'client' ? 'rgba(244, 114, 182, 0.15)' : 'rgba(132, 204, 22, 0.15)',
+                  color: role === 'super-admin' ? '#06b6d4' : role === 'admin' ? '#eab308' : role === 'client' ? '#f472b6' : '#84cc16',
+                  border: `1px solid ${role === 'super-admin' ? 'rgba(6, 182, 212, 0.3)' : role === 'admin' ? 'rgba(234, 179, 8, 0.3)' : role === 'client' ? 'rgba(244, 114, 182, 0.3)' : 'rgba(132, 204, 22, 0.3)'}`
                 }}>
                   {role}
                 </span>

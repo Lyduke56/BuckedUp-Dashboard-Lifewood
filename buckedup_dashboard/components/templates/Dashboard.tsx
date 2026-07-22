@@ -14,6 +14,7 @@ import { TabBar } from "@/components/organisms/TabBar";
 import { OverviewView } from "@/components/templates/OverviewView";
 import { CatalogView } from "@/components/templates/CatalogView";
 import { VideoLibraryView, type LibraryProductFocus } from "@/components/templates/VideoLibraryView";
+import { ClientVideoLibraryView } from "@/components/templates/ClientVideoLibraryView";
 import { VideoModal } from "@/components/organisms/VideoModal";
 import { AnalyticsView } from "@/components/templates/AnalyticsView";
 import { SuperAdminView } from "@/components/templates/SuperAdminView";
@@ -32,7 +33,7 @@ export function Dashboard() {
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog(true);
   const { currentByKey } = useStageDeliverables();
-  const { role, mustChangePassword, theme: savedTheme, user } = useAuth();
+  const { role, mustChangePassword, theme: savedTheme, user, loading: authLoading } = useAuth();
 
   // Bucky's product-selection context (Phase 3b). libraryFocus covers
   // VideoLibraryView's review/production/edit-form modals (reported up via
@@ -105,9 +106,9 @@ export function Dashboard() {
     // A small timeout ensures the new tab's content is painted before scrolling.
     // Target window, documentElement, and body to cover CSS overflow edge cases (e.g. body height: 100%).
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      document.documentElement.scrollTo?.({ top: 0, behavior: "smooth" });
-      document.body.scrollTo?.({ top: 0, behavior: "smooth" });
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
     }, 10);
   }, [activeView]);
 
@@ -148,6 +149,15 @@ export function Dashboard() {
     }
     return count;
   }, [products, currentByKey, role]);
+
+  if (authLoading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "24px", height: "24px", borderRadius: "50%", border: "2px solid var(--ink-soft)", borderTopColor: "var(--ink)", animation: "spin 1s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   // Replaces the entire dashboard shell (not layered over it) whenever an
   // super-admin-created account hasn't set its own password yet — nothing else
@@ -208,19 +218,30 @@ export function Dashboard() {
           />
         </div>
         <div className={`view${activeView === "library" ? " active" : ""}`}>
-          <VideoLibraryView
-            products={products}
-            currentByKey={currentByKey}
-            loading={loading}
-            error={error}
-            onOpenModal={setModalKey}
-            externalSearch={librarySearch}
-            onExternalSearchApplied={() => setLibrarySearch(null)}
-            externalReviewRank={reviewRankToOpen}
-            onExternalReviewRankApplied={() => setReviewRankToOpen(null)}
-            theme={theme}
-            onProductFocus={setLibraryFocus}
-          />
+          {role === "client" ? (
+            <ClientVideoLibraryView
+              products={products}
+              loading={loading}
+              error={error}
+              onOpenModal={setModalKey}
+              externalSearch={librarySearch}
+              onExternalSearchApplied={() => setLibrarySearch(null)}
+            />
+          ) : (
+            <VideoLibraryView
+              products={products}
+              currentByKey={currentByKey}
+              loading={loading}
+              error={error}
+              onOpenModal={setModalKey}
+              externalSearch={librarySearch}
+              onExternalSearchApplied={() => setLibrarySearch(null)}
+              externalReviewRank={reviewRankToOpen}
+              onExternalReviewRankApplied={() => setReviewRankToOpen(null)}
+              theme={theme}
+              onProductFocus={setLibraryFocus}
+            />
+          )}
         </div>
         {role === "admin" ? (
           <div className={`view${activeView === "reviews" ? " active" : ""}`}>
