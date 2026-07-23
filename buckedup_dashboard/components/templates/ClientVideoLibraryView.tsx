@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/molecules/PageHeader";
 import { STATUS_CLASS } from "@/lib/data";
 import { useProfiles } from "@/lib/useProfiles";
 import { useAllFeedbackSummary } from "@/lib/useFeedback";
+import { ClientVideoWatchView } from "@/components/templates/ClientVideoWatchView";
+import { ArrowLeft } from "lucide-react";
 
 const LANGUAGE_FLAG: Record<string, string> = {
   English: "🇺🇸",
@@ -38,7 +40,7 @@ export function ClientVideoLibraryView({
   products,
   loading,
   error,
-  onOpenModal,
+  onOpenModal, // No longer used for client
   externalSearch,
   onExternalSearchApplied,
 }: ClientVideoLibraryViewProps) {
@@ -47,6 +49,8 @@ export function ClientVideoLibraryView({
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [viewFilter, setViewFilter] = useState<"all" | "unviewed" | "viewed" | "feedbacked" | "recents">("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [watchVideoId, setWatchVideoId] = useState<string | null>(null);
 
   const [viewedProductIds, setViewedProductIds] = useState<Set<string>>(new Set());
 
@@ -58,7 +62,7 @@ export function ClientVideoLibraryView({
     } catch {}
   }, []);
 
-  const handleOpenVideoModal = (modalKey: string, productId: string) => {
+  const handleOpenVideo = (productId: string) => {
     if (productId && !viewedProductIds.has(productId)) {
       const updated = new Set(viewedProductIds);
       updated.add(productId);
@@ -67,7 +71,7 @@ export function ClientVideoLibraryView({
         localStorage.setItem("buckedup_client_viewed_videos", JSON.stringify(Array.from(updated)));
       } catch {}
     }
-    onOpenModal(modalKey);
+    setWatchVideoId(productId);
   };
 
   const { profiles } = useProfiles();
@@ -212,6 +216,37 @@ export function ClientVideoLibraryView({
     );
   }
 
+  if (watchVideoId) {
+    const watchingProduct = products.find(p => p.id === watchVideoId);
+    
+    return (
+      <div style={{ height: 'calc(100vh - 100px)' }}>
+        <div className="library-container cvm-watch-view-animated" style={{ height: '100%' }}>
+          <div className="library-header" style={{ display: 'flex', alignItems: 'center', padding: '16px 24px' }}>
+            <button 
+              onClick={() => setWatchVideoId(null)}
+              className="pill active"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <ArrowLeft size={16} />
+              Back to Library
+            </button>
+          </div>
+          <div className="library-body">
+            <div className="isolated-scroll" style={{ padding: '24px' }}>
+              <ClientVideoWatchView
+                products={products}
+                videoId={watchVideoId}
+                onBack={() => setWatchVideoId(null)}
+                onNavigate={(id) => setWatchVideoId(id)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
@@ -220,170 +255,64 @@ export function ClientVideoLibraryView({
         subtitle="Browse through the finished videos and download. You can leave feedbacks or comments."
       />
       <div className="library-container">
-        <div className="library-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', paddingTop: '16px', paddingLeft: '24px', paddingRight: '24px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%', margin: '0' }}>
-            {/* Top Control Bar: Search + Category + Subcategory + Sort Order in a single left-aligned row */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
-              {/* Search Bar matching Product Catalog design */}
-              <div style={{ position: 'relative', display: 'flex', flex: '1 1 280px', minWidth: '260px' }}>
-                <input
-                  type="text"
-                  className="search-input"
-                  style={{ 
-                    paddingLeft: '44px', 
-                    height: '40px',
-                    width: '100%',
-                    borderRadius: '22px',
-                    background: 'var(--glass-bg)',
-                    border: '1px solid var(--glass-border)',
-                    color: 'var(--text-main)',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                  placeholder="Search published videos…"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                />
-                <svg
-                  style={{
-                    position: 'absolute',
-                    left: '14px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: 'var(--ink-soft)',
-                    pointerEvents: 'none'
-                  }}
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.3-4.3" />
-                </svg>
-              </div>
+        <div className="library-header">
+          <div className="filter-row-left">
+            <select
+              className="filter-select"
+              value={selectedCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+            >
+              <option value="All">All Categories</option>
+              {availableCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
 
-              {/* Category Filter */}
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                style={{
-                  height: "42px",
-                  borderRadius: "12px",
-                  padding: "0 12px",
-                  border: "1px solid var(--border-color)",
-                  backgroundColor: "var(--bg-card, rgba(255,255,255,0.05))",
-                  color: "var(--ink)",
-                  fontSize: "14px",
-                  outline: "none",
-                  cursor: "pointer",
-                  minWidth: "160px",
-                  flex: "0 0 auto",
-                }}
-              >
-                <option value="All">All Categories</option>
-                {availableCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+            <select
+              className="filter-select"
+              value={selectedSubcategory}
+              onChange={(e) => setSelectedSubcategory(e.target.value)}
+              disabled={availableSubcategories.length === 0}
+            >
+              <option value="All">All Subcategories</option>
+              {availableSubcategories.map((subcat) => (
+                <option key={subcat} value={subcat}>
+                  {subcat}
+                </option>
+              ))}
+            </select>
 
-              {/* Subcategory Filter */}
-              <select
-                value={selectedSubcategory}
-                onChange={(e) => setSelectedSubcategory(e.target.value)}
-                disabled={availableSubcategories.length === 0}
-                style={{
-                  height: "42px",
-                  borderRadius: "12px",
-                  padding: "0 12px",
-                  border: "1px solid var(--border-color)",
-                  backgroundColor: "var(--bg-card, rgba(255,255,255,0.05))",
-                  color: "var(--ink)",
-                  fontSize: "14px",
-                  outline: "none",
-                  cursor: availableSubcategories.length === 0 ? "not-allowed" : "pointer",
-                  opacity: availableSubcategories.length === 0 ? 0.6 : 1,
-                  minWidth: "160px",
-                  flex: "0 0 auto",
-                }}
-              >
-                <option value="All">All Subcategories</option>
-                {availableSubcategories.map((subcat) => (
-                  <option key={subcat} value={subcat}>
-                    {subcat}
-                  </option>
-                ))}
-              </select>
-
-              {/* Sort Order */}
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as any)}
-                style={{
-                  height: "42px",
-                  borderRadius: "12px",
-                  padding: "0 12px",
-                  border: "1px solid var(--border-color)",
-                  backgroundColor: "var(--bg-card, rgba(255,255,255,0.05))",
-                  color: "var(--ink)",
-                  fontSize: "14px",
-                  outline: "none",
-                  cursor: "pointer",
-                  minWidth: "180px",
-                  flex: "0 0 auto",
-                }}
-              >
-                <option value="newest">Sort by Age (Newest First)</option>
-                <option value="oldest">Sort by Age (Oldest First)</option>
-              </select>
-            </div>
-
-            {/* Smart View / Feedback Filter Pills - Left-Docked */}
-            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-start", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ width: '1px', height: '20px', background: 'var(--glass-border)', margin: '0 8px', alignSelf: 'center' }} />
+            
+            <div className="filter-pills">
               {[
                 { id: "all", label: "All Videos", count: publishedProducts.length },
-                { id: "unviewed", label: "Unviewed", count: unviewedCount, badgeColor: "#f59e0b" },
-                { id: "viewed", label: "Viewed Only", count: publishedProducts.length - unviewedCount },
-                { id: "feedbacked", label: "Feedback Provided", count: feedbackedCount, badgeColor: "#10b981" },
-                { id: "recents", label: "Recents (7 Days)" },
+                { id: "unviewed", label: "Unviewed", count: unviewedCount },
+                { id: "viewed", label: "Viewed", count: publishedProducts.length - unviewedCount },
+                { id: "feedbacked", label: "Feedback", count: feedbackedCount },
+                { id: "recents", label: "Recents" },
               ].map((pill) => {
                 const isActive = viewFilter === pill.id;
                 return (
                   <button
                     key={pill.id}
                     type="button"
+                    className={`pill${isActive ? " active" : ""}`}
                     onClick={() => setViewFilter(pill.id as any)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "6px 14px",
-                      borderRadius: "20px",
-                      fontSize: "13px",
-                      fontWeight: isActive ? 700 : 500,
-                      backgroundColor: isActive ? "rgba(16, 185, 129, 0.18)" : "rgba(255, 255, 255, 0.04)",
-                      color: isActive ? "var(--castleton)" : "var(--ink-soft)",
-                      border: isActive ? "1px solid var(--castleton)" : "1px solid var(--border-color, rgba(255,255,255,0.08))",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
                   >
-                    <span>{pill.label}</span>
+                    {pill.label}
                     {pill.count !== undefined && (
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 800,
-                          padding: "1px 6px",
-                          borderRadius: "10px",
-                          backgroundColor: isActive ? "var(--castleton)" : (pill.badgeColor ?? "rgba(255,255,255,0.1)"),
-                          color: isActive ? "#fff" : "var(--ink)",
-                        }}
-                      >
+                      <span style={{
+                        marginLeft: '6px',
+                        fontSize: '11px',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        background: isActive ? '#fff' : 'rgba(255,255,255,0.1)',
+                        color: isActive ? 'var(--castleton)' : 'inherit',
+                        fontWeight: 800
+                      }}>
                         {pill.count}
                       </span>
                     )}
@@ -392,13 +321,87 @@ export function ClientVideoLibraryView({
               })}
             </div>
           </div>
+          
+          <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="layout-toggle">
+              <button
+                type="button"
+                className={`layout-toggle-btn${viewMode === "grid" ? " active" : ""}`}
+                onClick={() => setViewMode("grid")}
+                title="Grid View"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </button>
+              <button
+                type="button"
+                className={`layout-toggle-btn${viewMode === "list" ? " active" : ""}`}
+                onClick={() => setViewMode("list")}
+                title="List View"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <input
+                type="text"
+                className="search-input"
+                style={{ paddingLeft: '36px' }}
+                placeholder="Search videos…"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+              <svg
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--ink-soft)',
+                  pointerEvents: 'none'
+                }}
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+            </div>
+            
+            <select
+              className="filter-select"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as any)}
+            >
+              <option value="newest">Oldest First</option>
+              <option value="oldest">Newest First</option>
+            </select>
+          </div>
         </div>
 
-        <div className="library-body isolated-scroll" style={{ padding: '24px 32px' }}>
+        <div className="library-body">
+          <div className="isolated-scroll">
+
           {displayProducts.length === 0 ? (
             <div className="empty-state">No published videos found for the selected filters.</div>
           ) : (
-            <div className="video-list">
+            <div className={viewMode === "grid" ? "thumb-grid" : "video-list"}>
               {displayProducts.map((product, index) => {
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
@@ -425,11 +428,47 @@ export function ClientVideoLibraryView({
                   return acc;
                 }, {} as Record<string, number>);
 
+                if (viewMode === "grid") {
+                  return (
+                    <div 
+                      key={product.rank} 
+                      className="cvm-grid-card"
+                      onClick={() => handleOpenVideo(product.id)}
+                    >
+                      <div className="cvm-grid-thumb">
+                        {product.thumbnailUrl ? (
+                          <img src={product.thumbnailUrl} alt={product.name} />
+                        ) : (
+                          <div className="cvm-sc-placeholder" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--ink-soft)", background: "var(--glass-bg)", border: "1px dashed var(--glass-border)" }}>
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <path d="M21 15l-5-5L5 21" />
+                            </svg>
+                          </div>
+                        )}
+                        {!isViewed && <span className="cvm-grid-new-badge">NEW</span>}
+                      </div>
+                      <div className="cvm-grid-info">
+                        <div className="cvm-grid-title" title={product.name}>{product.name}</div>
+                        <div className="cvm-grid-tags">
+                          <span className="cvm-sc-tag">{product.category}</span>
+                          {product.subcategory && <span className="cvm-sc-tag">{product.subcategory}</span>}
+                        </div>
+                        <div className="cvm-grid-meta">
+                          <span>Comments: {reactions.length}</span>
+                          <span>Date Published: {publishedText}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={product.rank} className="video-list-card-wrap">
                     <div
                       className="video-list-card"
-                      onClick={() => handleOpenVideoModal(modalKey, product.id)}
+                      onClick={() => handleOpenVideo(product.id)}
                     >
                       <div className="vlc-rank" title={`Index: ${displayRank}`}>{displayRank}</div>
 
@@ -540,6 +579,7 @@ export function ClientVideoLibraryView({
               })}
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
