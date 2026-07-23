@@ -3,7 +3,8 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Search, Plus, ExternalLink, ChevronRight, X, Edit2,
-  Video, Package, LayoutGrid, List, Star, Tag, Layers, ChevronLeft, Info
+  Video, Package, LayoutGrid, List, Star, Tag, Layers, ChevronLeft, Info,
+  CheckCircle2, MinusCircle
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useMounted } from "@/lib/useMounted";
@@ -203,10 +204,15 @@ export function CatalogView({
     let published = 0;
     let inProgress = 0;
     let noVideo = 0;
+    let active = 0;
+    let inactive = 0;
     const catSet = new Set<string>();
 
     catalog.forEach((cp) => {
       catSet.add(cp.category);
+      if (cp.isActive) active++;
+      else inactive++;
+      
       const st = getAigcStatus(cp.id, products);
       if (st === "published") published++;
       else if (st === "in-progress") inProgress++;
@@ -220,6 +226,8 @@ export function CatalogView({
       inProgress,
       noVideo,
       withVideo: published + inProgress,
+      active,
+      inactive,
     };
   }, [catalog, products]);
 
@@ -391,6 +399,18 @@ export function CatalogView({
                 <Star size={16} style={{ color: "#10b981" }} />
                 <span className="catalog-stat-num">{stats.published}</span>
                 <span className="catalog-stat-label">Published</span>
+              </div>
+              <div className="catalog-stat-divider" />
+              <div className="catalog-stat">
+                <CheckCircle2 size={16} style={{ color: "#10b981" }} />
+                <span className="catalog-stat-num">{stats.active}</span>
+                <span className="catalog-stat-label">Active</span>
+              </div>
+              <div className="catalog-stat-divider" />
+              <div className="catalog-stat">
+                <MinusCircle size={16} style={{ color: "#ef4444" }} />
+                <span className="catalog-stat-num">{stats.inactive}</span>
+                <span className="catalog-stat-label">Inactive</span>
               </div>
               <div className="catalog-stat-divider" />
               <div className="catalog-stat">
