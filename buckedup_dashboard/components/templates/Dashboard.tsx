@@ -274,12 +274,14 @@ export function Dashboard() {
           </div>
         ) : null}
       </div>
-      <VideoModal
-        products={products}
-        catalog={catalog}
-        modalKey={modalKey}
-        onClose={() => setModalKey(null)}
-      />
+      {role !== "client" && (
+        <VideoModal
+          products={products}
+          catalog={catalog}
+          modalKey={modalKey}
+          onClose={() => setModalKey(null)}
+        />
+      )}
       <BuckyWidget
         activeView={activeView}
         currentProduct={currentProduct}
