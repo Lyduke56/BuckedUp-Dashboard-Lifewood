@@ -570,7 +570,7 @@ export function VideoLibraryView({
               <KanbanBoard
                 products={filteredProducts}
                 issues={issues}
-                canMoveStage={canManageCatalog}
+                canMoveStage={false}
                 profileEmailById={profileEmailById}
                 onOpenModal={onOpenModal}
                 theme={theme}
@@ -690,24 +690,9 @@ export function VideoLibraryView({
                           onClick={(event) => event.stopPropagation()}
                         >
                           <div className="vlc-side-top" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            {canManageCatalog ? (
-                              <select
-                                className="vlc-stage-select"
-                                value={item.status}
-                                onClick={(event) => event.stopPropagation()}
-                                onChange={(event) => handleInlineStage(product, event.target.value as PipelineStatus)}
-                              >
-                                {STATUS_ORDER.map((s) => (
-                                  <option key={s} value={s} disabled={s === "Published" && product.reviewStatus === "Rejected"}>
-                                    {s}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
-                                {item.status}
-                              </span>
-                            )}
+                            <span className={`status-pill ${STATUS_CLASS[item.status]}`}>
+                              {item.status}
+                            </span>
 
                             {role === "operator" && (
                               <>

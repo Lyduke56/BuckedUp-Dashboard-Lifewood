@@ -1,15 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { Product } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import type { FeedbackReaction, Product } from "@/lib/types";
 import { getModalKey } from "@/lib/utils";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { STATUS_CLASS } from "@/lib/data";
 import { useProfiles } from "@/lib/useProfiles";
+import { useAllFeedbackSummary } from "@/lib/useFeedback";
 
 const LANGUAGE_FLAG: Record<string, string> = {
   English: "🇺🇸",
   Spanish: "🇪🇸",
+};
+
+const REACTION_EMOJI: Record<FeedbackReaction, string> = {
+  loved: "🔥",
+  good: "👍",
+  neutral: "😐",
+  needs_work: "👎",
+  unsatisfied: "❌",
 };
 
 function languageFlag(language: string): string {
@@ -35,7 +44,31 @@ export function ClientVideoLibraryView({
 }: ClientVideoLibraryViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [viewFilter, setViewFilter] = useState<"all" | "unviewed" | "viewed" | "feedbacked" | "recents">("all");
+
+  const [viewedProductIds, setViewedProductIds] = useState<Set<string>>(new Set());
+
+  // Load viewed product IDs from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("buckedup_client_viewed_videos");
+      if (raw) setViewedProductIds(new Set(JSON.parse(raw)));
+    } catch {}
+  }, []);
+
+  const handleOpenVideoModal = (modalKey: string, productId: string) => {
+    if (productId && !viewedProductIds.has(productId)) {
+      const updated = new Set(viewedProductIds);
+      updated.add(productId);
+      setViewedProductIds(updated);
+      try {
+        localStorage.setItem("buckedup_client_viewed_videos", JSON.stringify(Array.from(updated)));
+      } catch {}
+    }
+    onOpenModal(modalKey);
+  };
 
   const { profiles } = useProfiles();
   const profileEmailById = useMemo(
@@ -43,42 +76,117 @@ export function ClientVideoLibraryView({
     [profiles],
   );
 
+  const { feedbackProductIds, reactionsByProduct } = useAllFeedbackSummary();
+
   const [appliedExternalSearch, setAppliedExternalSearch] = useState<string | null | undefined>(undefined);
   if (externalSearch && externalSearch !== appliedExternalSearch) {
     setAppliedExternalSearch(externalSearch);
     setSearchTerm(externalSearch);
+    setSelectedCategory("All");
+    setSelectedSubcategory("All");
+    setViewFilter("all");
     if (externalSearch) onExternalSearchApplied?.();
   }
 
-  // Filter ONLY published videos that have a video
-  let displayProducts = products.filter(p => p.items[0]?.status === "Published" && p.items[0]?.videoUrl);
+  // Base pool: Filter ONLY published videos for the client dashboard
+  const publishedProducts = useMemo(() => {
+    return products.filter((p) => p.items[0]?.status === "Published");
+  }, [products]);
 
-  // Get unique product names from published videos for the dropdown
-  const productNames = Array.from(new Set(displayProducts.map(p => p.name))).sort();
+  const unviewedCount = useMemo(() => {
+    return publishedProducts.filter((p) => !viewedProductIds.has(p.id)).length;
+  }, [publishedProducts, viewedProductIds]);
 
-  // 1. Filter by Search Term
-  if (searchTerm.trim()) {
-    const q = searchTerm.toLowerCase();
-    displayProducts = displayProducts.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.subcategory.toLowerCase().includes(q)
-    );
-  }
+  const feedbackedCount = useMemo(() => {
+    return publishedProducts.filter((p) => feedbackProductIds.has(p.id)).length;
+  }, [publishedProducts, feedbackProductIds]);
 
-  // 2. Filter by Product Featured (Name)
-  if (selectedCategory !== "All") {
-    displayProducts = displayProducts.filter(p => p.name === selectedCategory);
-  }
+  // Dynamically derive categories present in published videos
+  const availableCategories = useMemo(() => {
+    const cats = new Set<string>();
+    publishedProducts.forEach((p) => {
+      if (p.category) cats.add(p.category);
+    });
+    return Array.from(cats).sort();
+  }, [publishedProducts]);
 
-  // 3. Sort by Age
-  displayProducts.sort((a, b) => {
-    // Fallback to createdAt if publishDate is missing
-    const dateA = new Date(a.publishDate || a.createdAt).getTime();
-    const dateB = new Date(b.publishDate || b.createdAt).getTime();
-    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-  });
+  // Dynamically derive subcategories present in published videos for the selected category
+  const availableSubcategories = useMemo(() => {
+    const subcats = new Set<string>();
+    publishedProducts.forEach((p) => {
+      if (selectedCategory === "All" || p.category === selectedCategory) {
+        if (p.subcategory) subcats.add(p.subcategory);
+      }
+    });
+    return Array.from(subcats).sort();
+  }, [publishedProducts, selectedCategory]);
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    if (category === "All") {
+      setSelectedSubcategory("All");
+    } else {
+      const validSubcats = new Set(
+        publishedProducts
+          .filter((p) => p.category === category)
+          .map((p) => p.subcategory)
+          .filter(Boolean)
+      );
+      if (!validSubcats.has(selectedSubcategory)) {
+        setSelectedSubcategory("All");
+      }
+    }
+  };
+
+  // Filter and sort published videos dynamically
+  const displayProducts = useMemo(() => {
+    let list = [...publishedProducts];
+
+    // 1. Filter by Search Term
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.subcategory.toLowerCase().includes(q)
+      );
+    }
+
+    // 2. Filter by Category
+    if (selectedCategory !== "All") {
+      list = list.filter((p) => p.category === selectedCategory);
+    }
+
+    // 3. Filter by Subcategory
+    if (selectedSubcategory !== "All") {
+      list = list.filter((p) => p.subcategory === selectedSubcategory);
+    }
+
+    // 4. Filter by Viewing / Feedback Status
+    if (viewFilter === "unviewed") {
+      list = list.filter((p) => !viewedProductIds.has(p.id));
+    } else if (viewFilter === "viewed") {
+      list = list.filter((p) => viewedProductIds.has(p.id));
+    } else if (viewFilter === "feedbacked") {
+      list = list.filter((p) => feedbackProductIds.has(p.id));
+    } else if (viewFilter === "recents") {
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      list = list.filter((p) => {
+        const time = new Date(p.publishDate || p.createdAt).getTime();
+        return time >= sevenDaysAgo;
+      });
+    }
+
+    // 5. Sort by Age
+    list.sort((a, b) => {
+      const dateA = new Date(a.publishDate || a.createdAt).getTime();
+      const dateB = new Date(b.publishDate || b.createdAt).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+    return list;
+  }, [publishedProducts, searchTerm, selectedCategory, selectedSubcategory, viewFilter, viewedProductIds, feedbackProductIds, sortOrder]);
 
   if (loading && products.length === 0) {
     return (
@@ -112,55 +220,57 @@ export function ClientVideoLibraryView({
         subtitle="Browse through the finished videos and download. You can leave feedbacks or comments."
       />
       <div className="library-container">
-        <div className="library-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', paddingTop: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-            {/* Search Bar */}
-            <div style={{ position: 'relative', display: 'flex', width: '100%' }}>
-              <input
-                type="text"
-                className="search-input"
-                style={{ 
-                  paddingLeft: '44px', 
-                  height: '44px',
-                  width: '100%',
-                  borderRadius: '22px',
-                  background: 'var(--header-bg, rgba(255,255,255,0.05))',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--ink)',
-                  fontSize: '15px'
-                }}
-                placeholder="Search published videos…"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-              <svg
-                style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'var(--ink-soft)',
-                  pointerEvents: 'none'
-                }}
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.3-4.3" />
-              </svg>
-            </div>
+        <div className="library-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', paddingTop: '16px', paddingLeft: '24px', paddingRight: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%', margin: '0' }}>
+            {/* Top Control Bar: Search + Category + Subcategory + Sort Order in a single left-aligned row */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
+              {/* Search Bar matching Product Catalog design */}
+              <div style={{ position: 'relative', display: 'flex', flex: '1 1 280px', minWidth: '260px' }}>
+                <input
+                  type="text"
+                  className="search-input"
+                  style={{ 
+                    paddingLeft: '44px', 
+                    height: '40px',
+                    width: '100%',
+                    borderRadius: '22px',
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--text-main)',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                  placeholder="Search published videos…"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+                <svg
+                  style={{
+                    position: 'absolute',
+                    left: '14px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--ink-soft)',
+                    pointerEvents: 'none'
+                  }}
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
+                </svg>
+              </div>
 
-            {/* Filters Row */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              {/* Category Filter */}
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 style={{
-                  height: "38px",
+                  height: "42px",
                   borderRadius: "12px",
                   padding: "0 12px",
                   border: "1px solid var(--border-color)",
@@ -169,20 +279,25 @@ export function ClientVideoLibraryView({
                   fontSize: "14px",
                   outline: "none",
                   cursor: "pointer",
-                  maxWidth: "300px"
+                  minWidth: "160px",
+                  flex: "0 0 auto",
                 }}
               >
-                <option value="All">All Products Featured</option>
-                {productNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
+                <option value="All">All Categories</option>
+                {availableCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
 
+              {/* Subcategory Filter */}
               <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as any)}
+                value={selectedSubcategory}
+                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                disabled={availableSubcategories.length === 0}
                 style={{
-                  height: "38px",
+                  height: "42px",
                   borderRadius: "12px",
                   padding: "0 12px",
                   border: "1px solid var(--border-color)",
@@ -190,25 +305,104 @@ export function ClientVideoLibraryView({
                   color: "var(--ink)",
                   fontSize: "14px",
                   outline: "none",
-                  cursor: "pointer"
+                  cursor: availableSubcategories.length === 0 ? "not-allowed" : "pointer",
+                  opacity: availableSubcategories.length === 0 ? 0.6 : 1,
+                  minWidth: "160px",
+                  flex: "0 0 auto",
+                }}
+              >
+                <option value="All">All Subcategories</option>
+                {availableSubcategories.map((subcat) => (
+                  <option key={subcat} value={subcat}>
+                    {subcat}
+                  </option>
+                ))}
+              </select>
+
+              {/* Sort Order */}
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as any)}
+                style={{
+                  height: "42px",
+                  borderRadius: "12px",
+                  padding: "0 12px",
+                  border: "1px solid var(--border-color)",
+                  backgroundColor: "var(--bg-card, rgba(255,255,255,0.05))",
+                  color: "var(--ink)",
+                  fontSize: "14px",
+                  outline: "none",
+                  cursor: "pointer",
+                  minWidth: "180px",
+                  flex: "0 0 auto",
                 }}
               >
                 <option value="newest">Sort by Age (Newest First)</option>
                 <option value="oldest">Sort by Age (Oldest First)</option>
               </select>
             </div>
+
+            {/* Smart View / Feedback Filter Pills - Left-Docked */}
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-start", flexWrap: "wrap", alignItems: "center" }}>
+              {[
+                { id: "all", label: "All Videos", count: publishedProducts.length },
+                { id: "unviewed", label: "Unviewed", count: unviewedCount, badgeColor: "#f59e0b" },
+                { id: "viewed", label: "Viewed Only", count: publishedProducts.length - unviewedCount },
+                { id: "feedbacked", label: "Feedback Provided", count: feedbackedCount, badgeColor: "#10b981" },
+                { id: "recents", label: "Recents (7 Days)" },
+              ].map((pill) => {
+                const isActive = viewFilter === pill.id;
+                return (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setViewFilter(pill.id as any)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      fontSize: "13px",
+                      fontWeight: isActive ? 700 : 500,
+                      backgroundColor: isActive ? "rgba(16, 185, 129, 0.18)" : "rgba(255, 255, 255, 0.04)",
+                      color: isActive ? "var(--castleton)" : "var(--ink-soft)",
+                      border: isActive ? "1px solid var(--castleton)" : "1px solid var(--border-color, rgba(255,255,255,0.08))",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span>{pill.label}</span>
+                    {pill.count !== undefined && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          padding: "1px 6px",
+                          borderRadius: "10px",
+                          backgroundColor: isActive ? "var(--castleton)" : (pill.badgeColor ?? "rgba(255,255,255,0.1)"),
+                          color: isActive ? "#fff" : "var(--ink)",
+                        }}
+                      >
+                        {pill.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         <div className="library-body isolated-scroll" style={{ padding: '24px 32px' }}>
           {displayProducts.length === 0 ? (
-            <div className="empty-state">No published videos found.</div>
+            <div className="empty-state">No published videos found for the selected filters.</div>
           ) : (
             <div className="video-list">
               {displayProducts.map((product, index) => {
                 const item = product.items[0];
                 const modalKey = getModalKey(product.rank, 0);
-                const displayRank = index + 1; // Since it's a filtered list, we show their sequential rank instead of absolute DB rank to avoid gaps
+                const displayRank = index + 1;
 
                 const priorityClass =
                   product.priority === "High"
@@ -222,11 +416,20 @@ export function ClientVideoLibraryView({
                   ? new Date(`${product.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
                   : "—";
 
+                const isViewed = viewedProductIds.has(product.id);
+                const reactions = reactionsByProduct.get(product.id) ?? [];
+
+                // Count unique reactions
+                const reactionCounts = reactions.reduce((acc, r) => {
+                  acc[r] = (acc[r] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>);
+
                 return (
                   <div key={product.rank} className="video-list-card-wrap">
                     <div
                       className="video-list-card"
-                      onClick={() => onOpenModal(modalKey)}
+                      onClick={() => handleOpenVideoModal(modalKey, product.id)}
                     >
                       <div className="vlc-rank" title={`Index: ${displayRank}`}>{displayRank}</div>
 
@@ -246,16 +449,46 @@ export function ClientVideoLibraryView({
                       </div>
 
                       <div className="vlc-main">
-                        <div className="vlc-title" title={product.name}>
-                          {product.name}
+                        <div className="vlc-title" title={product.name} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span>{product.name}</span>
+                          {!isViewed ? (
+                            <span style={{ fontSize: "10px", fontWeight: 800, padding: "2px 6px", borderRadius: "6px", backgroundColor: "#f59e0b", color: "#000", letterSpacing: "0.05em" }}>
+                              NEW
+                            </span>
+                          ) : null}
                         </div>
-                        <div className="vlc-pills">
+                        <div className="vlc-pills" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
                           <span className={`status-pill ${priorityClass} font-bold mr-1`}>{priority} PRIORITY</span>
                           <span className="vlc-tag">{product.category}</span>
                           <span className="vlc-tag vlc-tag-sub">{product.subcategory}</span>
                           {product.deliveryType === "link" ? (
                             <span className="vlc-tag vlc-tag-link">Link-only</span>
                           ) : null}
+
+                          {/* Render aggregate qualitative reactions */}
+                          {Object.entries(reactionCounts).map(([reactKey, count]) => {
+                            const emoji = REACTION_EMOJI[reactKey as FeedbackReaction];
+                            if (!emoji) return null;
+                            return (
+                              <span
+                                key={reactKey}
+                                style={{
+                                  fontSize: "11px",
+                                  fontWeight: 700,
+                                  padding: "2px 8px",
+                                  borderRadius: "12px",
+                                  backgroundColor: "rgba(16, 185, 129, 0.12)",
+                                  color: "var(--castleton)",
+                                  border: "1px solid rgba(16, 185, 129, 0.25)",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "3px",
+                                }}
+                              >
+                                {emoji} {count > 1 ? count : ""}
+                              </span>
+                            );
+                          })}
                         </div>
                         <div className="vlc-meta">
                           Date Published: {publishedText}
@@ -312,3 +545,4 @@ export function ClientVideoLibraryView({
     </div>
   );
 }
+

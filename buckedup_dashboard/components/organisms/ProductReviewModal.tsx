@@ -44,6 +44,13 @@ export function ProductReviewModal({
       return;
     }
 
+    const bothApproved = storyboardDecision === "accepted" && scriptDecision === "accepted";
+    if (bothApproved) {
+      if (!window.confirm("Approve both Storyboard and Script deliverables and advance stage to Production?")) {
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError(null);
     const supabase = createClient();
@@ -52,7 +59,7 @@ export function ProductReviewModal({
       if (storyboardDel && storyboardDecision !== storyboardDel.decision) {
         const { error: rpcErr } = await supabase.rpc("review_stage_deliverable", {
           p_deliverable_id: storyboardDel.id,
-          p_decision: storyboardDecision === "pending" ? "rejected" : storyboardDecision, // Fallback if pending
+          p_decision: storyboardDecision === "pending" ? "rejected" : storyboardDecision,
           p_note: note.trim() || null,
         });
         if (rpcErr) throw new Error(rpcErr.message);
@@ -61,7 +68,7 @@ export function ProductReviewModal({
       if (scriptDel && scriptDecision !== scriptDel.decision) {
         const { error: rpcErr } = await supabase.rpc("review_stage_deliverable", {
           p_deliverable_id: scriptDel.id,
-          p_decision: scriptDecision === "pending" ? "rejected" : scriptDecision, // Fallback if pending
+          p_decision: scriptDecision === "pending" ? "rejected" : scriptDecision,
           p_note: note.trim() || null,
         });
         if (rpcErr) throw new Error(rpcErr.message);
@@ -84,6 +91,16 @@ export function ProductReviewModal({
       setError("A note is required when rejecting.");
       return;
     }
+    if (decision === "accepted") {
+      if (!window.confirm("Accept video deliverable and publish this product?")) {
+        return;
+      }
+    } else {
+      if (!window.confirm("Reject video deliverable and return product stage to Production?")) {
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError(null);
     const supabase = createClient();
@@ -103,6 +120,8 @@ export function ProductReviewModal({
     onClose();
   };
 
+  const bothApproved = storyboardDecision === "accepted" && scriptDecision === "accepted";
+
   if (!mounted) return null;
 
   return createPortal(
@@ -119,7 +138,7 @@ export function ProductReviewModal({
         </button>
         <div className="video-modal-title">Review — {product.name}</div>
         <div className="video-modal-meta">
-          <span>Stage: {status}</span>
+          <span>Current Stage: {status}</span>
         </div>
 
         {error ? (
@@ -130,6 +149,36 @@ export function ProductReviewModal({
 
         {status === "Design" ? (
           <div className="form-grid" style={{ marginTop: "16px" }}>
+            {bothApproved ? (
+              <div
+                className="callout form-field-wide"
+                style={{
+                  background: "rgba(40, 167, 69, 0.12)",
+                  borderLeft: "4px solid #28a745",
+                  color: "var(--ink)",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                }}
+              >
+                🎉 <strong>Both Storyboard & Script Approved:</strong> Saving this review will prompt and move product stage from <strong>Design ➔ Production</strong>.
+              </div>
+            ) : (
+              <div
+                className="callout form-field-wide"
+                style={{
+                  background: "rgba(255, 193, 7, 0.12)",
+                  borderLeft: "4px solid #ffc107",
+                  color: "var(--ink)",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                }}
+              >
+                ℹ️ <strong>Stage Gate:</strong> Both Storyboard and Script must be approved to advance stage to Production. Product will remain in <strong>Design</strong> stage.
+              </div>
+            )}
+
             {/* Storyboard Deliverable Section */}
             <div className="form-field form-field-wide border-b border-[var(--glass-border)] pb-4 mb-2">
               <span className="font-bold block mb-1">1. Storyboard Deliverable</span>
@@ -258,12 +307,30 @@ export function ProductReviewModal({
                 disabled={submitting || (!storyboardDel && !scriptDel)}
                 onClick={reviewDesign}
               >
-                {submitting ? "Saving…" : "Save Review"}
+                {submitting
+                  ? "Saving…"
+                  : bothApproved
+                  ? "Approve Both & Move to Production 🚀"
+                  : "Save Review (Stays in Design)"}
               </button>
             </div>
           </div>
         ) : status === "In Review" ? (
           <div className="form-grid" style={{ marginTop: "16px" }}>
+            <div
+              className="callout form-field-wide"
+              style={{
+                background: "rgba(32, 116, 219, 0.12)",
+                borderLeft: "4px solid #2074db",
+                color: "var(--ink)",
+                padding: "10px 14px",
+                borderRadius: "8px",
+                fontSize: "13px",
+              }}
+            >
+              🎥 <strong>QA Video Review:</strong> Accepting will advance stage to <strong>Published</strong>. Rejecting will return product to <strong>Production</strong>.
+            </div>
+
             <div className="form-field form-field-wide border-b border-[var(--glass-border)] pb-4 mb-2">
               <span className="font-bold block mb-1">Video Output</span>
               {item.videoUrl ? (
@@ -305,7 +372,7 @@ export function ProductReviewModal({
                 disabled={submitting || !item.videoUrl}
                 onClick={() => reviewVideo("accepted")}
               >
-                {submitting ? "Saving…" : "Accept & publish"}
+                {submitting ? "Saving…" : "Accept & Publish 🚀"}
               </button>
             </div>
           </div>

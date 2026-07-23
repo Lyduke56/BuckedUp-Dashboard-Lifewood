@@ -45,10 +45,27 @@ function isDirectVideoUrl(url: string | null | undefined): boolean {
   return /\.(mp4|webm|ogg|mov)(?:\?|$)/i.test(url);
 }
 
+const REACTION_OPTIONS: { id: import("@/lib/types").FeedbackReaction; emoji: string; label: string }[] = [
+  { id: "loved", emoji: "🔥", label: "Loved it" },
+  { id: "good", emoji: "👍", label: "Good" },
+  { id: "neutral", emoji: "😐", label: "Neutral" },
+  { id: "needs_work", emoji: "👎", label: "Needs Revision" },
+  { id: "unsatisfied", emoji: "❌", label: "Unsatisfied" },
+];
+
+const REACTION_MAP: Record<string, { emoji: string; label: string }> = {
+  loved: { emoji: "🔥", label: "Loved it" },
+  good: { emoji: "👍", label: "Good" },
+  neutral: { emoji: "😐", label: "Neutral" },
+  needs_work: { emoji: "👎", label: "Needs Revision" },
+  unsatisfied: { emoji: "❌", label: "Unsatisfied" },
+};
+
 export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalProps) {
   const mounted = useMounted();
   const { role } = useAuth();
   const [feedbackText, setFeedbackText] = useState("");
+  const [selectedReaction, setSelectedReaction] = useState<import("@/lib/types").FeedbackReaction | null>(null);
 
   const { rank, index } = parseModalKey(modalKey ?? "");
   const product = products.find((p) => p.rank === rank);
@@ -66,6 +83,14 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
   const youtubeId = videoUrl ? getYoutubeId(videoUrl) : null;
   const isDirect = videoUrl ? isDirectVideoUrl(videoUrl) : false;
   const statusColor = STATUS_HEX[item.status as PipelineStatus] ?? "var(--castleton)";
+
+  const handleSendFeedback = () => {
+    if (!feedbackText.trim() && !selectedReaction) return;
+    const textToSend = feedbackText.trim() || (selectedReaction ? `[Reaction: ${REACTION_MAP[selectedReaction]?.label ?? selectedReaction}]` : "");
+    addFeedback(product.id, textToSend, selectedReaction);
+    setFeedbackText("");
+    setSelectedReaction(null);
+  };
 
   return createPortal(
     <div
@@ -266,11 +291,17 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
             </div>
 
             {/* FEEDBACK SECTION */}
-            <div style={{ background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: "200px" }}>
-              <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", background: "var(--surface-hover)", fontWeight: 700, fontSize: "14px", color: "var(--ink)" }}>
-                Feedback & Comments
+            <div style={{ background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", overflow: "hidden", minHeight: "220px" }}>
+              <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", background: "var(--surface-hover)", fontWeight: 700, fontSize: "14px", color: "var(--ink)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Feedback & Comments</span>
+                {feedbackList.length > 0 ? (
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-soft)" }}>
+                    {feedbackList.length} comment{feedbackList.length > 1 ? "s" : ""}
+                  </span>
+                ) : null}
               </div>
-              <div style={{ padding: "16px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", maxHeight: "300px" }}>
+
+              <div style={{ padding: "16px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", maxHeight: "280px" }}>
                 {feedbackList.length === 0 ? (
                   <div style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: "13px", padding: "20px 0" }}>No feedback yet.</div>
                 ) : (
@@ -278,7 +309,14 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
                     <div key={fb.id} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--castleton)" }}>{fb.userEmail}</span>
-                        <span style={{ fontSize: "11px", color: "var(--ink-soft)" }}>{new Date(fb.createdAt).toLocaleString()}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          {fb.reaction && REACTION_MAP[fb.reaction] ? (
+                            <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.12)", color: "var(--castleton)", border: "1px solid rgba(16, 185, 129, 0.25)", fontWeight: 700 }}>
+                              {REACTION_MAP[fb.reaction].emoji} {REACTION_MAP[fb.reaction].label}
+                            </span>
+                          ) : null}
+                          <span style={{ fontSize: "11px", color: "var(--ink-soft)" }}>{new Date(fb.createdAt).toLocaleString()}</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: "13px", color: "var(--ink)", background: "var(--surface-hover)", padding: "8px 12px", borderRadius: "0 8px 8px 8px" }}>
                         {fb.content}
@@ -287,28 +325,56 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
                   ))
                 )}
               </div>
+
+              {/* Qualitative Reaction Selector Bar */}
+              <div style={{ padding: "8px 12px", borderTop: "1px solid var(--border)", background: "var(--surface-hover)", display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase", marginRight: "4px" }}>Reaction:</span>
+                {REACTION_OPTIONS.map((opt) => {
+                  const isSelected = selectedReaction === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedReaction(isSelected ? null : opt.id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "3px 8px",
+                        borderRadius: "14px",
+                        fontSize: "12px",
+                        fontWeight: isSelected ? 700 : 500,
+                        border: isSelected ? "1px solid var(--castleton)" : "1px solid var(--border-color, rgba(255,255,255,0.1))",
+                        backgroundColor: isSelected ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.04)",
+                        color: isSelected ? "var(--castleton)" : "var(--ink-soft)",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <span>{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Comment Input */}
               <div style={{ padding: "12px", borderTop: "1px solid var(--border)", background: "var(--bg)", display: "flex", gap: "8px" }}>
                 <input
                   type="text"
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && feedbackText.trim()) {
-                      addFeedback(product.id, feedbackText.trim());
-                      setFeedbackText("");
-                    }
+                    if (e.key === "Enter") handleSendFeedback();
                   }}
-                  placeholder="Add feedback..."
+                  placeholder={selectedReaction ? `Add comments with ${REACTION_MAP[selectedReaction]?.label ?? "reaction"}...` : "Add feedback..."}
                   style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "13px" }}
                 />
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={!feedbackText.trim()}
-                  onClick={() => {
-                    addFeedback(product.id, feedbackText.trim());
-                    setFeedbackText("");
-                  }}
+                  disabled={!feedbackText.trim() && !selectedReaction}
+                  onClick={handleSendFeedback}
                   style={{ padding: "8px 12px" }}
                 >
                   <Send size={16} />

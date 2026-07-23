@@ -162,6 +162,7 @@ create table feedback (
   product_id uuid not null references products(id) on delete cascade,
   user_id uuid not null references profiles(id) on delete cascade,
   content text not null,
+  reaction text check (reaction in ('loved', 'good', 'neutral', 'needs_work', 'unsatisfied')),
   created_at timestamptz not null default now()
 );
 

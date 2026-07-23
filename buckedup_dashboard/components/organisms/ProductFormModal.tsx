@@ -521,20 +521,48 @@ export function ProductFormModal({
             </label>
             {isLinkOnly ? null : (
               <label className="form-field">
-                <span>Stage</span>
-                <select
-                  value={form.status}
-                  disabled={isOperator}
-                  onChange={(event) =>
-                    update("status", event.target.value as PipelineStatus)
-                  }
-                >
-                  {STATUS_ORDER.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+                <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Stage</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "6px", backgroundColor: "rgba(245, 158, 11, 0.12)", color: "var(--saffron)", border: "1px solid rgba(245, 158, 11, 0.25)" }}>
+                    🔒 Managed via QA Review
+                  </span>
+                </span>
+                <div style={{ position: "relative" }}>
+                  <select
+                    value={form.status}
+                    disabled={true}
+                    style={{
+                      cursor: "not-allowed",
+                      opacity: 0.6,
+                      border: "1px dashed var(--border-color, rgba(255, 255, 255, 0.15))",
+                      paddingRight: "36px",
+                      appearance: "none",
+                      WebkitAppearance: "none",
+                    }}
+                  >
+                    {STATUS_ORDER.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: "12px",
+                      pointerEvents: "none",
+                      opacity: 0.7,
+                    }}
+                  >
+                    🔒
+                  </span>
+                </div>
+                <span className="form-hint" style={{ fontSize: "12px", marginTop: "4px" }}>
+                  Stage transitions occur automatically through QA reviews.
+                </span>
               </label>
             )}
             <label className="form-field">
@@ -611,7 +639,7 @@ export function ProductFormModal({
                   onChange={async (event) => {
                     const newOwnerId = event.target.value;
                     let newStatus = form.status;
-                    
+
                     if (newOwnerId && form.status === "Not Started") {
                       newStatus = "Design";
                     } else if (!newOwnerId && form.status === "Design") {
@@ -632,7 +660,7 @@ export function ProductFormModal({
                         return;
                       }
                     }
-                    
+
                     setForm((prev) => ({ ...prev, ownerId: newOwnerId, status: newStatus }));
                   }}
                 >

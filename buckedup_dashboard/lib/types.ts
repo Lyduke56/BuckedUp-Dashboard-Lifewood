@@ -101,12 +101,15 @@ export interface Issue {
   createdAt: string;
 }
 
+export type FeedbackReaction = "loved" | "good" | "neutral" | "needs_work" | "unsatisfied";
+
 export interface Feedback {
   id: string;
   productId: string;
   userId: string;
   userEmail?: string;
   content: string;
+  reaction?: FeedbackReaction | null;
   createdAt: string;
 }
 

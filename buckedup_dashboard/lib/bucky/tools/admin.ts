@@ -32,28 +32,17 @@ function buildLeadActionTools(supabase: SupabaseServerClient, userId: string) {
 
     move_product_stage: tool({
       description:
-        "Directly set a product's pipeline stage to any of the 5 stages, bypassing normal review. Prefer review_deliverable or review_video when actually reviewing a submission — use this for corrections or exceptions. Requires confirmation before it runs.",
+        "Disabled: Stage transitions must go through the official QA approval process (review_deliverable or review_video).",
       inputSchema: z.object({
         ...PRODUCT_LOCATOR_SHAPE,
         newStatus: z.enum(STATUS_ORDER as [string, ...string[]]),
       }),
-      execute: ({ rank, id, newStatus }) =>
+      execute: () =>
         safe(async () => {
-          if (!rank && !id) return { error: "Provide either rank or id." };
-          let query = supabase.from("products").select("id, name, status");
-          query = id ? query.eq("id", id) : query.eq("rank", rank as number);
-          const { data: product, error } = await query.maybeSingle();
-          if (error) return { error: error.message };
-          if (!product) return { error: "No product found." };
-          if (product.status === newStatus) {
-            return { noop: true, message: `${product.name} is already in ${newStatus}.` };
-          }
-          const { error: updateError } = await supabase
-            .from("products")
-            .update({ status: newStatus })
-            .eq("id", product.id);
-          if (updateError) return { error: updateError.message };
-          return { moved: true, product: product.name, from: product.status, to: newStatus };
+          return {
+            error:
+              "Direct stage changes are disabled. Products can only advance stages through the QA review process (review_deliverable in Design stage when Storyboard and Script are approved, or review_video in In Review stage).",
+          };
         }),
     }),
 
