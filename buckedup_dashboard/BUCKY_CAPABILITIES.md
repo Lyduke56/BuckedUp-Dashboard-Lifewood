@@ -6,7 +6,7 @@ A few things worth knowing before the details below:
 
 - **Bucky remembers your conversation.** If you close the dashboard and come back later, your chat with Bucky is still there. There's a small trash-can icon in Bucky's header if you ever want to start a fresh conversation.
 - **Bucky never does anything serious without asking you first.** For any action that changes real data in a meaningful way, Bucky will show a card describing exactly what it's about to do, with **Confirm** and **Cancel** buttons. Nothing happens until you click Confirm. A smaller set of low-risk, routine actions (marked **Instant** below) run right away, the same way clicking a button in the dashboard would.
-- **What Bucky can do depends on who's logged in.** Everyone can ask Bucky questions. Beyond that, Super-Admins, Admins, and Operators each get a different set of actions, matching what that role is already responsible for in the dashboard. Each is covered separately below.
+- **What Bucky can do depends on who's logged in.** Everyone can ask Bucky questions. Beyond that, Super-Admins, Admins, Operators, and Clients each get a different set of actions, matching what that role is already responsible for in the dashboard. Each is covered separately below.
 - **The pipeline has 5 stages.** Every video moves through **Not Started → Design → Production → In Review → Published**. The Design stage is where the storyboard and script get written and approved; Production is where the video itself gets made.
 - **You can talk to Bucky instead of typing.** Look for a microphone icon next to the message box — click it, say what you want, and it fills in the message box for you to review (it never sends automatically, so you always get to check it first). There's also a speaker icon in Bucky's header you can turn on to have replies read aloud, plus a small speaker icon on each individual reply if you just want to hear that one. Voice input depends on your browser: **Chrome and Edge work best**. Firefox doesn't support it (no mic icon appears), and **Brave shows the mic icon but blocks the speech service behind it** — if you speak and nothing appears, Bucky will show a note explaining it; switch to Chrome or Edge for voice. Reading replies aloud works almost everywhere, including Brave.
 - **Bucky proactively surfaces things once a day even if nobody's looking.** Separately from the "watches things for you" sections below (which check the moment you open the chat), the same checks also run automatically once a day in the background and show up as a regular notification in the bell icon at the top of the dashboard — so a stale item or a pacing problem still gets flagged even on a day nobody opens Bucky at all.
@@ -17,7 +17,7 @@ For every capability, there's a sample message in quotes — copy it, paste it i
 
 ## Ask Bucky Anything (every role)
 
-These questions work the same for Super-Admin, Admin, and Operator:
+These questions work the same for Super-Admin, Admin, Operator, and Client:
 
 | What Bucky can tell you | Try typing this |
 |---|---|
@@ -187,3 +187,11 @@ You don't need to ask for these — Operator's Bucky checks automatically every 
 - **Your own claimed videos stuck too long.** If something you've claimed hasn't moved in 3 or more days, Bucky will remind you as soon as you open the chat.
 
 That's the only proactive check Operators get — the pacing-behind-target alert is Admin-only, for the same reason the production plan itself is off-limits above.
+
+---
+
+## 4. Client
+
+Clients have read-only access to published videos. Bucky's actions for Clients are limited to answering questions and providing information about completed work.
+
+**Clients cannot:** edit products, manage accounts, or change the pipeline. If asked to perform these actions, Bucky will politely decline.

@@ -24,21 +24,22 @@ The dashboard is a **video production pipeline tracker** for BuckedUp's AIGC (AI
 | **Operator** | Production staff (videographers, editors, AI operators) | Execute work — claim/unclaim products, upload document/video deliverables per stage (`stage_deliverables` / `video_versions`), report issues, and submit for QA review |
 | **Admin** | Lifewood leadership / production managers (formerly Lead) | Own the pipeline — create listings, prioritize (`High/Medium/Low`), review and advance stages via the **Approvals Inbox** (`ReviewsView`), conduct QA checks, and manage Operators |
 | **Super-Admin** | Governance-only administrators (formerly Admin) | Manage user accounts (`profiles`), import corporate Excel production plans (`Planning`), view AI audit logs (`Bucky`), and enforce system security while sharing full operational QA/catalog parity with Admins |
+| **Client** | BuckedUp stakeholders | View published videos, provide feedback via qualitative reactions, review completed work |
 
 ---
 
 ## Navigation by Role
 
-| Tab | Operator | Admin | Super-Admin |
-|-----|----------|-------|-------------|
-| **Overview** | ✅ Read-only | ✅ Read-only | ✅ Read-only |
-| **Approvals (`reviews`)** | ❌ Not visible | ✅ Full review access (`ReviewsView` inbox) | ✅ Full review access |
-| **Catalog** | ✅ View only | ✅ Full manage (add/edit/delete catalog items, request videos) | ✅ Full manage |
-| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline QA control | ✅ Full pipeline QA control |
-| **Analytics** | ❌ Blocked (redirects to Overview) | ✅ View all charts (`DailyProgressChart`) | ✅ View all charts |
-| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Super-Admin corporate target imports & plan config (`ProductionPlanView`) |
-| **Admin** | ❌ Not visible | ❌ Not visible | ✅ User governance (`ManageUsersView`) |
-| **Bucky** | ❌ Not visible | ❌ Not visible | ✅ AI audit log viewer (`BuckyConversationsView`) |
+| Tab | Operator | Admin | Super-Admin | Client |
+|-----|----------|-------|-------------|--------|
+| **Overview** | ✅ Read-only | ✅ Read-only | ✅ Read-only | ❌ Not visible |
+| **Approvals (`reviews`)** | ❌ Not visible | ✅ Full review access (`ReviewsView` inbox) | ✅ Full review access | ❌ Not visible |
+| **Catalog** | ✅ View only | ✅ Full manage (add/edit/delete catalog items, request videos) | ✅ Full manage | ❌ Not visible |
+| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline QA control | ✅ Full pipeline QA control | ✅ View published only |
+| **Analytics** | ❌ Blocked (redirects to Overview) | ✅ View all charts (`DailyProgressChart`) | ✅ View all charts | ❌ Blocked |
+| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Super-Admin corporate target imports & plan config (`ProductionPlanView`) | ❌ Not visible |
+| **Admin** | ❌ Not visible | ❌ Not visible | ✅ User governance (`ManageUsersView`) | ❌ Not visible |
+| **Bucky** | ❌ Not visible | ❌ Not visible | ✅ AI audit log viewer (`BuckyConversationsView`) | ❌ Not visible |
 
 ---
 
@@ -258,31 +259,31 @@ flowchart TD
 
 ## Role Permission Matrix (Complete Reference)
 
-| Action | Operator | Admin | Super-Admin | DB / UI Enforcement |
-|--------|----------|-------|-------------|---------------------|
-| **Login / sign out** | ✅ | ✅ | ✅ | Supabase Auth |
-| **View Overview** | ✅ | ✅ | ✅ | — |
-| **View Approvals Inbox (`reviews`)** | ❌ | ✅ | ✅ | TabBar role check (`role === 'admin' || role === 'super-admin'`) |
-| **Browse Catalog** | ✅ | ✅ | ✅ | — |
-| **Add/edit/delete catalog items** | ❌ | ✅ | ✅ | `catalog_products` RLS & UI check |
-| **Request video from catalog** | ❌ | ✅ | ✅ | `products` insert RLS |
-| **Claim / Unclaim product** | ✅ | ✅ | ✅ | `enforce_product_update_permissions` trigger |
-| **View Library — all stages** | ✅ | ✅ | ✅ | Same video library for all roles |
-| **Board (Kanban) layout** | ✅ (view only) | ✅ (view only) | ✅ (view only) | Stage moves locked (`canMoveStage={false}`) |
-| **Submit document deliverables** | ✅ | ✅ | ✅ | `stage_deliverables` RLS |
-| **Upload video version (`video_versions`)** | ✅ (own items) | ✅ | ✅ | `video_versions` RLS |
-| **Submit for review (`RPC`)** | ✅ (own items) | ✅ | ✅ | `submit_video_for_review()` SQL validation |
-| **Review stage deliverables (`RPC`)** | ❌ | ✅ | ✅ | `review_stage_deliverable()` SQL check |
-| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ✅ | Automated SQL trigger / function + confirmation prompt |
-| **Accept video → publish** | ❌ | ✅ | ✅ | `products` update RLS + confirmation prompt |
-| **Reject video → back to Production** | ❌ | ✅ | ✅ | `products` update RLS (`rejection_reason`) + confirmation prompt |
-| **Arbitrary Stage Jump Dropdown / Override** | ❌ | ❌ | ❌ | Stage field disabled (`disabled={true}`) for all roles |
-| **Add / edit / delete product** | ❌ | ✅ | ✅ | `enforce_product_update_permissions` trigger |
-| **Set priority (`High/Medium/Low`)** | ❌ | ✅ | ✅ | `products` update RLS |
-| **Report / resolve issues** | ✅ | ✅ | ✅ | `issues` RLS |
-| **View Analytics charts** | ❌ (redirects) | ✅ | ✅ | Route guard + UI check |
-| **View Planning tab (Excel imports & targets)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) & DB RLS |
-| **Set daily category/language targets** | ❌ | ❌ | ✅ | Writes to `production_plans` & `daily_target_history` |
-| **View Admin tab (User governance)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) |
-| **View Bucky AI Audit Logs tab** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) |
-| **Bucky AI Assistant (`BuckyWidget`)** | ✅ | ✅ | ✅ | Contextual streaming chat (`move_product_stage` disabled) |
+| Action | Operator | Admin | Super-Admin | Client | DB / UI Enforcement |
+|--------|----------|-------|-------------|--------|---------------------|
+| **Login / sign out** | ✅ | ✅ | ✅ | ✅ | Supabase Auth |
+| **View Overview** | ✅ | ✅ | ✅ | ❌ | — |
+| **View Approvals Inbox (`reviews`)** | ❌ | ✅ | ✅ | ❌ | TabBar role check (`role === 'admin' || role === 'super-admin'`) |
+| **Browse Catalog** | ✅ | ✅ | ✅ | ❌ | — |
+| **Add/edit/delete catalog items** | ❌ | ✅ | ✅ | ❌ | `catalog_products` RLS & UI check |
+| **Request video from catalog** | ❌ | ✅ | ✅ | ❌ | `products` insert RLS |
+| **Claim / Unclaim product** | ✅ | ✅ | ✅ | ❌ | `enforce_product_update_permissions` trigger |
+| **View Library — all stages** | ✅ | ✅ | ✅ | ❌ (published only) | Same video library for all roles |
+| **Board (Kanban) layout** | ✅ (view only) | ✅ (view only) | ✅ (view only) | ❌ | Stage moves locked (`canMoveStage={false}`) |
+| **Submit document deliverables** | ✅ | ✅ | ✅ | ❌ | `stage_deliverables` RLS |
+| **Upload video version (`video_versions`)** | ✅ (own items) | ✅ | ✅ | ❌ | `video_versions` RLS |
+| **Submit for review (`RPC`)** | ✅ (own items) | ✅ | ✅ | ❌ | `submit_video_for_review()` SQL validation |
+| **Review stage deliverables (`RPC`)** | ❌ | ✅ | ✅ | ❌ | `review_stage_deliverable()` SQL check |
+| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ✅ | ❌ | Automated SQL trigger / function + confirmation prompt |
+| **Accept video → publish** | ❌ | ✅ | ✅ | ❌ | `products` update RLS + confirmation prompt |
+| **Reject video → back to Production** | ❌ | ✅ | ✅ | ❌ | `products` update RLS (`rejection_reason`) + confirmation prompt |
+| **Arbitrary Stage Jump Dropdown / Override** | ❌ | ❌ | ❌ | ❌ | Stage field disabled (`disabled={true}`) for all roles |
+| **Add / edit / delete product** | ❌ | ✅ | ✅ | ❌ | `enforce_product_update_permissions` trigger |
+| **Set priority (`High/Medium/Low`)** | ❌ | ✅ | ✅ | ❌ | `products` update RLS |
+| **Report / resolve issues** | ✅ | ✅ | ✅ | ❌ | `issues` RLS |
+| **View Analytics charts** | ❌ (redirects) | ✅ | ✅ | ❌ | Route guard + UI check |
+| **View Planning tab (Excel imports & targets)** | ❌ | ❌ | ✅ | ❌ | TabBar role check (`role === 'super-admin'`) & DB RLS |
+| **Set daily category/language targets** | ❌ | ❌ | ✅ | ❌ | Writes to `production_plans` & `daily_target_history` |
+| **View Admin tab (User governance)** | ❌ | ❌ | ✅ | ❌ | TabBar role check (`role === 'super-admin'`) |
+| **View Bucky AI Audit Logs tab** | ❌ | ❌ | ✅ | ❌ | TabBar role check (`role === 'super-admin'`) |
+| **Bucky AI Assistant (`BuckyWidget`)** | ✅ | ✅ | ✅ | ✅ | Contextual streaming chat (`move_product_stage` disabled) |

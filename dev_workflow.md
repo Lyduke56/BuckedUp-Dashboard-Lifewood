@@ -152,12 +152,12 @@ buckedup_dashboard/
 | File | Tab | Visible to | Key Features |
 |------|-----|-----------|--------------|
 | `Dashboard.tsx` | Shell (all tabs) | All | Root tab manager, theme toggle, Bucky integration |
-| `OverviewView.tsx` | Overview | All | KPI summary, Recent Deliveries, interactive links |
+| `OverviewView.tsx` | Overview | All (Client blocked) | KPI summary, Recent Deliveries, interactive links |
 | `ReviewsView.tsx` | Approvals Inbox (`reviews`) | Admin & Super-Admin | Unified QA inbox, `Pending (N)` vs `Reviewed`, search, stage filters, localStorage read/cleared state |
-| `CatalogView.tsx` | Catalog | All (`canManageCatalog = Admin/Super-Admin`) | Merchandise browser, Add/Edit/Request modals |
-| `VideoLibraryView.tsx` | Video Library | All | Kanban board (`5 columns`, `canMoveStage={false}`), table view with status pills |
+| `CatalogView.tsx` | Catalog | All (Client blocked, `canManageCatalog = Admin/Super-Admin`) | Merchandise browser, active/inactive stats, Add/Edit/Request modals |
+| `VideoLibraryView.tsx` | Video Library | All (Client uses `ClientVideoLibraryView`) | Kanban board (`5 columns`, `canMoveStage={false}`), table view with status pills |
 | `ClientVideoLibraryView.tsx` | Client Library | Clients / All | Published videos only, dynamic category/subcategory filters, left-docked header, smart view filters (Unviewed, Viewed, Feedback Provided, Recents), qualitative reaction badges |
-| `AnalyticsView.tsx` | Analytics | Admin & Super-Admin (`Operator` blocked) | Power BI column chart (`DailyProgressChart`), pacing, stage funnel |
+| `AnalyticsView.tsx` | Analytics | Admin & Super-Admin (`Operator` and `Client` blocked) | Power BI column chart (`DailyProgressChart`), pacing, stage funnel |
 | `ProductionPlanView.tsx` | Planning | Super-Admin only (`role === 'super-admin'`) | Excel production plan imports & daily target settings (`Set Targets` button upserts into `daily_target_history`) |
 | `ManageUsersView.tsx` | Admin | Super-Admin only | User governance, invite & role management |
 | `BuckyConversationsView.tsx` | Bucky | Super-Admin only | AI audit log and conversation history viewer |
@@ -234,7 +234,7 @@ export const STATUS_ORDER: PipelineStatus[] = [
 
 | Table | Purpose | RLS | Realtime |
 |-------|---------|-----|----------|
-| `profiles` | User accounts + roles (operator/admin/super-admin) | ✅ Auth read, super-admin update | ✅ |
+| `profiles` | User accounts + roles (operator/admin/super-admin/client) | ✅ Auth read, super-admin update | ✅ |
 | `products` | Video production queue — one row per video request | ✅ Public read, auth update, admin insert/delete | ✅ |
 | `feedback` | Comments + qualitative reactions per product (`reaction` column) | ✅ Public read, auth insert/delete | ✅ |
 | `stage_deliverables` | Storyboarding and Scripting documents | ✅ Public read, auth insert/update | ✅ |
