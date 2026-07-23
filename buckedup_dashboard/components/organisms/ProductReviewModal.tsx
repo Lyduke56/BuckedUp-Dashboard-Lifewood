@@ -76,6 +76,10 @@ export function ProductReviewModal({
   };
 
   const reviewVideo = async (decision: "accepted" | "rejected") => {
+    if (decision === "accepted" && !item.videoUrl) {
+      setError("Cannot publish without a video uploaded.");
+      return;
+    }
     if (decision === "rejected" && !note.trim()) {
       setError("A note is required when rejecting.");
       return;
@@ -153,22 +157,20 @@ export function ProductReviewModal({
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        className={`px-3 py-1 text-xs rounded transition-all ${
-                          storyboardDecision === "accepted"
+                        className={`px-3 py-1 text-xs rounded transition-all ${storyboardDecision === "accepted"
                             ? "bg-[var(--castleton)] text-white"
                             : "bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)]"
-                        }`}
+                          }`}
                         onClick={() => setStoryboardDecision("accepted")}
                       >
                         Approve
                       </button>
                       <button
                         type="button"
-                        className={`px-3 py-1 text-xs rounded transition-all ${
-                          storyboardDecision === "rejected"
+                        className={`px-3 py-1 text-xs rounded transition-all ${storyboardDecision === "rejected"
                             ? "bg-red-500 text-white"
                             : "bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)]"
-                        }`}
+                          }`}
                         onClick={() => setStoryboardDecision("rejected")}
                       >
                         Reject
@@ -210,22 +212,20 @@ export function ProductReviewModal({
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        className={`px-3 py-1 text-xs rounded transition-all ${
-                          scriptDecision === "accepted"
+                        className={`px-3 py-1 text-xs rounded transition-all ${scriptDecision === "accepted"
                             ? "bg-[var(--castleton)] text-white"
                             : "bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)]"
-                        }`}
+                          }`}
                         onClick={() => setScriptDecision("accepted")}
                       >
                         Approve
                       </button>
                       <button
                         type="button"
-                        className={`px-3 py-1 text-xs rounded transition-all ${
-                          scriptDecision === "rejected"
+                        className={`px-3 py-1 text-xs rounded transition-all ${scriptDecision === "rejected"
                             ? "bg-red-500 text-white"
                             : "bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)]"
-                        }`}
+                          }`}
                         onClick={() => setScriptDecision("rejected")}
                       >
                         Reject
@@ -302,7 +302,7 @@ export function ProductReviewModal({
               <button
                 type="button"
                 className="issue-submit-btn"
-                disabled={submitting}
+                disabled={submitting || !item.videoUrl}
                 onClick={() => reviewVideo("accepted")}
               >
                 {submitting ? "Saving…" : "Accept & publish"}

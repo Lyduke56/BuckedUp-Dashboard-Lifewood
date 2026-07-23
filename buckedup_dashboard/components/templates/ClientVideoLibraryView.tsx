@@ -50,8 +50,8 @@ export function ClientVideoLibraryView({
     if (externalSearch) onExternalSearchApplied?.();
   }
 
-  // Filter ONLY published videos
-  let displayProducts = products.filter(p => p.items[0]?.status === "Published");
+  // Filter ONLY published videos that have a video
+  let displayProducts = products.filter(p => p.items[0]?.status === "Published" && p.items[0]?.videoUrl);
 
   // Get unique product names from published videos for the dropdown
   const productNames = Array.from(new Set(displayProducts.map(p => p.name))).sort();

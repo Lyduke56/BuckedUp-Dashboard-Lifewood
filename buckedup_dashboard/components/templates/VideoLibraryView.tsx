@@ -306,6 +306,10 @@ export function VideoLibraryView({
   // products subscription refreshes the list.
   const handleInlineStage = async (product: Product, next: PipelineStatus) => {
     if (product.items[0].status === next) return;
+    if (next === "Published" && !product.items[0].videoUrl) {
+      alert("Cannot mark as Published without a video URL.");
+      return;
+    }
     const supabase = createClient();
     await supabase.from("products").update({ status: next }).eq("id", product.id);
   };
