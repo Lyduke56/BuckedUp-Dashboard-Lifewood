@@ -1,8 +1,8 @@
 # BuckedUp Dashboard — Role-Based Workflow & Flowcharts
 
 > **System**: BuckedUp AIGC Video Production Dashboard  
-> **Roles**: Operator · Lead · Admin  
-> **Last Analyzed**: July 20, 2026
+> **Roles**: Operator · Admin · Super-Admin  
+> **Last Updated**: July 23, 2026
 
 ---
 
@@ -12,6 +12,8 @@ The dashboard is a **video production pipeline tracker** for BuckedUp's AIGC (AI
 
 > [!IMPORTANT]
 > **The database is the real security boundary** — not the UI. Every permission below is enforced by PostgreSQL Row-Level Security (RLS) policies and `enforce_product_update_permissions()` triggers in `schema.sql`. The UI hides controls a role cannot use, but the DB actually blocks unauthorized writes.
+>
+> **Strict QA Gate Stage Transitions**: Stage jumping is disabled across all roles (`canMoveStage={false}`). Admins and Super-Admins cannot manually force arbitrary stage moves in dropdowns or Kanban drag-and-drop. Products move stages **only** through the official QA approval process.
 
 ---
 
@@ -20,39 +22,42 @@ The dashboard is a **video production pipeline tracker** for BuckedUp's AIGC (AI
 | Role | Who | Core Purpose |
 |------|-----|-------------|
 | **Operator** | Production staff (videographers, editors, AI operators) | Execute work — claim/unclaim products, upload document/video deliverables per stage (`stage_deliverables` / `video_versions`), report issues, and submit for QA review |
-| **Lead** | Lifewood leadership / production managers | Own the pipeline — create listings, prioritize (`High/Medium/Low`), review and advance stages via the **Approvals Inbox** (`ReviewsView`), and manage Operators |
-| **Admin** | Governance-only administrators | Manage user accounts (`profiles`), import corporate Excel production plans (`Planning`), view AI audit logs (`Bucky`), and enforce system security while sharing full operational QA/catalog parity with Leads |
+| **Admin** | Lifewood leadership / production managers (formerly Lead) | Own the pipeline — create listings, prioritize (`High/Medium/Low`), review and advance stages via the **Approvals Inbox** (`ReviewsView`), conduct QA checks, and manage Operators |
+| **Super-Admin** | Governance-only administrators (formerly Admin) | Manage user accounts (`profiles`), import corporate Excel production plans (`Planning`), view AI audit logs (`Bucky`), and enforce system security while sharing full operational QA/catalog parity with Admins |
 
 ---
 
 ## Navigation by Role
 
-| Tab | Operator | Lead | Admin |
-|-----|----------|------|-------|
+| Tab | Operator | Admin | Super-Admin |
+|-----|----------|-------|-------------|
 | **Overview** | ✅ Read-only | ✅ Read-only | ✅ Read-only |
 | **Approvals (`reviews`)** | ❌ Not visible | ✅ Full review access (`ReviewsView` inbox) | ✅ Full review access |
 | **Catalog** | ✅ View only | ✅ Full manage (add/edit/delete catalog items, request videos) | ✅ Full manage |
-| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline control | ✅ Full pipeline control |
+| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline QA control | ✅ Full pipeline QA control |
 | **Analytics** | ❌ Blocked (redirects to Overview) | ✅ View all charts (`DailyProgressChart`) | ✅ View all charts |
-| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Admin-only corporate target imports & plan config (`ProductionPlanView`) |
+| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Super-Admin corporate target imports & plan config (`ProductionPlanView`) |
 | **Admin** | ❌ Not visible | ❌ Not visible | ✅ User governance (`ManageUsersView`) |
 | **Bucky** | ❌ Not visible | ❌ Not visible | ✅ AI audit log viewer (`BuckyConversationsView`) |
 
 ---
 
-## Pipeline Stages & Deliverables
+## Pipeline Stages, Deliverables & Strict QA Gates
 
 ```
 Not Started → Design → Production → In Review → Published
 ```
 
-| Stage | Operator Action | Deliverable Type | Lead / Admin Review Action |
-|-------|-----------------|------------------|-------------------|
-| **Not Started** | Claim product (`owner_id = auth.uid()`, moves to `Design`) | — | Lead assigns priority (`High/Medium/Low`), assigns owner, moves to `Design` |
-| **Design** | Submit Storyboard (`file`/`text`) and Script (`file`/`text`) via independent tabbed portals in `ProductionModal` | `stage_deliverables` rows | Lead/Admin reviews in **Approvals Inbox** (`ReviewsView`) or Video Library review modal. Calling `review_stage_deliverable(id, 'accepted', note)` checks if BOTH Storyboard and Script are accepted. If both pass, product **automatically promotes to `Production`** |
-| **Production** | Upload video revision (`video_versions`) with optional notes, then call `submit_video_for_review(product_id)`. Reactive UI enables review button instantly upon upload. | `video_versions` row + SQL RPC | Operator/Lead calls RPC; DB verifies ownership, verifies at least one video exists, and promotes to `In Review` |
-| **In Review** | — (waiting on QA review) | — | Lead/Admin reviews in **Approvals Inbox** (`ReviewsView`) or Review Modal. Accept promotes to **`Published`**; Reject returns to `Production` (`rejection_reason` saved) |
-| **Published** | — | — | Terminal completed state (`publish_date` recorded). Items with `deliveryType === "link"` enter directly as Published |
+| Stage | Operator Action | Deliverable Type | Admin / Super-Admin Review Action & Gate Enforcement |
+|-------|-----------------|------------------|----------------------------------------------------|
+| **Not Started** | Claim product (`owner_id = auth.uid()`, moves to `Design`) | — | Admin assigns priority (`High/Medium/Low`) and owner. |
+| **Design** | Submit Storyboard (`file`/`text`) and Script (`file`/`text`) via independent tabbed portals in `ProductionModal` | `stage_deliverables` rows | Admin/Super-Admin reviews in **Approvals Inbox** (`ReviewsView`) or `ProductReviewModal`. Calling `review_stage_deliverable(id, 'accepted', note)` evaluates both deliverables. When **BOTH Storyboard and Script are approved**, UI prompts confirmation and product **automatically promotes to `Production`**. |
+| **Production** | Upload video revision (`video_versions`) with optional notes, then call `submit_video_for_review(product_id)`. Reactive UI enables review button instantly upon upload. | `video_versions` row + SQL RPC | Operator/Admin calls RPC; DB verifies ownership, verifies at least one video exists, and promotes product stage to `In Review`. |
+| **In Review** | — (waiting on QA review) | — | Admin/Super-Admin reviews video in `ProductReviewModal`. Clicking **Accept & Publish** prompts confirmation and promotes to **`Published`** (`publish_date` recorded). Clicking **Reject to Production** prompts confirmation, sets rejection note, and returns stage to **`Production`**. |
+| **Published** | — | — | Terminal completed state. Items with `deliveryType === "link"` enter directly as Published. |
+
+> [!NOTE]
+> **Stage Locking**: In `ProductFormModal`, the Stage field is disabled (`disabled={true}`) for all roles with the clear hint: *"Stage transitions are managed automatically via the QA Review process."* Drag-and-drop on `KanbanBoard` is set to `canMoveStage={false}` to prevent arbitrary stage skipping.
 
 ---
 
@@ -67,7 +72,7 @@ Not Started → Design → Production → In Review → Published
 flowchart TD
     A([Operator visits app]) --> B{Already logged in?}
     B -- No --> C["/login page - Email + Password"]
-    C --> D{"First login? Invited by Admin?"}
+    C --> D{"First login? Invited by Super-Admin?"}
     D -- "Yes, must change password" --> E["ForcePasswordChangeView - Set new password"]
     E --> F[Dashboard loads]
     D -- No --> F
@@ -155,16 +160,16 @@ flowchart LR
 
 ---
 
-## 🟨 LEAD WORKFLOW
+## 🟨 ADMIN WORKFLOW (formerly Lead)
 
-> **Lead = The operational owner of the entire pipeline.**  
-> Leads create video requests, assign priority (`High/Medium/Low`), configure targets, review all deliverables inside the **Approvals Inbox** (`ReviewsView`), and are the only ones who can advance a product past QA gates or drag items across stages.
+> **Admin = The operational owner of the entire pipeline.**  
+> Admins create video requests, assign priority (`High/Medium/Low`), configure targets, review all deliverables inside the **Approvals Inbox** (`ReviewsView`), and evaluate QA approvals to advance stages.
 
 ### Approvals Inbox Tab (`ReviewsView.tsx` — Core QA Center)
 
 ```mermaid
 flowchart TD
-    A([Lead on Approvals Inbox]) --> B["Views badge count: Approvals (N) in TabBar"]
+    A([Admin on Approvals Inbox]) --> B["Views badge count: Approvals (N) in TabBar"]
     B --> C["Sub-navigation tabs: Pending (N) vs Reviewed (N)"]
     C --> D{Apply filters}
     D --> E[Search by product name]
@@ -180,23 +185,23 @@ flowchart TD
 
 ---
 
-### Video Library — Lead: Reviewing Deliverables (`ProductReviewModal`)
+### Video Library — Admin: Reviewing Deliverables & Stage Progression (`ProductReviewModal`)
 
 ```mermaid
 flowchart TD
-    A(["Lead opens ProductReviewModal from Approvals Inbox or Video Library button"]) --> B{What stage is the product in?}
+    A(["Admin opens ProductReviewModal from Approvals Inbox or Video Library button"]) --> B{What stage is the product in?}
 
     B -- "Design Stage" --> C["Document review path - Shows submitted Storyboarding and/or Scripting deliverables"]
     C --> C1{Read the submission}
     C1 --> D1["Click Accept on deliverable"]
     C1 --> D2["Click Reject on deliverable - Requires feedback note"]
-    D1 --> E1["Calls review_stage_deliverable(id, 'accepted', note). If BOTH Storyboarding and Scripting are accepted, DB automatically promotes status from Design → Production!"]
-    D2 --> E2["Calls review_stage_deliverable(id, 'rejected', note). Product stays at Design stage; Operator sees feedback and re-submits."]
+    D1 --> E1["Calls review_stage_deliverable(id, 'accepted', note). Green banner displays if BOTH Storyboard & Script are approved. Admin confirms prompt -> DB promotes stage: Design → Production!"]
+    D2 --> E2["Calls review_stage_deliverable(id, 'rejected', note). Yellow banner displays; product stays in Design stage; Operator sees feedback and re-submits."]
 
     B -- "In Review Stage" --> F["Video review path - Shows current video_versions upload with player and notes"]
     F --> F1{Watch/review the video}
-    F1 --> G1["Click Accept & Publish - Updates products: review_status=Accepted, status=Published, publish_date recorded"]
-    F1 --> G2["Click Reject to Production - Requires rejection note - Updates products: review_status=Rejected, status=Production - Operator notified"]
+    F1 --> G1["Click Accept & Publish -> Prompts confirmation -> Updates products: review_status=Accepted, status=Published, publish_date recorded"]
+    F1 --> G2["Click Reject to Production -> Requires rejection note -> Prompts confirmation -> Updates products: review_status=Rejected, status=Production - Operator notified"]
 
     style E1 fill:#1a2d1a,stroke:#28a745,color:#88ff88
     style G1 fill:#1a2d1a,stroke:#28a745,color:#88ff88
@@ -206,16 +211,16 @@ flowchart TD
 
 ---
 
-## 🟥 ADMIN WORKFLOW
+## 🟥 SUPER-ADMIN WORKFLOW (formerly Admin)
 
-> **Admin = Governance, Corporate Planning & Shared Operational Parity.**  
-> Admins share full operational parity with Leads across the day-to-day video production pipeline (`Video Library across all stages`, `Catalog management`, and `Approvals Inbox`). In addition, Admins exclusively manage user accounts (`profiles`), import corporate Excel spreadsheets (`PlanningView`), and audit AI execution logs (`Bucky`).
+> **Super-Admin = Governance, Corporate Planning & Shared Operational Parity.**  
+> Super-Admins share full operational parity with Admins across the day-to-day video production pipeline (`Video Library across all stages`, `Catalog management`, and `Approvals Inbox`). In addition, Super-Admins exclusively manage user accounts (`profiles`), import corporate Excel spreadsheets (`PlanningView`), and audit AI execution logs (`Bucky`).
 
-### Planning Tab — Admin Exclusive (`ProductionPlanView.tsx`)
+### Planning Tab — Super-Admin Exclusive (`ProductionPlanView.tsx`)
 
 ```mermaid
 flowchart TD
-    A([Admin clicks Planning tab]) --> B["ProductionPlanView renders - Corporate Production Plan Workspace"]
+    A([Super-Admin clicks Planning tab]) --> B["ProductionPlanView renders - Corporate Production Plan Workspace"]
     B --> C["Section 1: Plan Core Config - Plan Name, Total Video Target, Start Date, Deadline, Notes"]
     C --> D["Primary Action Button: Create plan / Save plan changes (positioned above Today's targets)"]
     D --> E["Section 2: Today's Targets - Category & Language daily goals"]
@@ -226,32 +231,58 @@ flowchart TD
 
 ---
 
+## 🟩 CLIENT DASHBOARD WORKFLOW (`ClientVideoLibraryView.tsx`)
+
+> **Client Dashboard = Dedicated Portal for Client Video Browsing, Download & Feedback.**  
+> Clients view published marketing deliverables with dynamic filtering and a qualitative satisfaction reaction system.
+
+```mermaid
+flowchart TD
+    A([Client accesses Dashboard]) --> B["ClientVideoLibraryView renders published videos"]
+    B --> C{Filter & Search Options}
+    C --> C1["Search bar - Product Catalog glass design with 22px pill border radius"]
+    C --> C2["Dynamic Category & Subcategory dropdowns - derived from published videos"]
+    C --> C3["Smart View Filters: All Videos · Unviewed (NEW badge) · Viewed Only · Feedback Provided · Recents (7 Days)"]
+
+    B --> D[Click Video Card]
+    D --> E["Registers video as Viewed in localStorage"]
+    D --> F["Opens VideoModal with preview player & Feedback Section"]
+
+    F --> G{Submit Feedback / Comment}
+    G --> H["Select Qualitative Reaction: 🔥 Loved it · 👍 Good · 😐 Neutral · 👎 Needs Revision · ❌ Unsatisfied"]
+    H --> I["Submits feedback -> Saved in feedback table (reaction column)"]
+    I --> J["Displays reaction badge on comment bubble & aggregates reaction chips (🔥 2, 👍 1) on library cards"]
+```
+
+---
+
 ## Role Permission Matrix (Complete Reference)
 
-| Action | Operator | Lead | Admin | DB / UI Enforcement |
-|--------|----------|------|-------|---------------------|
+| Action | Operator | Admin | Super-Admin | DB / UI Enforcement |
+|--------|----------|-------|-------------|---------------------|
 | **Login / sign out** | ✅ | ✅ | ✅ | Supabase Auth |
 | **View Overview** | ✅ | ✅ | ✅ | — |
-| **View Approvals Inbox (`reviews`)** | ❌ | ✅ | ✅ | TabBar role check (`role === 'lead' || role === 'admin'`) |
+| **View Approvals Inbox (`reviews`)** | ❌ | ✅ | ✅ | TabBar role check (`role === 'admin' || role === 'super-admin'`) |
 | **Browse Catalog** | ✅ | ✅ | ✅ | — |
 | **Add/edit/delete catalog items** | ❌ | ✅ | ✅ | `catalog_products` RLS & UI check |
 | **Request video from catalog** | ❌ | ✅ | ✅ | `products` insert RLS |
 | **Claim / Unclaim product** | ✅ | ✅ | ✅ | `enforce_product_update_permissions` trigger |
 | **View Library — all stages** | ✅ | ✅ | ✅ | Same video library for all roles |
-| **Board (Kanban) layout** | ✅ (view only) | ✅ + drag | ✅ + drag | UI & DB (`enforce_product_update_permissions`) |
+| **Board (Kanban) layout** | ✅ (view only) | ✅ (view only) | ✅ (view only) | Stage moves locked (`canMoveStage={false}`) |
 | **Submit document deliverables** | ✅ | ✅ | ✅ | `stage_deliverables` RLS |
 | **Upload video version (`video_versions`)** | ✅ (own items) | ✅ | ✅ | `video_versions` RLS |
 | **Submit for review (`RPC`)** | ✅ (own items) | ✅ | ✅ | `submit_video_for_review()` SQL validation |
 | **Review stage deliverables (`RPC`)** | ❌ | ✅ | ✅ | `review_stage_deliverable()` SQL check |
-| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ✅ | Automated SQL trigger / function |
-| **Accept video → publish** | ❌ | ✅ | ✅ | `products` update RLS |
-| **Reject video → back to Production** | ❌ | ✅ | ✅ | `products` update RLS (`rejection_reason`) |
+| **Accept both docs → auto-advance to Production** | ❌ | ✅ | ✅ | Automated SQL trigger / function + confirmation prompt |
+| **Accept video → publish** | ❌ | ✅ | ✅ | `products` update RLS + confirmation prompt |
+| **Reject video → back to Production** | ❌ | ✅ | ✅ | `products` update RLS (`rejection_reason`) + confirmation prompt |
+| **Arbitrary Stage Jump Dropdown / Override** | ❌ | ❌ | ❌ | Stage field disabled (`disabled={true}`) for all roles |
 | **Add / edit / delete product** | ❌ | ✅ | ✅ | `enforce_product_update_permissions` trigger |
 | **Set priority (`High/Medium/Low`)** | ❌ | ✅ | ✅ | `products` update RLS |
 | **Report / resolve issues** | ✅ | ✅ | ✅ | `issues` RLS |
 | **View Analytics charts** | ❌ (redirects) | ✅ | ✅ | Route guard + UI check |
-| **View Planning tab (Excel imports & targets)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) & DB RLS |
+| **View Planning tab (Excel imports & targets)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) & DB RLS |
 | **Set daily category/language targets** | ❌ | ❌ | ✅ | Writes to `production_plans` & `daily_target_history` |
-| **View Admin tab (User governance)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) |
-| **View Bucky AI Audit Logs tab** | ❌ | ❌ | ✅ | TabBar role check (`role === 'admin'`) |
-| **Bucky AI Assistant (`BuckyWidget`)** | ✅ | ✅ | ✅ | Contextual streaming chat |
+| **View Admin tab (User governance)** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) |
+| **View Bucky AI Audit Logs tab** | ❌ | ❌ | ✅ | TabBar role check (`role === 'super-admin'`) |
+| **Bucky AI Assistant (`BuckyWidget`)** | ✅ | ✅ | ✅ | Contextual streaming chat (`move_product_stage` disabled) |
