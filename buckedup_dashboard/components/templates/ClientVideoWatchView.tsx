@@ -381,29 +381,68 @@ export function ClientVideoWatchView({ products, videoId, onBack, onNavigate }: 
 
           <div className="cvm-sidebar-list">
             {relatedProducts.map((relProduct) => {
+              const isCurrent = relProduct.id === product.id;
               const relPublishedText = relProduct.publishDate
                 ? new Date(`${relProduct.publishDate}T00:00:00`).toLocaleDateString("en-US", { timeZone: "UTC" })
                 : "—";
               return (
                 <div 
                   key={relProduct.rank} 
-                  className={`cvm-sidebar-card ${relProduct.id === product.id ? 'playing' : ''}`}
+                  className={`cvm-sidebar-card ${isCurrent ? 'playing' : ''}`}
                   onClick={() => onNavigate(relProduct.id)}
                   style={{ 
                     padding: '8px', borderRadius: '12px', gap: '12px',
-                    background: relProduct.id === product.id ? 'var(--surface-hover)' : 'transparent',
-                    border: 'none'
+                    background: isCurrent ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+                    border: isCurrent ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid transparent',
+                    boxShadow: isCurrent ? '0 0 12px rgba(16, 185, 129, 0.12)' : 'none',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <div className="cvm-sc-thumb" style={{ width: '160px', height: '90px', borderRadius: '8px', background: 'var(--surface)' }}>
+                  <div className="cvm-sc-thumb" style={{ width: '160px', height: '90px', borderRadius: '8px', background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
                     {relProduct.thumbnailUrl ? (
                       <img src={relProduct.thumbnailUrl} alt={relProduct.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div className="cvm-sc-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: "var(--ink-soft)", background: "var(--glass-bg)", border: "1px dashed var(--glass-border)", borderRadius: "8px" }}><PlayCircleIcon /></div>
                     )}
+                    {isCurrent && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.45)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backdropFilter: 'blur(2px)'
+                      }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: '#10b981',
+                          background: 'rgba(16, 185, 129, 0.25)',
+                          border: '1px solid rgba(16, 185, 129, 0.5)',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          letterSpacing: '0.05em',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                        }}>
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: '#10b981',
+                            display: 'inline-block',
+                            boxShadow: '0 0 6px #10b981'
+                          }} />
+                          NOW PLAYING
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="cvm-sc-info" style={{ flex: 1, minWidth: 0, justifyContent: 'flex-start', paddingTop: '4px' }}>
-                    <div className="cvm-sc-title" title={relProduct.name} style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>{relProduct.name}</div>
+                    <div className="cvm-sc-title" title={relProduct.name} style={{ fontSize: '14px', fontWeight: isCurrent ? 700 : 600, color: isCurrent ? 'var(--castleton)' : 'var(--text-main)', marginBottom: '4px' }}>{relProduct.name}</div>
                     <div className="cvm-sc-tags" style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-main)' }}>{relProduct.category}</span>
                       {relProduct.subcategory && <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-main)' }}>{relProduct.subcategory}</span>}
