@@ -21,6 +21,8 @@ export interface Profile {
   email: string;
   role: UserRole;
   theme?: "dark" | "light";
+  tabPermissions?: ViewId[] | null;
+  isReadOnly?: boolean;
 }
 
 export type StatusFilter = "all" | "not-started" | "in-progress" | "published";

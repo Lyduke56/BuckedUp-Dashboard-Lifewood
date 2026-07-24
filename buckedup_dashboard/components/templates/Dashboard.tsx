@@ -33,7 +33,7 @@ export function Dashboard() {
   const { products, loading, error } = useVideoRequests();
   const { catalog, loading: catalogLoading, error: catalogError } = useCatalog(true);
   const { currentByKey } = useStageDeliverables();
-  const { role, mustChangePassword, theme: savedTheme, user, loading: authLoading } = useAuth();
+  const { role, mustChangePassword, theme: savedTheme, user, tabPermissions, isReadOnly, loading: authLoading } = useAuth();
 
   // Bucky's product-selection context (Phase 3b). libraryFocus covers
   // VideoLibraryView's review/production/edit-form modals (reported up via
@@ -178,6 +178,7 @@ export function Dashboard() {
           activeView={activeView}
           onViewChange={switchView}
           role={role}
+          tabPermissions={tabPermissions}
           pendingReviewsCount={pendingReviewsCount}
         />
       </div>
@@ -188,11 +189,11 @@ export function Dashboard() {
             style={{
               borderLeft: "4px solid #dc3545",
               color: "#b02a37",
-              marginBottom: "20px",
+              marginBottom: "16px",
               background: "rgba(220, 53, 69, 0.05)",
             }}
           >
-            ⚠️ Couldn&apos;t load live data from Supabase: {error}
+            {error}
           </div>
         )}
         <div className={`view${activeView === "overview" ? " active" : ""}`}>
@@ -243,7 +244,7 @@ export function Dashboard() {
             />
           )}
         </div>
-        {role === "admin" ? (
+        {(role === "admin" || role === "super-admin") ? (
           <div className={`view${activeView === "reviews" ? " active" : ""}`}>
             <ReviewsView
               products={products}

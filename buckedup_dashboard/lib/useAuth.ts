@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "./supabase/client";
-import type { UserRole } from "./types";
+import type { UserRole, ViewId } from "./types";
 
 interface UseAuthState {
   user: User | null;
   role: UserRole | null;
   mustChangePassword: boolean;
   theme: "dark" | "light";
+  tabPermissions: ViewId[] | null;
+  isReadOnly: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -21,6 +23,8 @@ export function useAuth(): UseAuthState {
   const [role, setRole] = useState<UserRole | null>(null);
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [tabPermissions, setTabPermissions] = useState<ViewId[] | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,16 +32,41 @@ export function useAuth(): UseAuthState {
     let cancelled = false;
 
     async function loadRole(userId: string) {
-      const { data } = await supabase
+      // 1. Fetch core profile columns guaranteed to exist
+      const { data: coreData } = await supabase
         .from("profiles")
         .select("role, must_change_password, theme")
         .eq("id", userId)
         .single();
-      if (!cancelled) {
-        setRole((data?.role as UserRole) ?? null);
-        setMustChangePassword(data?.must_change_password ?? false);
-        if (data?.theme) {
-          setTheme(data.theme as "dark" | "light");
+
+      if (!cancelled && coreData) {
+        setRole((coreData.role as UserRole) ?? null);
+        setMustChangePassword(coreData.must_change_password ?? false);
+        if (coreData.theme) {
+          setTheme(coreData.theme as "dark" | "light");
+        }
+      }
+
+      // 2. Fetch optional permission columns safely (handles cases before SQL migration is applied)
+      try {
+        const { data: permData } = await supabase
+          .from("profiles")
+          .select("tab_permissions, is_read_only")
+          .eq("id", userId)
+          .single();
+
+        if (!cancelled && permData) {
+          if (Array.isArray(permData.tab_permissions) && permData.tab_permissions.length > 0) {
+            setTabPermissions(permData.tab_permissions as ViewId[]);
+          } else {
+            setTabPermissions(null);
+          }
+          setIsReadOnly(Boolean(permData.is_read_only));
+        }
+      } catch {
+        if (!cancelled) {
+          setTabPermissions(null);
+          setIsReadOnly(false);
         }
       }
     }
@@ -59,6 +88,8 @@ export function useAuth(): UseAuthState {
         setRole(null);
         setMustChangePassword(false);
         setTheme("light");
+        setTabPermissions(null);
+        setIsReadOnly(false);
       }
     });
 
@@ -74,5 +105,14 @@ export function useAuth(): UseAuthState {
     router.push("/login");
   };
 
-  return { user: session?.user ?? null, role, mustChangePassword, theme, loading, signOut };
+  return {
+    user: session?.user ?? null,
+    role,
+    mustChangePassword,
+    theme,
+    tabPermissions,
+    isReadOnly,
+    loading,
+    signOut,
+  };
 }

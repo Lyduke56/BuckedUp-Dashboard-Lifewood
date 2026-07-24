@@ -32,6 +32,8 @@ create table profiles (
   -- super-admin-issued temporary password indefinitely.
   must_change_password boolean not null default false,
   theme text not null default 'light',
+  tab_permissions text[],
+  is_read_only boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -69,9 +71,6 @@ returns trigger as $$
 begin
   if new.role is distinct from old.role and get_my_role() <> 'super-admin' then
     raise exception 'Only super-admins can change roles';
-  end if;
-  if new.role = 'super-admin' and old.role <> 'super-admin' then
-    raise exception 'Cannot assign super-admin role to others';
   end if;
   return new;
 end;

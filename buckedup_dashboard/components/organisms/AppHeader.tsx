@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Lock, Sun, Moon, ChevronDown, Check, Building2 } from "lucide-react";
+import { Lock, Sun, Moon, ChevronDown, Check, Building2, ShieldCheck, UserCheck } from "lucide-react";
 import { useAuth } from "@/lib/useAuth";
 import { NotificationBell } from "@/components/molecules/NotificationBell";
 
@@ -190,7 +190,7 @@ export function AppHeader({
                 size={14}
                 style={{
                   color: 'var(--header-text)',
-                  opacity: (isHovered || isOpen) ? 0.9 : 0,
+                  opacity: (isHovered || isOpen) ? 1 : 0.65,
                   transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                   transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                   marginLeft: '2px',
@@ -328,16 +328,20 @@ export function AppHeader({
               <span className="auth-email" style={{ fontSize: '12px', color: 'var(--header-text)', fontWeight: 600 }}>{user.email}</span>
               {role && (
                 <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                   fontSize: '9px',
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  padding: '2px 6px',
+                  padding: '2px 7px',
                   borderRadius: '4px',
                   background: role === 'super-admin' ? 'rgba(6, 182, 212, 0.15)' : role === 'admin' ? 'rgba(234, 179, 8, 0.15)' : role === 'client' ? 'rgba(244, 114, 182, 0.15)' : 'rgba(132, 204, 22, 0.15)',
                   color: role === 'super-admin' ? '#06b6d4' : role === 'admin' ? '#eab308' : role === 'client' ? '#f472b6' : '#84cc16',
                   border: `1px solid ${role === 'super-admin' ? 'rgba(6, 182, 212, 0.3)' : role === 'admin' ? 'rgba(234, 179, 8, 0.3)' : role === 'client' ? 'rgba(244, 114, 182, 0.3)' : 'rgba(132, 204, 22, 0.3)'}`
                 }}>
+                  {role === 'super-admin' ? <ShieldCheck size={11} /> : <UserCheck size={11} />}
                   {role}
                 </span>
               )}

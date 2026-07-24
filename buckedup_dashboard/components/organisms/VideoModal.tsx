@@ -84,7 +84,10 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
   const isDirect = videoUrl ? isDirectVideoUrl(videoUrl) : false;
   const statusColor = STATUS_HEX[item.status as PipelineStatus] ?? "var(--castleton)";
 
+  const canInteract = role !== "operator";
+
   const handleSendFeedback = () => {
+    if (!canInteract) return;
     if (!feedbackText.trim() && !selectedReaction) return;
     const textToSend = feedbackText.trim() || (selectedReaction ? `[Reaction: ${REACTION_MAP[selectedReaction]?.label ?? selectedReaction}]` : "");
     addFeedback(product.id, textToSend, selectedReaction);
@@ -335,7 +338,11 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() => setSelectedReaction(isSelected ? null : opt.id)}
+                      disabled={!canInteract}
+                      onClick={() => {
+                        if (!canInteract) return;
+                        setSelectedReaction(isSelected ? null : opt.id);
+                      }}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -347,7 +354,8 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
                         border: isSelected ? "1px solid var(--castleton)" : "1px solid var(--border-color, rgba(255,255,255,0.1))",
                         backgroundColor: isSelected ? "rgba(16, 185, 129, 0.2)" : "rgba(255,255,255,0.04)",
                         color: isSelected ? "var(--castleton)" : "var(--ink-soft)",
-                        cursor: "pointer",
+                        cursor: canInteract ? "pointer" : "not-allowed",
+                        opacity: canInteract ? 1 : 0.5,
                         transition: "all 0.15s ease",
                       }}
                     >
@@ -363,19 +371,34 @@ export function VideoModal({ products, catalog, modalKey, onClose }: VideoModalP
                 <input
                   type="text"
                   value={feedbackText}
+                  disabled={!canInteract}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSendFeedback();
+                    if (e.key === "Enter" && canInteract) handleSendFeedback();
                   }}
-                  placeholder={selectedReaction ? `Add comments with ${REACTION_MAP[selectedReaction]?.label ?? "reaction"}...` : "Add feedback..."}
-                  style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "13px" }}
+                  placeholder={
+                    !canInteract
+                      ? "Operators cannot leave feedback or comments"
+                      : selectedReaction
+                      ? `Add comments with ${REACTION_MAP[selectedReaction]?.label ?? "reaction"}...`
+                      : "Add feedback..."
+                  }
+                  style={{
+                    flex: 1,
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border)",
+                    fontSize: "13px",
+                    opacity: canInteract ? 1 : 0.6,
+                    cursor: canInteract ? "text" : "not-allowed",
+                  }}
                 />
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={!feedbackText.trim() && !selectedReaction}
+                  disabled={!canInteract || (!feedbackText.trim() && !selectedReaction)}
                   onClick={handleSendFeedback}
-                  style={{ padding: "8px 12px" }}
+                  style={{ padding: "8px 12px", cursor: canInteract ? "pointer" : "not-allowed", opacity: canInteract ? 1 : 0.5 }}
                 >
                   <Send size={16} />
                 </button>

@@ -23,23 +23,26 @@ The dashboard is a **video production pipeline tracker** for BuckedUp's AIGC (AI
 |------|-----|-------------|
 | **Operator** | Production staff (videographers, editors, AI operators) | Execute work — claim/unclaim products, upload document/video deliverables per stage (`stage_deliverables` / `video_versions`), report issues, and submit for QA review |
 | **Admin** | Lifewood leadership / production managers (formerly Lead) | Own the pipeline — create listings, prioritize (`High/Medium/Low`), review and advance stages via the **Approvals Inbox** (`ReviewsView`), conduct QA checks, and manage Operators |
-| **Super-Admin** | Governance-only administrators (formerly Admin) | Manage user accounts (`profiles`), import corporate Excel production plans (`Planning`), view AI audit logs (`Bucky`), and enforce system security while sharing full operational QA/catalog parity with Admins |
+| **Super-Admin** | Governance-only administrators | Manage user accounts (`profiles`), invite/assign other Super-Admins with customizable **Tab Permissions & Read-Only Access**, import corporate Excel production plans (`Planning`), view AI audit logs (`Bucky`), and enforce security |
 | **Client** | BuckedUp stakeholders | View published videos, provide feedback via qualitative reactions, review completed work |
 
 ---
 
-## Navigation by Role
+## Navigation by Role & Granular Permissions
+
+> [!NOTE]
+> **Granular Super-Admin Permissions**: When inviting or editing Super-Admins in `ManageUsersView`, Super-Admins can configure explicit **Tab Permissions** (`tab_permissions`) to grant access to specific tabs, and toggle **Read-Only Access** (`is_read_only`) to allow viewing without modification capabilities.
 
 | Tab | Operator | Admin | Super-Admin | Client |
 |-----|----------|-------|-------------|--------|
-| **Overview** | ✅ Read-only | ✅ Read-only | ✅ Read-only | ❌ Not visible |
-| **Approvals (`reviews`)** | ❌ Not visible | ✅ Full review access (`ReviewsView` inbox) | ✅ Full review access | ❌ Not visible |
-| **Catalog** | ✅ View only | ✅ Full manage (add/edit/delete catalog items, request videos) | ✅ Full manage | ❌ Not visible |
-| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline QA control | ✅ Full pipeline QA control | ✅ View published only |
-| **Analytics** | ❌ Blocked (redirects to Overview) | ✅ View all charts (`DailyProgressChart`) | ✅ View all charts | ❌ Blocked |
-| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Super-Admin corporate target imports & plan config (`ProductionPlanView`) | ❌ Not visible |
-| **Admin** | ❌ Not visible | ❌ Not visible | ✅ User governance (`ManageUsersView`) | ❌ Not visible |
-| **Bucky** | ❌ Not visible | ❌ Not visible | ✅ AI audit log viewer (`BuckyConversationsView`) | ❌ Not visible |
+| **Overview** | ✅ Read-only | ✅ Read-only | ✅ Read-only (or Configurable) | ❌ Not visible |
+| **Approvals (`reviews`)** | ❌ Not visible | ✅ Full review access (`ReviewsView` inbox) | ✅ Full review access (or Configurable) | ❌ Not visible |
+| **Catalog** | ✅ View only | ✅ Full manage (add/edit/delete catalog items, request videos) | ✅ Full manage (or Configurable) | ❌ Not visible |
+| **Video Library** | ✅ Submit deliverables for owned items | ✅ Full pipeline QA control | ✅ Full pipeline QA control (or Configurable) | ✅ View published only |
+| **Analytics** | ❌ Blocked (redirects to Overview) | ✅ View all charts (`DailyProgressChart`) | ✅ View all charts (or Configurable) | ❌ Blocked |
+| **Planning** | ❌ Not visible | ❌ Not visible | ✅ Super-Admin target imports & plan config (Configurable) | ❌ Not visible |
+| **Admin / Users** | ❌ Not visible | ❌ Not visible | ✅ User governance & Super-Admin role assignment (Configurable) | ❌ Not visible |
+| **Bucky** | ❌ Not visible | ❌ Not visible | ✅ AI audit log viewer (Configurable; readable in Read-Only mode) | ❌ Not visible |
 
 ---
 

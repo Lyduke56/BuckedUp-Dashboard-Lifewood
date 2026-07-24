@@ -14,7 +14,7 @@ This platform serves as the mission control for Lifewood's AI-Generated Content 
 
 ### 👥 2. Role-Based Access Control (RBAC) & Supabase RLS
 Enforced via Supabase Row-Level Security (RLS) policies and PostgreSQL trigger functions:
-- **`Super-Admin`**: Operational governance, user account management (`/api/super-admin/create-user`), forced first-login password changes, corporate production plan configuration, and Bucky conversation auditing.
+- **`Super-Admin`**: Operational governance, user account management & Super-Admin role assignment (`/api/super-admin/create-user`), granular tab permission configuration (`tab_permissions`), Read-Only Access toggling (`is_read_only`), forced first-login password changes, corporate production plan configuration, and Bucky conversation auditing.
 - **`Admin`**: Operational review manager—reviews submitted Storyboards, Scripts, and Video Revisions, approves deliverables, configures product catalog listings, and manages team workload.
 - **`Operator`**: Production execution staff—claims assigned products, uploads pre-video deliverables and video revisions, and reports/resolves production issues.
 - **`Client`**: Brand stakeholders—accesses a dedicated portal to view published deliverables and leave qualitative feedback.

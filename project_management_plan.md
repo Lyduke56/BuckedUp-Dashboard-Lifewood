@@ -25,7 +25,7 @@ Before this dashboard, the team was running on a **Google Sheet**. That broke do
 |------|-----|-------------|
 | **Operator** | Production staff (videographers, editors, AI operators) | Claim assigned products, submit pre-video deliverables (Storyboards & Scripts) and video revisions, report issues |
 | **Admin** | Lifewood leadership / production managers (formerly Lead) | Assign priority, review submitted deliverables via **Approvals Inbox**, evaluate QA approvals to advance stages, manage Operators |
-| **Super-Admin** | Governance-only administrators (formerly Admin) | Manage user accounts (`profiles`), import corporate production plans (`Planning`), audit AI execution logs (`Bucky`), share operational parity with Admins |
+| **Super-Admin** | Governance-only administrators | Manage user accounts (`profiles`), assign/promote other Super-Admins, configure granular tab permissions (`tab_permissions`) & Read-Only Access (`is_read_only`), import corporate production plans (`Planning`), audit AI execution logs (`Bucky`) |
 | **Client** | BuckedUp stakeholders | Browse completed videos, leave feedback and qualitative reactions on published content |
 
 ---

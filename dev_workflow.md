@@ -128,6 +128,7 @@ buckedup_dashboard/
 │
 └── scripts/                    # Database migrations & seed scripts (`tsx`, run manually)
     ├── apply-schema.ts         # Apply schema.sql to a fresh DB
+    ├── apply-tab-permissions-schema.ts # Adds tab_permissions & is_read_only columns to profiles
     ├── migrate-feedback-reaction.ts # Adds reaction column to feedback table
     ├── seed-catalog.ts         # Seed catalog_products from CSV
     └── generate-test-plan-xlsx.js # Generates test production plan
@@ -159,7 +160,7 @@ buckedup_dashboard/
 | `ClientVideoLibraryView.tsx` | Client Library | Clients / All | Published videos only, dynamic category/subcategory filters, left-docked header, smart view filters (Unviewed, Viewed, Feedback Provided, Recents), qualitative reaction badges |
 | `AnalyticsView.tsx` | Analytics | Admin & Super-Admin (`Operator` and `Client` blocked) | Power BI column chart (`DailyProgressChart`), pacing, stage funnel |
 | `ProductionPlanView.tsx` | Planning | Super-Admin only (`role === 'super-admin'`) | Excel production plan imports & daily target settings (`Set Targets` button upserts into `daily_target_history`) |
-| `ManageUsersView.tsx` | Admin | Super-Admin only | User governance, invite & role management |
+| `ManageUsersView.tsx` | Admin | Super-Admin only | User governance, assign Super-Admin roles, configure granular tab permissions (`tab_permissions`) & Read-Only access (`is_read_only`) |
 | `BuckyConversationsView.tsx` | Bucky | Super-Admin only | AI audit log and conversation history viewer |
 
 ---
