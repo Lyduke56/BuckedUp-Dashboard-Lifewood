@@ -1,117 +1,227 @@
-# BuckedUp Dashboard (Lifewood)
+# BuckedUp AIGC Video Production Dashboard (Lifewood)
 
-A comprehensive video production and pipeline management dashboard built with **Next.js**, **React**, and **Supabase**. This platform is designed to streamline the workflow between administrators, team leads, and operators in tracking, reviewing, and delivering video content.
+A comprehensive, enterprise-grade video production and pipeline management platform built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, and **Supabase (PostgreSQL with RLS)**. 
 
-## Features
+This platform serves as the mission control for Lifewood's AI-Generated Content (AIGC) production team—tracking, reviewing, and delivering video marketing assets across extensive product catalogs.
 
-- **Role-Based Access Control (RBAC)**: Secure access tailoring the experience for Admins, Leads, and Operators via Supabase Row Level Security (RLS).
-  - *Admins*: Full system access, team management, pipeline planning, and role configuration.
-  - *Leads*: Oversee production, manage reviews, assign stages, and track team analytics.
-  - *Operators*: Focus on active video deliverables, editing, and uploading to the pipeline.
-- **Video Pipeline Tracking**: Track products through multiple stages (Storyboarding, Scripting, Design, and Editing) with detailed delivery types and statuses.
-- **Integrated AI Assistant (Bucky)**: Features an intelligent assistant (powered by OpenRouter) with conversational capabilities and proactive alerts to assist with planning and data queries.
-- **Theme Persistence**: Built-in support for synchronized Light and Dark modes customized and saved per user.
-- **Multi-Company Architecture Ready**: Features a subtle partner company context filter in the header (accessible to Admins & Super Admins) serving as a placeholder for full multi-tenant AIGC hub scalability.
-- **Rich Analytics & Planning**: Custom views for analyzing output, daily targets, and overarching production goals.
+---
 
-## Tech Stack & Dependencies
+## 🌟 Core Features & Modules
 
-### Core Architecture
-- **Framework**: Next.js 16.2.10 (App Router), React 19.2.4, TypeScript 5
-- **Backend & Database**: Supabase (PostgreSQL, Realtime, Storage, RLS)
-- **Styling**: Tailwind CSS v4, PostCSS, Vanilla CSS Design System
+### 🔒 1. Strict QA Approval Gate System (`ReviewsView`, `ProductReviewModal`)
+- **Automated Stage Advancement**: Pipeline stages (`Not Started` ➔ `Design` ➔ `Production` ➔ `In Review` ➔ `Published`) can **only** be advanced by an Admin evaluating and approving Operator deliverables in the **Approvals Inbox**.
+- **Enforced Governance**: Manual stage manipulation is locked across Kanban boards, product editing forms, and AI assistant execution tools to maintain strict QA standards.
+
+### 👥 2. Role-Based Access Control (RBAC) & Supabase RLS
+Enforced via Supabase Row-Level Security (RLS) policies and PostgreSQL trigger functions:
+- **`Super-Admin`**: Operational governance, user account management (`/api/super-admin/create-user`), forced first-login password changes, corporate production plan configuration, and Bucky conversation auditing.
+- **`Admin`**: Operational review manager—reviews submitted Storyboards, Scripts, and Video Revisions, approves deliverables, configures product catalog listings, and manages team workload.
+- **`Operator`**: Production execution staff—claims assigned products, uploads pre-video deliverables and video revisions, and reports/resolves production issues.
+- **`Client`**: Brand stakeholders—accesses a dedicated portal to view published deliverables and leave qualitative feedback.
+
+### 🎬 3. Client Video Portal & Qualitative Reactions (`ClientVideoLibraryView`, `VideoModal`)
+- **Published Deliverables Showcase**: Dedicated read-only view displaying approved marketing videos.
+- **Smart View Filters**: Quick toggle filters for `All Videos`, `Unviewed` (with **NEW** indicator badges), `Viewed Only`, `Feedback Provided`, and `Recents (7 Days)`.
+- **Qualitative Satisfaction Reactions**: Clients attach social reaction badges to comments:
+  - 🔥 **Loved it** (`loved`)
+  - 👍 **Good** (`good`)
+  - 😐 **Neutral** (`neutral`)
+  - 👎 **Needs Revision** (`needs_work`)
+  - ❌ **Unsatisfied** (`unsatisfied`)
+
+### 🤖 4. Integrated AI Assistant — "Bucky AI" (`BuckyWidget`, `/app/api/bucky/chat`)
+- **Powered by OpenRouter & Vercel AI SDK**: Conversational AI assistant with real-time database context.
+- **Role-Aware Toolset**: Features modular tool definitions (`shared.ts`, `operator.ts`, `admin.ts`) allowing Bucky to query video status, report issues, summarize daily progress, and assist in planning.
+- **Audit & Transcript Inspection**: Includes `BuckyTranscriptModal.tsx` and `BuckyConversationsView.tsx` for Super-Admins to inspect conversation history and tool execution logs.
+
+### 📦 5. Catalog Management & Production Planning (`CatalogView`, `ProductionPlanView`)
+- **CSV Catalog Ingestion**: Supports parsing and seeding product catalogs from CSV/Excel data.
+- **Target Tracking & Daily Pacing**: Configurable daily target output widgets (`ProductionOutputWidget.tsx`) and hero progress banners (`ProjectProgressCard.tsx`) with deadline pacing calculations.
+
+### 📊 6. Analytics Suite (`AnalyticsView`)
+Features 10 real-time analytical charts:
+- Category Completion Rates
+- Daily Target vs. Actual Pacing
+- Pipeline Conversion Funnel
+- Delivery Progress by Language
+- Owner / Editor Workload Distribution
+- Rejection Rate by Category
+- Review Status Breakdown
+- Average Days in Current Stage
+- Pipeline Status Distribution
+
+### 🏢 7. Multi-Company Partner Architecture Ready (`AppHeader`)
+- **Partner Context Filter**: Subtle dropdown filter in `AppHeader.tsx` accessible to `Super-Admin` and `Admin` roles (switching between `BuckedUp`, `Red Bull`, `Monster Energy`, `Celsius`, `NutraBio`).
+- **Scalability Placeholder**: Serves as the UI entryway for full multi-tenant AIGC hub expansion. See [MULTI_COMPANY_REARCHITECTURE_PLAN.md](./MULTI_COMPANY_REARCHITECTURE_PLAN.md).
+
+### 🌓 8. Theme System
+- **Synchronized Dark & Light Modes**: Uses CSS custom variables with persistent user preferences saved to Supabase profiles.
+
+---
+
+## 🗺️ Application Navigation & View Structure
+
+| View ID | Component | Target Role | Primary Function |
+| :--- | :--- | :--- | :--- |
+| `overview` | `OverviewView.tsx` | All Users | Dashboard KPIs, daily targets, recent activity, hero progress |
+| `catalog` | `CatalogView.tsx` | Admin / Super-Admin | Product Catalog management, categories, CSV ingestion |
+| `library` | `VideoLibraryView.tsx` | Admin / Operator | Operational video pipeline tracking (Kanban & Table) |
+| `client-library` | `ClientVideoLibraryView.tsx` | Client | Published video portal with Qualitative Reactions |
+| `reviews` | `ReviewsView.tsx` | Admin | QA Approvals Inbox for reviewing storyboards & videos |
+| `analytics` | `AnalyticsView.tsx` | All Users | 10 real-time analytics & workload distribution charts |
+| `planning` | `ProductionPlanView.tsx` | Admin / Super-Admin | Corporate production plan configuration & target setting |
+| `super-admin` | `ManageUsersView.tsx` | Super-Admin | User account provisioning & role management |
+| `bucky` | `BuckyConversationsView.tsx` | Super-Admin | Bucky AI execution logs & conversation audit transcripts |
+
+---
+
+## 🛠️ Tech Stack & Dependencies
+
+### Core Framework
+- **Framework**: Next.js 16.2.10 (App Router)
+- **UI Engine**: React 19.2.4 + TypeScript 5
+- **Database & Auth**: Supabase PostgreSQL, Storage, Realtime, `@supabase/ssr` 0.12.0
+- **Styling**: Tailwind CSS v4, PostCSS, Custom Vanilla CSS (`globals.css`)
 
 ### Production Dependencies (`package.json`)
 | Package | Version | Purpose |
 | :--- | :--- | :--- |
-| `next` | `16.2.10` | React Framework for Production (App Router) |
-| `react` & `react-dom` | `19.2.4` | Core UI Library & DOM Renderer |
-| `@supabase/supabase-js` | `^2.110.1` | Supabase JavaScript Client for Database & Storage |
-| `@supabase/ssr` | `^0.12.0` | Server-Side Rendering & Auth Middleware helpers for Supabase |
-| `ai` | `^7.0.26` | Vercel AI SDK Core for structured AI interactions |
-| `@ai-sdk/react` | `^4.0.27` | React UI Hooks for AI Assistant (`useChat`, `useCompletion`) |
-| `@openrouter/ai-sdk-provider` | `^3.0.0` | OpenRouter Provider for Vercel AI SDK (Bucky AI Integration) |
-| `framer-motion` | `^12.42.2` | Production-grade UI animations and modal transitions |
-| `lucide-react` | `^1.23.0` | Comprehensive icon library |
-| `clsx` & `tailwind-merge` | `^2.1.1` / `^3.6.0` | Dynamic CSS class utility merging |
-| `papaparse` | `^5.5.4` | CSV Parser for product catalog ingestion |
-| `xlsx` | `^0.18.5` | Spreadsheet parser for corporate production plan uploads |
-| `cheerio` | `^1.2.0` | HTML parsing utility for asset scraping |
-| `nodemailer` | `^9.0.3` | Email notification delivery for invitations and alerts |
-| `react-markdown` & `remark-gfm` | `^10.1.0` / `^4.0.1` | Markdown renderer & GFM support for AI responses |
-| `zod` | `^4.4.3` | TypeScript-first schema validation |
+| `next` | `16.2.10` | Production React App Router framework |
+| `react` & `react-dom` | `19.2.4` | Core UI library and DOM renderer |
+| `@supabase/supabase-js` | `^2.110.1` | Supabase JavaScript client for DB, Auth, and Storage |
+| `@supabase/ssr` | `^0.12.0` | Server-side authentication and session helpers |
+| `ai` | `^7.0.26` | Vercel AI SDK Core for structured LLM interactions |
+| `@ai-sdk/react` | `^4.0.27` | React UI hooks (`useChat`) for Bucky AI Assistant |
+| `@openrouter/ai-sdk-provider` | `^3.0.0` | OpenRouter model provider for Vercel AI SDK |
+| `framer-motion` | `^12.42.2` | Fluid UI animations, tilt effects, and modal transitions |
+| `lucide-react` | `^1.23.0` | Modern UI icon set |
+| `clsx` & `tailwind-merge` | `^2.1.1` / `^3.6.0` | Class string construction and Tailwind class deduplication |
+| `papaparse` | `^5.5.4` | CSV parsing library for product catalog imports |
+| `xlsx` | `^0.18.5` | Spreadsheet parser for production plan `.xlsx` uploads |
+| `cheerio` | `^1.2.0` | Fast HTML parsing utility for product image scraping |
+| `nodemailer` | `^9.0.3` | Email service integration for user invites and system alerts |
+| `react-markdown` & `remark-gfm` | `^10.1.0` / `^4.0.1` | Markdown renderer with GitHub Flavored Markdown support |
+| `zod` | `^4.4.3` | Schema validation library |
 
 ### Development Dependencies (`devDependencies`)
 | Package | Version | Purpose |
 | :--- | :--- | :--- |
-| `typescript` | `^5` | Static Type Checker |
-| `tsx` | `^4.23.0` | TypeScript Execute runner for DB scripts & migrations |
-| `@tailwindcss/postcss` & `tailwindcss` | `^4` | Utility-first CSS framework PostCSS plugin |
-| `eslint` & `eslint-config-next` | `^9` / `16.2.10` | Code Quality & Linting |
+| `typescript` | `^5` | Static type checking |
+| `tsx` | `^4.23.0` | Executable TypeScript runner for database scripts |
+| `@tailwindcss/postcss` & `tailwindcss` | `^4` | Utility-first CSS engine |
+| `eslint` & `eslint-config-next` | `^9` / `16.2.10` | Code quality and linting |
 | `pg` & `@types/pg` | `^8.22.0` | PostgreSQL client for administrative DB seed scripts |
-| `puppeteer` | `^25.3.0` | Headless browser runner for product image scraping |
+| `puppeteer` | `^25.3.0` | Headless Chrome browser for image web scraping |
+
+---
+
+## 📁 Repository Directory Structure
+
+```
+BuckedUp-Dashboard-Lifewood/
+├── MULTI_COMPANY_REARCHITECTURE_PLAN.md  # Multi-tenant migration blueprint
+├── project_management_plan.md            # Detailed PM plan & role workflows
+├── README.md                             # Repository overview & setup
+└── buckedup_dashboard/                   # Next.js Application Root
+    ├── app/                              # App Router pages & API routes
+    │   ├── globals.css                   # Master design system & CSS variables
+    │   ├── layout.tsx                    # Root layout
+    │   ├── page.tsx                      # Main dashboard route (<Dashboard />)
+    │   ├── login/                        # Glassmorphism login page
+    │   └── api/                          # Server API endpoints
+    │       ├── bucky/chat/               # Bucky AI chat endpoint (OpenRouter)
+    │       └── super-admin/              # User creation & management routes
+    │
+    ├── components/                       # Atomic & Component Architecture
+    │   ├── atoms/                        # Basic UI primitives
+    │   ├── molecules/                    # Notification bell, search inputs
+    │   ├── organisms/                    # Modals, charts, header, Bucky widget
+    │   └── templates/                    # Full view layouts (Overview, Library, etc.)
+    │
+    ├── lib/                              # Business logic, state & API hooks
+    │   ├── bucky/                        # Bucky AI prompt builders & tool definitions
+    │   ├── supabase/                     # Supabase client & server instances
+    │   ├── types.ts                      # Shared TypeScript interfaces
+    │   ├── useAuth.ts                    # Auth state & session hook
+    │   ├── useCatalog.ts                 # Product catalog state hook
+    │   ├── useDailyProgress.ts           # Target tracking hook
+    │   ├── useFeedback.ts                # Qualitative reactions hook
+    │   ├── useIssues.ts                  # Production issue reporting hook
+    │   └── useProductionPlan.ts          # Corporate plan data hook
+    │
+    ├── scripts/                          # DB schema & seeding utilities
+    │   ├── apply-schema.ts               # Supabase schema migration script
+    │   ├── seed-catalog.ts               # Catalog seeding script
+    │   └── scrape-images.ts              # Catalog image web scraper
+    │
+    └── supabase/                         # Database Schemas & Migrations
+        └── schema.sql                    # Production Postgres schema & RLS policies
+```
 
 ---
 
 ## 🏛️ Multi-Company System Architecture & Migration Plan
 
-This repository is currently undergoing a planned evolution from a single-company tool (BuckedUp) to a **centralized AIGC Production Hub** for multiple partnered companies (e.g. Red Bull, Monster Energy, Celsius, NutraBio).
+The system includes a strategic blueprint to transition from a single-company instance to a **centralized Multi-Tenant AIGC Production Hub** managing multiple partnered brands (BuckedUp, Red Bull, Monster Energy, Celsius, NutraBio).
 
-For complete technical scan findings, database schema refactoring blueprints, RLS security isolation guides, and developer handover documentation, please refer to:
+For complete technical scan findings, database schema refactoring blueprints, RLS security isolation guides, and developer handover documentation, see:
 👉 **[`MULTI_COMPANY_REARCHITECTURE_PLAN.md`](./MULTI_COMPANY_REARCHITECTURE_PLAN.md)**
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- npm or pnpm
-- A Supabase project
+* **Node.js**: v18.0.0 or higher
+* **Package Manager**: `npm` (v9+) or `pnpm`
+* **Supabase Instance**: Active Supabase project with PostgreSQL database & Auth enabled
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/Lyduke56/BuckedUp-Dashboard-Lifewood.git
    cd BuckedUp-Dashboard-Lifewood/buckedup_dashboard
    ```
 
-2. Install dependencies:
+2. **Install project dependencies**:
    ```bash
    npm install
    ```
 
-3. Set up environment variables. Create a `.env.local` file in the `buckedup_dashboard` directory:
+3. **Configure Environment Variables**:
+   Create a `.env.local` file inside the `buckedup_dashboard` directory:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   SUPABASE_ACCESS_TOKEN=your_management_token
-   OPENROUTER_API_KEY=your_openrouter_api_key
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   SUPABASE_ACCESS_TOKEN=your-management-access-token
+   OPENROUTER_API_KEY=your-openrouter-api-key
    ```
 
-4. Run the development server:
+4. **Initialize Database Schema** (if connecting to a fresh Supabase instance):
+   Execute `supabase/schema.sql` inside your Supabase SQL Editor, or run:
+   ```bash
+   npm run db:apply-schema
+   ```
+
+5. **Start Development Server**:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Database & Migrations
+---
 
-The project utilizes Supabase Management API via custom one-off scripts to securely apply schema changes and handle Row Level Security without exposing DDL operations to the client.
-You can find these administrative scripts in the `/scripts` directory.
+## 🧪 Verification & Type Safety
 
-To apply local scripts using your access token:
+Before committing changes, run static type checking:
 ```bash
-npx tsx --env-file=.env.local scripts/your-script.ts
+npx tsc --noEmit
 ```
 
-## Contributing
-- Create a feature branch off `main`
-- Run local builds (`npx tsc --noEmit`) and ensure no strict TypeScript errors occur
-- Submit a pull request for review
+---
 
-## License
-Private and Confidential. All rights reserved.
+## 🔒 Security & License
+Private and Confidential. Built for Lifewood & BuckedUp AIGC Production. All rights reserved.
