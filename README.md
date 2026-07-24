@@ -11,13 +11,56 @@ A comprehensive video production and pipeline management dashboard built with **
 - **Video Pipeline Tracking**: Track products through multiple stages (Storyboarding, Scripting, Design, and Editing) with detailed delivery types and statuses.
 - **Integrated AI Assistant (Bucky)**: Features an intelligent assistant (powered by OpenRouter) with conversational capabilities and proactive alerts to assist with planning and data queries.
 - **Theme Persistence**: Built-in support for synchronized Light and Dark modes customized and saved per user.
+- **Multi-Company Architecture Ready**: Features a subtle partner company context filter in the header (accessible to Admins & Super Admins) serving as a placeholder for full multi-tenant AIGC hub scalability.
 - **Rich Analytics & Planning**: Custom views for analyzing output, daily targets, and overarching production goals.
 
-## Tech Stack
+## Tech Stack & Dependencies
 
-- **Frontend**: Next.js 16 (App Router), React, TypeScript, Vanilla CSS
-- **Backend & Auth**: Supabase (PostgreSQL, Edge Functions, Authentication, Storage)
-- **AI Integrations**: OpenRouter API for Bucky AI Assistant
+### Core Architecture
+- **Framework**: Next.js 16.2.10 (App Router), React 19.2.4, TypeScript 5
+- **Backend & Database**: Supabase (PostgreSQL, Realtime, Storage, RLS)
+- **Styling**: Tailwind CSS v4, PostCSS, Vanilla CSS Design System
+
+### Production Dependencies (`package.json`)
+| Package | Version | Purpose |
+| :--- | :--- | :--- |
+| `next` | `16.2.10` | React Framework for Production (App Router) |
+| `react` & `react-dom` | `19.2.4` | Core UI Library & DOM Renderer |
+| `@supabase/supabase-js` | `^2.110.1` | Supabase JavaScript Client for Database & Storage |
+| `@supabase/ssr` | `^0.12.0` | Server-Side Rendering & Auth Middleware helpers for Supabase |
+| `ai` | `^7.0.26` | Vercel AI SDK Core for structured AI interactions |
+| `@ai-sdk/react` | `^4.0.27` | React UI Hooks for AI Assistant (`useChat`, `useCompletion`) |
+| `@openrouter/ai-sdk-provider` | `^3.0.0` | OpenRouter Provider for Vercel AI SDK (Bucky AI Integration) |
+| `framer-motion` | `^12.42.2` | Production-grade UI animations and modal transitions |
+| `lucide-react` | `^1.23.0` | Comprehensive icon library |
+| `clsx` & `tailwind-merge` | `^2.1.1` / `^3.6.0` | Dynamic CSS class utility merging |
+| `papaparse` | `^5.5.4` | CSV Parser for product catalog ingestion |
+| `xlsx` | `^0.18.5` | Spreadsheet parser for corporate production plan uploads |
+| `cheerio` | `^1.2.0` | HTML parsing utility for asset scraping |
+| `nodemailer` | `^9.0.3` | Email notification delivery for invitations and alerts |
+| `react-markdown` & `remark-gfm` | `^10.1.0` / `^4.0.1` | Markdown renderer & GFM support for AI responses |
+| `zod` | `^4.4.3` | TypeScript-first schema validation |
+
+### Development Dependencies (`devDependencies`)
+| Package | Version | Purpose |
+| :--- | :--- | :--- |
+| `typescript` | `^5` | Static Type Checker |
+| `tsx` | `^4.23.0` | TypeScript Execute runner for DB scripts & migrations |
+| `@tailwindcss/postcss` & `tailwindcss` | `^4` | Utility-first CSS framework PostCSS plugin |
+| `eslint` & `eslint-config-next` | `^9` / `16.2.10` | Code Quality & Linting |
+| `pg` & `@types/pg` | `^8.22.0` | PostgreSQL client for administrative DB seed scripts |
+| `puppeteer` | `^25.3.0` | Headless browser runner for product image scraping |
+
+---
+
+## 🏛️ Multi-Company System Architecture & Migration Plan
+
+This repository is currently undergoing a planned evolution from a single-company tool (BuckedUp) to a **centralized AIGC Production Hub** for multiple partnered companies (e.g. Red Bull, Monster Energy, Celsius, NutraBio).
+
+For complete technical scan findings, database schema refactoring blueprints, RLS security isolation guides, and developer handover documentation, please refer to:
+👉 **[`MULTI_COMPANY_REARCHITECTURE_PLAN.md`](./MULTI_COMPANY_REARCHITECTURE_PLAN.md)**
+
+---
 
 ## Getting Started
 
@@ -39,7 +82,7 @@ A comprehensive video production and pipeline management dashboard built with **
    npm install
    ```
 
-3. Set up environment variables. Create a `.env.local` file in the root directory:
+3. Set up environment variables. Create a `.env.local` file in the `buckedup_dashboard` directory:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -67,7 +110,7 @@ npx tsx --env-file=.env.local scripts/your-script.ts
 
 ## Contributing
 - Create a feature branch off `main`
-- Run local builds and ensure no strict TypeScript errors occur
+- Run local builds (`npx tsc --noEmit`) and ensure no strict TypeScript errors occur
 - Submit a pull request for review
 
 ## License

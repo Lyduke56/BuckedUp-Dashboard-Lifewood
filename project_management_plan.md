@@ -177,3 +177,25 @@ Not Started → Design → Production → In Review → Published
   - ❌ **Unsatisfied** (`unsatisfied`)
 - Stored in `feedback` table (`reaction` column).
 - Displayed as badges on comment bubbles and aggregated as chips (e.g. `🔥 2`, `👍 1`) on video library cards.
+
+---
+
+## 6. Multi-Company Architectural Transformation & Header Filter Placeholder
+
+> **Full Blueprint & Developer Handover Document**: [MULTI_COMPANY_REARCHITECTURE_PLAN.md](./MULTI_COMPANY_REARCHITECTURE_PLAN.md)
+
+### 6.1 Strategic Pivot Context
+To support Lifewood's expansion across multiple brand clients, the platform is transitioning from a single-tenant system (BuckedUp only) to a **Multi-Tenant AIGC Production Hub** managing content for multiple partnered companies (e.g., BuckedUp, Red Bull, Monster Energy, Celsius, NutraBio).
+
+### 6.2 Phase 1: Header Company Dropdown Placeholder (`AppHeader.tsx`)
+- **Subtle Styling**: Appears as clean, un-styled flat text when unhovered; reveals glassmorphic background (`var(--header-badge-bg)`), rounded border (`6px`), and rotating chevron (`ChevronDown`) on hover or click.
+- **RBAC Guarded**: Restricted strictly to `super-admin` and `admin` roles. Non-admin users see the standard static title.
+- **Theme-Aware**: Supports seamless rendering across both Dark and Light mode themes using panel-aware CSS variables (`var(--panel-bg-opaque)`, `var(--ink)`, `var(--ink-soft)`, `var(--castleton)`).
+- **Static Demo Data**: Loaded with interactive partner options (`BuckedUp`, `Red Bull`, `Monster Energy`, `Celsius`, `NutraBio`) to demonstrate real-time title updating.
+
+### 6.3 Future Engineering Roadmap
+1. **Database Multi-Tenancy**: Create `companies` table and add `company_id uuid references companies(id)` to `products`, `issues`, `production_plans`, `video_requests`, and `bucky_conversations`.
+2. **Supabase RLS Enforcers**: Update Postgres RLS policies to isolate tenant data per user session.
+3. **Global `CompanyContext`**: Wrap app in `CompanyContext` to drive state across custom hooks (`useCatalog`, `useProductionPlan`, `useIssues`, etc.).
+4. **Bucky AI Scoping**: Filter vector queries and RAG prompt contexts by `company_id` to maintain strict multi-tenant privacy.
+
